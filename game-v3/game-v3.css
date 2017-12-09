@@ -1,0 +1,103 @@
+canvas {
+    position: absolute;
+    margin: 0;
+    left: 0;
+    top: 0;
+}
+
+canvas#main {
+    z-index: 0;
+}
+
+canvas#hudBack {
+    z-index: 10;
+}
+
+canvas#hudFront {
+    z-index: 20;
+}
+
+div#points {
+    z-index: 30;
+    text-align: center;
+    position: absolute;
+    top: 10px;
+    width: 100px;
+    font-family: monospace;
+    font-size: 30px;
+    color: white;
+}
+
+div#level {
+    z-index: 30;
+    text-align: left;
+    position: absolute;
+    left: 5px;
+    bottom: 5px;
+    font-family: monospace;
+    font-size: 13px;
+    color: white;
+}
+
+div#debug {
+    z-index: 911;
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 60px;
+    color: white;
+    width: 300px;
+    white-space: pre;
+    font-size: 10px;
+    line-height: 9px;
+}
+
+body {
+    background-color: black;
+    overflow: hidden;
+    font-family: monospace;
+}
+
+div#wrapper {
+    cursor: none;
+}
+
+div.modal {
+    margin: 30px;
+    border: 2px solid #004400;
+    background-color: #002200;
+    z-index: 50;
+    color: white;
+    text-align: center;
+    display: none;
+}
+
+div#modalInfo {
+    position: absolute;
+    background-color: rgba(0, 22, 0, 0.9);
+    left: 0;
+    top: 0;
+    z-index: 50;
+    display: none;
+    cursor: default;
+}
+
+h1 {
+    font-size: 50px;
+}
+
+h2 {
+    font-size: 30px;
+}
+
+div.info {
+    margin-bottom: 20px;
+}
+
+li {
+    list-style-type: none;
+}
+
+a:visited, a {
+    color: #00aa00;
+}

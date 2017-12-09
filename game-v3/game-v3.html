@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Game V3</title>
+    <link rel="stylesheet" href="game-v3.css" type="text/css">
+    <script type="text/javascript" src="levels.js"></script>
+    <script type="text/javascript" src="debug.js"></script>
+    <script type="text/javascript" src="images.js"></script>
+    <script type="text/javascript" src="graphics.js"></script>
+    <script type="text/javascript" src="controller.js"></script>
+    <script type="text/javascript" src="utils.js"></script>
+    <script type="text/javascript" src="state.js"></script>
+    <script language="JavaScript">
+
+        var state;
+
+        function init() {
+            state = new State("main", "debug", "hudBack", "hudFront", "points", "level");
+            state.onInitialized(function () {
+                requestAnimationFrame(animate);
+            });
+            state.showStartGame();
+        }
+
+        function animate(timestamp) {
+            state.updateState(timestamp);
+            state.updateGraphics(timestamp);
+            requestAnimationFrame(animate);
+        }
+
+    </script>
+</head>
+<body onload="init()">
+<div id="wrapper">
+    <canvas id="main" width="500" height="500"></canvas>
+    <canvas id="hudBack" width="500" height="500"></canvas>
+    <canvas id="hudFront" width="500" height="500"></canvas>
+    <div id="points">0</div>
+    <div id="level">0</div>
+    <div id="debug">DEBUG</div>
+    <div id="modalInfo">
+        <div id="startGame" class="modal">
+            <h1>Game V3</h1>
+            <div class="info">
+                <h3>Controls</h3>
+                <ul>
+                    <li><b>enter</b> - start / restart game</li>
+                    <li><b>1 2 3</b> ... <b>8 9 0</b> - difficulty levels</li>
+                    <li><b>left right up down (arrows)</b> - player control</li>
+                    <li><b>j k l i</b> - alternative player control</li>
+                    <li><b>space</b> - fire</li>
+                    <li><b>\ (backslash)</b> - toggle controller mode: keyboard or gamepad</li>
+                    <li><b>a</b> - toggle orientation mode: relative to window borders or absolute</li>
+                    <li><b>` (backquote)</b> - debug / verbose mode</li>
+                </ul>
+            </div>
+            <div class="info">
+                <h3>Credits</h3>
+                <!-- rocket.png alien.png keyboard.png move-absolute.png (removed border) move-relative.png radiation.png -->
+                <div>Icons made by <a href="http://www.freepik.com" title="Freepik">Freepik</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a></div>
+                <!-- connection.png -->
+                <div>Icons made by <a href="https://www.flaticon.com/authors/gregor-cresnar" title="Gregor Cresnar">Gregor Cresnar</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a></div>
+                <!-- gamepad.png -->
+                <div>Icons made by <a href="https://www.flaticon.com/authors/dimitry-miroliubov" title="Dimitry Miroliubov">Dimitry Miroliubov</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a></div>
+            </div>
+            <h3>Krzysztof Smigielski</h3>
+        </div>
+        <div id="endGame" class="modal">
+            <h1>Gave Over</h1>
+            <h2>Level <span id="endLevel">0</span></h2>
+            <h2>Points <span id="endPoints">0</span></h2>
+            <h2>Play time <span id="endTime">0</span></h2>
+            <h2>Points per minute <span id="endPointsPerMinute">0</span></h2>
+        </div>
+    </div>
+</div>
+</body>
+</html>
