@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Plasma V1</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        div#fps {
+            top: 0;
+            left: 0;
+            position: absolute;
+            font-family: monospace;
+            color: white;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 32;
+        }
+
+        canvas.main {
+            position: absolute;
+            top: 0;
+            left: 0;
+            display: none;
+        }
+
+        canvas#palette {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            z-index: 32;
+        }
+
+    </style>
+    <script language="JavaScript">
+        var fpsDiv;
+
+        var palette;
+        var paletteSize;
+
+        var distanceCache = [[]];
+
+        var lastTimestamp = 0;
+
+        var mainCanvas;
+        var mainCanvases = [];
+
+        var options = {zoom: 2, paletteSize: 512};
+
+        function init() {
+            fpsDiv = document.getElementById("fps");
+            for (var i = 1; i <= 9; i++) {
+                var zoomCanvas = document.getElementById("main-zoom-" + i);
+                zoomCanvas.style.zIndex = 10;
+                zoomCanvas.style.zoom = i;
+                zoomCanvas.width = Math.floor(window.innerWidth / i);
+                zoomCanvas.height = Math.floor(window.innerHeight / i);
+
+                var image = zoomCanvas.getContext("2d").createImageData(zoomCanvas.width, zoomCanvas.height);
+                for (var x = 0; x < zoomCanvas.width; x++) {
+                    for (var y = 0; y < zoomCanvas.height; y++) {
+                        putRGBA(image.data, zoomCanvas.width, x, y, 0, 0, 0, 255);
+                    }
+                }
+
+                mainCanvases.push({
+                    canvas: zoomCanvas,
+                    context: zoomCanvas.getContext("2d"),
+                    image: image,
+                    width: zoomCanvas.width,
+                    height: zoomCanvas.height,
+                    zoom: i
+                });
+            }
+
+            var paletteCanvas = document.getElementById("palette");
+            paletteCanvas.height = 40;
+            paletteCanvas.width = window.innerWidth;
+
+            registerToggles();
+
+            selectCanvas();
+            loop(0);
+        }
+
+        function loop(timestamp) {
+            if (options) {
+                selectCanvas();
+                options = false;
+            }
+            animate(timestamp);
+            requestAnimationFrame(loop);
+        }
+
+        function selectCanvas() {
+            for (var i = 0; i < mainCanvases.length; i++) {
+                var zoomCanvas = mainCanvases[i];
+                if (zoomCanvas.zoom === options.zoom) {
+                    zoomCanvas.canvas.style.display = "block";
+                    mainCanvas = zoomCanvas;
+                } else {
+                    zoomCanvas.canvas.style.display = "none";
+                }
+            }
+
+            generateDistanceCache();
+
+            paletteSize = options.paletteSize;
+            generatePalette();
+            drawPalette();
+        }
+
+        function generateDistanceCache() {
+            distanceCache = [[]];
+            for (var x = 0; x < mainCanvas.width; x++) {
+                distanceCache[x] = [];
+                for (var y = 0; y < mainCanvas.height; y++) {
+                    distanceCache[x][y] = distance(x, y);
+                }
+            }
+        }
+
+        function registerToggles() {
+            document.onkeypress = function (e) {
+                if (e.keyCode === 96) { // 96 `
+                    toggleDisplay(document.getElementById("palette"));
+                    toggleDisplay(document.getElementById("fps"));
+                } else if (e.keyCode > 48 && e.keyCode <= 48 + 10) { // 48 0; 49 1...
+                    options = {zoom: e.keyCode - 48, paletteSize: paletteSize};
+                } else if (e.keyCode >= 97 && e.keyCode <= 122) { // 97 a; 98 b...
+                    options = {zoom: mainCanvas.zoom, paletteSize: Math.ceil(Math.pow(2, e.keyCode - 93))};
+                }
+                console.log("keypress " + e.keyCode);
+            }
+        }
+
+        function toggleDisplay(element) {
+            if (element.style.display === 'none') {
+                element.style.display = 'block';
+            } else {
+                element.style.display = 'none';
+            }
+        }
+
+        function drawPalette() {
+            var paletteCanvas = document.getElementById("palette");
+            var ratio = paletteSize / paletteCanvas.width;
+            var skip = Math.ceil(ratio);
+            var step = Math.max(5, Math.ceil(1 / ratio));
+
+            console.log("palette: size " + paletteSize + " ratio " + ratio.toFixed(4) + " 1/ratio " + (1 / ratio).toFixed(4) + " skip " + skip + " step " + step);
+
+            var paletteContext = paletteCanvas.getContext("2d");
+            paletteContext.save();
+            paletteContext.clearRect(0, 0, paletteCanvas.width, paletteCanvas.height);
+
+            for (var i = 0; i < paletteSize; i += skip) {
+                paletteContext.fillStyle = "rgb(" + palette[0][i] + ",0,0)";
+                paletteContext.fillRect(0, 0, step, 8);
+                paletteContext.translate(0, 8);
+                paletteContext.fillStyle = "rgb(0," + palette[1][i] + ",0)";
+                paletteContext.fillRect(0, 0, step, 8);
+                paletteContext.translate(0, 8);
+                paletteContext.fillStyle = "rgb(0,0," + palette[2][i] + ")";
+                paletteContext.fillRect(0, 0, step, 8);
+                paletteContext.translate(0, 8);
+                paletteContext.fillStyle = "rgb(" + palette[0][i] + "," + palette[1][i] + "," + palette[2][i] + ")";
+                paletteContext.fillRect(0, 0, step, 16);
+                paletteContext.translate(skip / ratio, -24);
+            }
+
+            paletteContext.restore();
+        }
+
+        function generatePalette() {
+//            var r = [];
+//            var g = [];
+//            var b = [];
+            palette = [[], [], []];
+//            palette.push(r);
+//            palette.push(g);
+//            palette.push(b);
+            for (var i = 0; i <= paletteSize; i++) {
+//                palette[0][i] = hsv2rgb(i / paletteSize, 1, 1).r;
+//                palette[1][i] = hsv2rgb(i / paletteSize, 1, 1).g;
+//                palette[2][i] = hsv2rgb(i / paletteSize, 1, 1).b;
+//                r.push(Math.floor(127 + 128 * Math.sin(2 * Math.PI * i / paletteSize)));
+//                g.push(Math.floor(127 + 128 * Math.sin(2 * Math.PI * 1 * i / paletteSize)));
+//                b.push(Math.floor(127 + 128 * Math.sin(2 * Math.PI * 1 * i / paletteSize)));
+                palette[0][i] = Math.floor(127 + 128 * Math.sin(2 * Math.PI * 1 * i / paletteSize));
+                palette[1][i] = Math.floor(127 + 128 * Math.sin(0.4 + 2 * Math.PI * 1 * i / paletteSize));
+                palette[2][i] = Math.floor(127 + 128 * Math.sin(0.7 + 2 * Math.PI * 1 * i / paletteSize));
+            }
+        }
+
+        function animate(timestamp) {
+            var time = timestamp - lastTimestamp;
+            lastTimestamp = timestamp;
+
+            var functionStart = new Date().getTime();
+
+            var index = 0;
+            var rotX;
+            var rotY;
+            var zx = 0;
+            var zy = 0;
+            var scale = 128;
+            for (var y = 0; y < mainCanvas.height; y++) {
+                zy = y * mainCanvas.zoom;
+                for (var x = 0; x < mainCanvas.width; x++) {
+                    zx = x * mainCanvas.zoom;
+//                    rotX = x * Math.sin(timestamp / (1024 - 128));
+//                    rotY = y * Math.cos(timestamp / (1024 + 128));
+//                    index = paletteSize * (1 + Math.sin((1 / 256) * distance(rotX - width / 2, rotY - height / 2))) / 2;
+//                    index += paletteSize * (1 + Math.cos((x + y * (x - y + 100)) / (64 * 2048) + 2 * Math.cos((timestamp + x + y) / (2048 + 512)))) / 2;
+//                    index /= 2;
+
+                    index = paletteSize / 2 + (paletteSize / 2 * Math.sin(zx / (2 * scale) - timestamp / 230));
+                    index += paletteSize / 2 + (paletteSize / 2 * Math.sin(zy / (1 * scale)));
+                    index += paletteSize / 2 + (paletteSize / 2 * Math.sin((zx + zy + timestamp / 128) / (2 * scale)));
+                    index = mod(Math.floor(index-timestamp/2), paletteSize);
+                    
+//                    index += paletteSize / 2 + (paletteSize / 2 * Math.sin(distanceCache[x][y] / (1 * scale)));
+//                    index = mod(Math.floor(index / 4 + timestamp / 8), paletteSize);
+//                    index = Math.floor(mod(0.1*x*y -2*x + 2*y + timestamp / 8, paletteSize));
+//                    index = Math.floor(mod(x + y + timestamp / 16, paletteSize));
+//                    var i1 = Math.floor(mod(timestamp / 16, paletteSize));
+//                    var i2 = Math.floor(mod(x + timestamp / 64, paletteSize));
+//                    put(x, y, palette[0][i1], palette[1][i2], palette[2][i3]);
+//                    put(x, y, i1, i2, i3);
+//                    var i3 = Math.floor(mod(y + timestamp / 32, paletteSize));
+                    putRGB(mainCanvas.image.data, mainCanvas.width, x, y, palette[0][index], palette[1][index], palette[2][index]);
+                }
+            }
+
+            mainCanvas.context.putImageData(mainCanvas.image, 0, 0);
+
+            var functionTime = new Date().getTime() - functionStart;
+            fpsDiv.innerText = mainCanvas.width + "x" + mainCanvas.height + " " + (1000 / time).toFixed(2) + " FPS (zoom " + mainCanvas.zoom + ", colors " + paletteSize + ", frame " + time.toFixed(0) + "ms, draw " + functionTime + "ms)";
+        }
+
+        function mod(n, m) {
+            return ((n % m) + m) % m;
+        }
+
+        function distance(x, y) {
+            return Math.sqrt(x * x + y * y);
+        }
+
+        // https://stackoverflow.com/a/17243070
+        // https://stackoverflow.com/users/344646/adam-price
+        function hsv2rgb(h, s, v) {
+            var r, g, b, i, f, p, q, t;
+
+            i = Math.floor(h * 6);
+            f = h * 6 - i;
+            p = v * (1 - s);
+            q = v * (1 - f * s);
+            t = v * (1 - (1 - f) * s);
+            switch (i % 6) {
+                case 0:
+                    r = v;
+                    g = t;
+                    b = p;
+                    break;
+                case 1:
+                    r = q;
+                    g = v;
+                    b = p;
+                    break;
+                case 2:
+                    r = p;
+                    g = v;
+                    b = t;
+                    break;
+                case 3:
+                    r = p;
+                    g = q;
+                    b = v;
+                    break;
+                case 4:
+                    r = t;
+                    g = p;
+                    b = v;
+                    break;
+                case 5:
+                    r = v;
+                    g = p;
+                    b = q;
+                    break;
+            }
+            return {
+                r: Math.round(r * 255),
+                g: Math.round(g * 255),
+                b: Math.round(b * 255)
+            };
+        }
+
+        function putRGB(data, width, x, y, r, g, b) {
+            var start = 4 * (x + y * width);
+            data[start] = r;
+            data[start + 1] = g;
+            data[start + 2] = b;
+        }
+
+        function putRGBA(data, width, x, y, r, g, b, a) {
+            var start = 4 * (x + y * width);
+            data[start] = r;
+            data[start + 1] = g;
+            data[start + 2] = b;
+            data[start + 3] = a;
+        }
+    </script>
+</head>
+<body onload="init();">
+<canvas id="main-zoom-1" class="main"></canvas>
+<canvas id="main-zoom-2" class="main"></canvas>
+<canvas id="main-zoom-3" class="main"></canvas>
+<canvas id="main-zoom-4" class="main"></canvas>
+<canvas id="main-zoom-5" class="main"></canvas>
+<canvas id="main-zoom-6" class="main"></canvas>
+<canvas id="main-zoom-7" class="main"></canvas>
+<canvas id="main-zoom-8" class="main"></canvas>
+<canvas id="main-zoom-9" class="main"></canvas>
+<div id="fps">0</div>
+<canvas id="palette"></canvas>
+</body>
+</html>
