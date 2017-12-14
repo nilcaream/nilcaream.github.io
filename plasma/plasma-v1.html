@@ -20,6 +20,16 @@
             z-index: 32;
         }
 
+        div#info {
+            top: 0;
+            right: 0;
+            position: absolute;
+            font-family: monospace;
+            color: white;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 32;
+        }
+
         canvas.main {
             position: absolute;
             top: 0;
@@ -41,7 +51,7 @@
         var palette;
         var paletteSize;
 
-        var distanceCache = [[]];
+        var distanceCache;
 
         var lastTimestamp = 0;
 
@@ -56,8 +66,8 @@
                 var zoomCanvas = document.getElementById("main-zoom-" + i);
                 zoomCanvas.style.zIndex = 10;
                 zoomCanvas.style.zoom = i;
-                zoomCanvas.width = Math.floor(window.innerWidth / i);
-                zoomCanvas.height = Math.floor(window.innerHeight / i);
+                zoomCanvas.width = Math.ceil(window.innerWidth / i);
+                zoomCanvas.height = Math.ceil(window.innerHeight / i);
 
                 var image = zoomCanvas.getContext("2d").createImageData(zoomCanvas.width, zoomCanvas.height);
                 for (var x = 0; x < zoomCanvas.width; x++) {
@@ -81,18 +91,23 @@
             paletteCanvas.width = window.innerWidth;
 
             registerToggles();
-
             selectCanvas();
-            loop(0);
+            requestAnimationFrame(loop);
         }
 
-        function loop(timestamp) {
-            if (options) {
-                selectCanvas();
-                options = false;
+        function registerToggles() {
+            document.onkeypress = function (e) {
+                if (e.keyCode === 96) { // 96 `
+                    toggleDisplay(document.getElementById("palette"));
+                    toggleDisplay(document.getElementById("fps"));
+                    toggleDisplay(document.getElementById("info"));
+                } else if (e.keyCode > 48 && e.keyCode <= 48 + 10) { // 48 0; 49 1...
+                    options = {zoom: e.keyCode - 48, paletteSize: paletteSize};
+                } else if (e.keyCode >= 97 && e.keyCode <= 116) { // 97 a; 98 b... 116 t
+                    options = {zoom: mainCanvas.zoom, paletteSize: Math.ceil(Math.pow(2, e.keyCode - 96))};
+                }
+                console.log("keypress " + e.keyCode);
             }
-            animate(timestamp);
-            requestAnimationFrame(loop);
         }
 
         function selectCanvas() {
@@ -114,7 +129,7 @@
         }
 
         function generateDistanceCache() {
-            distanceCache = [[]];
+            distanceCache = [];
             for (var x = 0; x < mainCanvas.width; x++) {
                 distanceCache[x] = [];
                 for (var y = 0; y < mainCanvas.height; y++) {
@@ -123,25 +138,21 @@
             }
         }
 
-        function registerToggles() {
-            document.onkeypress = function (e) {
-                if (e.keyCode === 96) { // 96 `
-                    toggleDisplay(document.getElementById("palette"));
-                    toggleDisplay(document.getElementById("fps"));
-                } else if (e.keyCode > 48 && e.keyCode <= 48 + 10) { // 48 0; 49 1...
-                    options = {zoom: e.keyCode - 48, paletteSize: paletteSize};
-                } else if (e.keyCode >= 97 && e.keyCode <= 122) { // 97 a; 98 b...
-                    options = {zoom: mainCanvas.zoom, paletteSize: Math.ceil(Math.pow(2, e.keyCode - 93))};
-                }
-                console.log("keypress " + e.keyCode);
+        function loop(timestamp) {
+            if (options) {
+                selectCanvas();
+                options = false;
             }
+            animate(timestamp);
+            requestAnimationFrame(loop);
         }
 
-        function toggleDisplay(element) {
-            if (element.style.display === 'none') {
-                element.style.display = 'block';
-            } else {
-                element.style.display = 'none';
+        function generatePalette() {
+            palette = [[], [], []];
+            for (var i = 0; i <= paletteSize; i++) {
+                palette[0][i] = Math.floor(127 + 128 * Math.sin(2 * Math.PI * i / paletteSize));
+                palette[1][i] = Math.floor(127 + 128 * Math.sin(0.4 + 2 * Math.PI * i / paletteSize));
+                palette[2][i] = Math.floor(127 + 128 * Math.sin(0.7 + 2 * Math.PI * i / paletteSize));
             }
         }
 
@@ -175,27 +186,6 @@
             paletteContext.restore();
         }
 
-        function generatePalette() {
-//            var r = [];
-//            var g = [];
-//            var b = [];
-            palette = [[], [], []];
-//            palette.push(r);
-//            palette.push(g);
-//            palette.push(b);
-            for (var i = 0; i <= paletteSize; i++) {
-//                palette[0][i] = hsv2rgb(i / paletteSize, 1, 1).r;
-//                palette[1][i] = hsv2rgb(i / paletteSize, 1, 1).g;
-//                palette[2][i] = hsv2rgb(i / paletteSize, 1, 1).b;
-//                r.push(Math.floor(127 + 128 * Math.sin(2 * Math.PI * i / paletteSize)));
-//                g.push(Math.floor(127 + 128 * Math.sin(2 * Math.PI * 1 * i / paletteSize)));
-//                b.push(Math.floor(127 + 128 * Math.sin(2 * Math.PI * 1 * i / paletteSize)));
-                palette[0][i] = Math.floor(127 + 128 * Math.sin(2 * Math.PI * 1 * i / paletteSize));
-                palette[1][i] = Math.floor(127 + 128 * Math.sin(0.4 + 2 * Math.PI * 1 * i / paletteSize));
-                palette[2][i] = Math.floor(127 + 128 * Math.sin(0.7 + 2 * Math.PI * 1 * i / paletteSize));
-            }
-        }
-
         function animate(timestamp) {
             var time = timestamp - lastTimestamp;
             lastTimestamp = timestamp;
@@ -207,31 +197,30 @@
             var rotY;
             var zx = 0;
             var zy = 0;
-            var scale = 128;
             for (var y = 0; y < mainCanvas.height; y++) {
                 zy = y * mainCanvas.zoom;
                 for (var x = 0; x < mainCanvas.width; x++) {
                     zx = x * mainCanvas.zoom;
-//                    rotX = x * Math.sin(timestamp / (1024 - 128));
-//                    rotY = y * Math.cos(timestamp / (1024 + 128));
-//                    index = paletteSize * (1 + Math.sin((1 / 256) * distance(rotX - width / 2, rotY - height / 2))) / 2;
-//                    index += paletteSize * (1 + Math.cos((x + y * (x - y + 100)) / (64 * 2048) + 2 * Math.cos((timestamp + x + y) / (2048 + 512)))) / 2;
-//                    index /= 2;
 
-                    index = paletteSize / 2 + (paletteSize / 2 * Math.sin(zx / (2 * scale) - timestamp / 230));
-                    index += paletteSize / 2 + (paletteSize / 2 * Math.sin(zy / (1 * scale)));
-                    index += paletteSize / 2 + (paletteSize / 2 * Math.sin((zx + zy + timestamp / 128) / (2 * scale)));
-                    index = mod(Math.floor(index-timestamp/2), paletteSize);
-                    
-//                    index += paletteSize / 2 + (paletteSize / 2 * Math.sin(distanceCache[x][y] / (1 * scale)));
-//                    index = mod(Math.floor(index / 4 + timestamp / 8), paletteSize);
-//                    index = Math.floor(mod(0.1*x*y -2*x + 2*y + timestamp / 8, paletteSize));
-//                    index = Math.floor(mod(x + y + timestamp / 16, paletteSize));
-//                    var i1 = Math.floor(mod(timestamp / 16, paletteSize));
-//                    var i2 = Math.floor(mod(x + timestamp / 64, paletteSize));
-//                    put(x, y, palette[0][i1], palette[1][i2], palette[2][i3]);
-//                    put(x, y, i1, i2, i3);
-//                    var i3 = Math.floor(mod(y + timestamp / 32, paletteSize));
+                    index = 0;
+
+                    // large circle
+                    rotX = mainCanvas.zoom * mainCanvas.width * (1 + 0.5 * Math.sin(timestamp / 5024)) / 2;
+                    rotY = mainCanvas.zoom * mainCanvas.height * (1 + 0.5 * Math.cos(timestamp / 4000)) / 2;
+                    index += paletteSize * 0.002 * distance(zx - rotX, zy - rotY);
+
+                    // larger slow circle
+                    rotX = mainCanvas.zoom * mainCanvas.width * (1 + 0.5 * Math.sin(0.3 + timestamp / 1320)) / 2;
+                    rotY = mainCanvas.zoom * mainCanvas.height * (1 + 0.5 * Math.cos(3 + timestamp / 2210)) / 2;
+                    index += paletteSize * 0.001 * distance(zx - 1.3 * rotY, zy - 0.4 * rotX);
+
+                    // stripes
+                    rotX = mainCanvas.zoom * mainCanvas.width * (1 + 0.5 * Math.sin(0.8 + timestamp / 2420)) / 2;
+                    rotY = mainCanvas.zoom * mainCanvas.height * (1 + 0.5 * Math.cos(2 + timestamp / 2810)) / 2;
+                    index += 0.5 * paletteSize * Math.sin(zx / 200 + rotX / 1000);
+                    index += 0.5 * paletteSize * Math.sin(rotY / 1210 - zy / 400);
+
+                    index = mod(Math.floor(index - paletteSize * timestamp / 4000), paletteSize);
                     putRGB(mainCanvas.image.data, mainCanvas.width, x, y, palette[0][index], palette[1][index], palette[2][index]);
                 }
             }
@@ -240,6 +229,14 @@
 
             var functionTime = new Date().getTime() - functionStart;
             fpsDiv.innerText = mainCanvas.width + "x" + mainCanvas.height + " " + (1000 / time).toFixed(2) + " FPS (zoom " + mainCanvas.zoom + ", colors " + paletteSize + ", frame " + time.toFixed(0) + "ms, draw " + functionTime + "ms)";
+        }
+
+        function toggleDisplay(element) {
+            if (element.style.display === 'none') {
+                element.style.display = 'block';
+            } else {
+                element.style.display = 'none';
+            }
         }
 
         function mod(n, m) {
@@ -316,6 +313,7 @@
     </script>
 </head>
 <body onload="init();">
+<canvas id="palette"></canvas>
 <canvas id="main-zoom-1" class="main"></canvas>
 <canvas id="main-zoom-2" class="main"></canvas>
 <canvas id="main-zoom-3" class="main"></canvas>
@@ -326,6 +324,6 @@
 <canvas id="main-zoom-8" class="main"></canvas>
 <canvas id="main-zoom-9" class="main"></canvas>
 <div id="fps">0</div>
-<canvas id="palette"></canvas>
+<div id="info">keys: ` full screen | 1 - 9 zoom | a - t colors</div>
 </body>
 </html>
