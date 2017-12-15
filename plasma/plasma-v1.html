@@ -23,7 +23,7 @@
             z-index: 32;
         }
 
-        div#info {
+        div#keys {
             bottom: 40px;
             left: 0;
             position: absolute;
@@ -33,7 +33,17 @@
             z-index: 32;
         }
 
-        div#info span {
+        div#info {
+            top: 0;
+            right: 0;
+            position: absolute;
+            font-family: monospace;
+            color: white;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 32;
+        }
+
+        span {
             font-weight: bold;
         }
 
@@ -57,8 +67,7 @@
 
         var palette;
         var paletteSize;
-
-        var distanceCache;
+        var paletteInit = {red: 0, green: 0.4, blue: 0.7};
 
         var mainCanvas;
         var mainCanvases = [];
@@ -103,28 +112,63 @@
             paletteCanvas.height = 40;
             paletteCanvas.width = window.innerWidth;
 
+            initFromHash();
             registerToggles();
             selectCanvas();
             updateFpsDiv();
             requestAnimationFrame(loop);
         }
 
+        function initFromHash() {
+            var hash = location.hash;
+            var regexp = /#x(.+)y(.+)s(.+)z(.+)c(.+)r(.+)g(.+)b(.+)#/;
+            var match = hash.match(regexp);
+            if (match) {
+                offset.x = parseInt(match[1]);
+                offset.y = parseInt(match[2]);
+                scale = parseFloat(match[3]);
+                options.zoom = parseInt(match[4]);
+                options.paletteSize = parseInt(match[5]);
+                paletteInit.red = parseFloat(match[6]);
+                paletteInit.green = parseFloat(match[7]);
+                paletteInit.blue = parseFloat(match[8]);
+            }
+        }
+
         function registerToggles() {
             document.onkeypress = function (e) {
                 if (e.keyCode === 96) { // 96 `
-                    toggleDisplay(document.getElementById("palette"));
-                    toggleDisplay(document.getElementById("fps"));
-                    toggleDisplay(document.getElementById("info"));
+                    toggleDisplay(document.getElementsByClassName("toggle"));
                 } else if (e.keyCode > 48 && e.keyCode <= 48 + 10) { // 48 0; 49 1...
                     options = {zoom: e.keyCode - 48, paletteSize: paletteSize};
                 } else if (e.keyCode >= 97 && e.keyCode <= 116) { // 97 a; 98 b... 116 t
                     options = {zoom: mainCanvas.zoom, paletteSize: Math.ceil(Math.pow(2, e.keyCode - 96))};
                 } else if (e.keyCode === 91) { // 91 [
                     scale = Math.max(0.1, scale / 1.2);
+                    updateHash();
                 } else if (e.keyCode === 93) { // 93 ]
                     scale *= 1.2;
+                    updateHash();
+                } else if (e.keyCode === 32) { // 32 space
+                    paletteInit = {red: 0, green: 0.4, blue: 0.7};
+                    offset.x = 0;
+                    offset.y = 0;
+                    scale = 1;
+                    options = {zoom: 2, paletteSize: 512};
+                } else if (e.keyCode === 13) { // 13 enter
+                    paletteInit = {red: Math.random() * 2 * Math.PI, green: Math.random() * 2 * Math.PI, blue: Math.random() * 2 * Math.PI};
+                    options = {zoom: mainCanvas.zoom, paletteSize: paletteSize};
+                } else if (e.keyCode === 82) { // 82 R
+                    paletteInit.red = mod(paletteInit.red + 0.1, 2 * Math.PI);
+                    options = {zoom: mainCanvas.zoom, paletteSize: paletteSize};
+                } else if (e.keyCode === 71) { // 71 G
+                    paletteInit.green = mod(paletteInit.green + 0.1, 2 * Math.PI);
+                    options = {zoom: mainCanvas.zoom, paletteSize: paletteSize};
+                } else if (e.keyCode === 66) { // 66 B
+                    paletteInit.blue = mod(paletteInit.blue + 0.1, 2 * Math.PI);
+                    options = {zoom: mainCanvas.zoom, paletteSize: paletteSize};
                 }
-                console.log("keypress " + e.keyCode);
+                // console.log("keypress " + e.keyCode);
             }
         }
 
@@ -139,27 +183,16 @@
                 }
             }
 
-            generateDistanceCache();
-
             paletteSize = options.paletteSize;
             generatePalette();
             drawPalette();
-        }
-
-        function generateDistanceCache() {
-            distanceCache = [];
-            for (var x = 0; x < mainCanvas.width; x++) {
-                distanceCache[x] = [];
-                for (var y = 0; y < mainCanvas.height; y++) {
-                    distanceCache[x][y] = distance(x, y);
-                }
-            }
         }
 
         function loop(timestamp) {
             if (options) {
                 selectCanvas();
                 options = false;
+                updateHash();
             }
             animate(timestamp);
             requestAnimationFrame(loop);
@@ -168,9 +201,9 @@
         function generatePalette() {
             palette = [[], [], []];
             for (var i = 0; i <= paletteSize; i++) {
-                palette[0][i] = Math.floor(127 + 128 * Math.sin(2 * Math.PI * i / paletteSize));
-                palette[1][i] = Math.floor(127 + 128 * Math.sin(0.4 + 2 * Math.PI * i / paletteSize));
-                palette[2][i] = Math.floor(127 + 128 * Math.sin(0.7 + 2 * Math.PI * i / paletteSize));
+                palette[0][i] = Math.floor(127 + 128 * Math.sin(paletteInit.red + 2 * Math.PI * i / paletteSize));
+                palette[1][i] = Math.floor(127 + 128 * Math.sin(paletteInit.green + 2 * Math.PI * i / paletteSize));
+                palette[2][i] = Math.floor(127 + 128 * Math.sin(paletteInit.blue + 2 * Math.PI * i / paletteSize));
             }
         }
 
@@ -180,7 +213,7 @@
             var skip = Math.ceil(ratio);
             var step = Math.max(5, Math.ceil(1 / ratio));
 
-            console.log("palette: size " + paletteSize + " ratio " + ratio.toFixed(4) + " 1/ratio " + (1 / ratio).toFixed(4) + " skip " + skip + " step " + step);
+            // console.log("palette: size " + paletteSize + " ratio " + ratio.toFixed(4) + " 1/ratio " + (1 / ratio).toFixed(4) + " skip " + skip + " step " + step);
 
             var paletteContext = paletteCanvas.getContext("2d");
             paletteContext.save();
@@ -248,7 +281,6 @@
             mainCanvas.context.putImageData(mainCanvas.image, 0, 0);
 
             drawTime = new Date().getTime() - drawStart;
-//            fpsDiv.innerText = +" " + (1000 / frameTime).toFixed(2) + " FPS (zoom " + mainCanvas.zoom + ", colors " + paletteSize + ", frame " + frameTime.toFixed(0) + "ms, draw " + drawTime + "ms, offset " + (offset.x + mouse.offset.x) + "," + (offset.y + mouse.offset.y) + ")";
         }
 
         function updateFpsDiv() {
@@ -257,13 +289,13 @@
             text += " (zoom " + mainCanvas.zoom;
             text += ", scale " + (scale + mouse.scale).toFixed(2);
             text += ", colors " + paletteSize;
-            text += ", frame " + leadingSpace(Math.round(frameTime), 4) + "ms";
+            text += ", RGB " + paletteInit.red.toFixed(2) + " " + paletteInit.green.toFixed(2) + " " + paletteInit.blue.toFixed(2);
+            text += ", frame " + leadingSpace(Math.ceil(frameTime), 4) + "ms";
             text += ", draw " + leadingSpace(drawTime, 4) + "ms";
             text += ", offset " + (offset.x + mouse.offset.x) + "," + (offset.y + mouse.offset.y);
             text += ")";
             fpsDiv.innerText = text;
             setTimeout(updateFpsDiv, 200);
-
         }
 
         function leadingSpace(text, size) {
@@ -274,11 +306,14 @@
             return result;
         }
 
-        function toggleDisplay(element) {
-            if (element.style.display === 'none') {
-                element.style.display = 'block';
-            } else {
-                element.style.display = 'none';
+        function toggleDisplay(elements) {
+            for (var i = 0; i < elements.length; i++) {
+                var element = elements[i];
+                if (element.style.display === 'none') {
+                    element.style.display = 'block';
+                } else {
+                    element.style.display = 'none';
+                }
             }
         }
 
@@ -288,55 +323,6 @@
 
         function distance(x, y) {
             return Math.sqrt(x * x + y * y);
-        }
-
-        // https://stackoverflow.com/a/17243070
-        // https://stackoverflow.com/users/344646/adam-price
-        function hsv2rgb(h, s, v) {
-            var r, g, b, i, f, p, q, t;
-
-            i = Math.floor(h * 6);
-            f = h * 6 - i;
-            p = v * (1 - s);
-            q = v * (1 - f * s);
-            t = v * (1 - (1 - f) * s);
-            switch (i % 6) {
-                case 0:
-                    r = v;
-                    g = t;
-                    b = p;
-                    break;
-                case 1:
-                    r = q;
-                    g = v;
-                    b = p;
-                    break;
-                case 2:
-                    r = p;
-                    g = v;
-                    b = t;
-                    break;
-                case 3:
-                    r = p;
-                    g = q;
-                    b = v;
-                    break;
-                case 4:
-                    r = t;
-                    g = p;
-                    b = v;
-                    break;
-                case 5:
-                    r = v;
-                    g = p;
-                    b = q;
-                    break;
-            }
-            return {
-                r: Math.round(r * 255),
-                g: Math.round(g * 255),
-                b: Math.round(b * 255)
-            };
         }
 
         function putRGB(data, width, x, y, r, g, b) {
@@ -376,7 +362,7 @@
             }
         }
 
-        function mouseUp(event) {
+        function mouseUp() {
             if (mouse.pressed) {
                 mouse.pressed = false;
                 offset.x += mouse.offset.x;
@@ -388,12 +374,16 @@
                 scale += mouse.scale;
                 mouse.scale = 0;
             }
+            updateHash();
         }
 
+        function updateHash() {
+            location.hash = "x" + offset.x + "y" + offset.y + "s" + scale.toFixed(2) + "z" + mainCanvas.zoom + "c" + paletteSize + "r" + paletteInit.red.toFixed(2) + "g" + paletteInit.green.toFixed(2) + "b" + paletteInit.blue.toFixed(2) + "#"
+        }
     </script>
 </head>
-<body onload="init();" onmousemove="mouseMove(event);" onmousedown="mouseDown(event);" onmouseup="mouseUp(event);">
-<canvas id="palette"></canvas>
+<body onload="init();" onmousemove="mouseMove(event);" onmousedown="mouseDown(event);" onmouseup="mouseUp();">
+<canvas id="palette" class="toggle"></canvas>
 <canvas id="main-zoom-1" class="main"></canvas>
 <canvas id="main-zoom-2" class="main"></canvas>
 <canvas id="main-zoom-3" class="main"></canvas>
@@ -403,12 +393,14 @@
 <canvas id="main-zoom-7" class="main"></canvas>
 <canvas id="main-zoom-8" class="main"></canvas>
 <canvas id="main-zoom-9" class="main"></canvas>
-<div id="fps">0</div>
-<div id="info">
-    <span>Plasma V1</span> |
-    <span>Keys</span> : <span>`</span> full screen | <span>1 - 9</span> zoom | <span>[ ]</span> scale | <span>a - t</span> colors | <span>mouse drag</span> move | <span>shift mouse drag</span> scale |
-    <span>Krzysztof Smigielski</span> |
-    <a href="https://github.com/nilcaream/javascript-fun/tree/master/plasma">https://github.com/nilcaream/javascript-fun/tree/master/plasma</a>
+<div id="fps" class="toggle">0</div>
+<div id="keys" class="toggle">
+    <span>Keys</span> | <span>`</span> full screen | <span>1 - 9</span> zoom | <span>[ ]</span> scale | <span>a - t</span> colors | <span>mouse drag</span> move | <span>shift mouse drag</span> scale |
+    <span>space</span> reset | <span>enter</span> randomize palette | <span>R G B</span> shift palette
+</div>
+<div id="info" class="toggle">
+    <span>Plasma V1</span> | <span>Krzysztof Smigielski</span> |
+    <a href="https://github.com/nilcaream/javascript-fun/tree/master/plasma">GitHub</a>
 </div>
 </body>
 </html>
