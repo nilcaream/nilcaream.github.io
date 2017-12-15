@@ -202,8 +202,8 @@ Graphics.prototype = {
     _generateSky: function (pixels, count, baseColor) {
         for (var i = 0; i < count; i++) {
             var pixel = {};
-            pixel.x = Math.ceil(Math.random() * main.width);
-            pixel.y = Math.ceil(Math.random() * main.height);
+            pixel.x = Math.ceil(Math.random() * this.main.width);
+            pixel.y = Math.ceil(Math.random() * this.main.height);
             var color = Math.floor(baseColor + 155 * Math.random()).toString(16);
             if (color.length === 1) {
                 color = "0" + color;
@@ -223,21 +223,24 @@ Graphics.prototype = {
         context.save();
         context.translate(this.hud.radar.offset, canvas.height - this.hud.radar.offset);
 
+        context.fillStyle = "red";
         for (var i = 0; i < enemies.length; i++) {
             var enemy = enemies[i];
-            context.fillStyle = "red";
-            context.fillRect((enemy.x - player.x) / this.hud.radar.scale - 1, (enemy.y - player.y) / this.hud.radar.scale - 1, 3, 3);
-            var bullet = enemy.bullet;
+            context.fillRect(Math.ceil((enemy.x - player.x) / this.hud.radar.scale - 1), Math.ceil((enemy.y - player.y) / this.hud.radar.scale - 1), 3, 3);
+        }
+
+        context.fillStyle = "#8888ff";
+        for (var i = 0; i < enemies.length; i++) {
+            var bullet = enemies[i].bullet;
             if (bullet) {
-                context.fillStyle = "#8888ff";
-                context.fillRect((bullet.x - player.x) / this.hud.radar.scale - 1, (bullet.y - player.y) / this.hud.radar.scale - 1, 3, 3);
+                context.fillRect(Math.ceil((bullet.x - player.x) / this.hud.radar.scale - 1), Math.ceil((bullet.y - player.y) / this.hud.radar.scale - 1), 3, 3);
             }
         }
 
+        context.fillStyle = "green";
         for (var i = 0; i < explosives.length; i++) {
             var explosive = explosives[i];
-            context.fillStyle = "green";
-            context.fillRect((explosive.x - player.x) / this.hud.radar.scale - 1, (explosive.y - player.y) / this.hud.radar.scale - 1, 3, 3);
+            context.fillRect(Math.ceil((explosive.x - player.x) / this.hud.radar.scale - 1), Math.ceil((explosive.y - player.y) / this.hud.radar.scale - 1), 3, 3);
         }
 
         context.restore();
@@ -314,24 +317,25 @@ Graphics.prototype = {
 
     _drawExplosion: function (timestamp, explosion) {
         explosion.time = timestamp - explosion.startTime;
+        var context = this.main.ctrContext;
 
-        this.main.ctrContext.save();
-        this.main.ctrContext.translate(explosion.x, explosion.y);
+        context.save();
+        context.translate(explosion.x, explosion.y);
 
         explosion.radius = 40 + explosion.time / 5;
 
-        main.ctrContext.beginPath();
-        main.ctrContext.arc(0, 0, explosion.radius, 0, 2 * Math.PI);
-        main.ctrContext.closePath();
+        context.beginPath();
+        context.arc(0, 0, explosion.radius, 0, 2 * Math.PI);
+        context.closePath();
 
-        var gradient = main.ctrContext.createRadialGradient(0, 0, 0, 0, 0, explosion.radius);
+        var gradient = context.createRadialGradient(0, 0, 0, 0, 0, explosion.radius);
         gradient.addColorStop(0, '#001100');
         gradient.addColorStop(0.7, '#002200');
         gradient.addColorStop(0.9, 'red');
         gradient.addColorStop(1, 'yellow');
-        main.ctrContext.fillStyle = gradient;
-        main.ctrContext.fill();
+        context.fillStyle = gradient;
+        context.fill();
 
-        main.ctrContext.restore();
+        context.restore();
     }
 };

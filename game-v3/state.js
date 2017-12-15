@@ -181,7 +181,7 @@ State.prototype = {
     _addMissingEnemies: function () {
         var caller = this;
         setTimeout(function () {
-            if (caller.enemies.length < caller.levels.current.enemiesCount && caller.player.health > 0) {
+            while (caller.enemies.length < caller.levels.current.enemiesCount && caller.player.health > 0) {
                 caller._addEnemy();
             }
         }, 1000);
@@ -275,7 +275,7 @@ State.prototype = {
             if (explosive.playerDistance < 50 || explosive.playerDistance < explosion.radius + 10) {
                 player.explosives++;
                 this.explosives.splice(i, 1);
-                this.updateHud = true
+                this.updateHud = true;
                 this._addMissingExplosives();
             }
         }
