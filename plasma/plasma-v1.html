@@ -8,6 +8,8 @@
             margin: 0;
             padding: 0;
             overflow: hidden;
+            color: white;
+            font-size: 12px;
         }
 
         div#fps {
@@ -16,18 +18,23 @@
             position: absolute;
             font-family: monospace;
             color: white;
+            white-space: pre;
             background-color: rgba(0, 0, 0, 0.5);
             z-index: 32;
         }
 
         div#info {
-            top: 0;
-            right: 0;
+            bottom: 40px;
+            left: 0;
             position: absolute;
             font-family: monospace;
             color: white;
             background-color: rgba(0, 0, 0, 0.5);
             z-index: 32;
+        }
+
+        div#info span {
+            font-weight: bold;
         }
 
         canvas.main {
@@ -53,12 +60,18 @@
 
         var distanceCache;
 
-        var lastTimestamp = 0;
-
         var mainCanvas;
         var mainCanvases = [];
 
+        var scale = 1;
+        var offset = {x: 0, y: 0};
         var options = {zoom: 2, paletteSize: 512};
+        var mouse = {pressed: false, shiftPressed: false, init: {x: 0, y: 0}, offset: {x: 0, y: 0}, scale: 0};
+
+        var frameTime = 16;
+        var drawTime = 16;
+
+        var frameTimestamp = 0;
 
         function init() {
             fpsDiv = document.getElementById("fps");
@@ -92,6 +105,7 @@
 
             registerToggles();
             selectCanvas();
+            updateFpsDiv();
             requestAnimationFrame(loop);
         }
 
@@ -105,6 +119,10 @@
                     options = {zoom: e.keyCode - 48, paletteSize: paletteSize};
                 } else if (e.keyCode >= 97 && e.keyCode <= 116) { // 97 a; 98 b... 116 t
                     options = {zoom: mainCanvas.zoom, paletteSize: Math.ceil(Math.pow(2, e.keyCode - 96))};
+                } else if (e.keyCode === 91) { // 91 [
+                    scale = Math.max(0.1, scale / 1.2);
+                } else if (e.keyCode === 93) { // 93 ]
+                    scale *= 1.2;
                 }
                 console.log("keypress " + e.keyCode);
             }
@@ -187,10 +205,10 @@
         }
 
         function animate(timestamp) {
-            var time = timestamp - lastTimestamp;
-            lastTimestamp = timestamp;
+            frameTime = timestamp - frameTimestamp;
+            frameTimestamp = timestamp;
 
-            var functionStart = new Date().getTime();
+            var drawStart = new Date().getTime();
 
             var index = 0;
             var rotX;
@@ -198,9 +216,11 @@
             var zx = 0;
             var zy = 0;
             for (var y = 0; y < mainCanvas.height; y++) {
-                zy = y * mainCanvas.zoom;
+                zy = y * mainCanvas.zoom + offset.y + mouse.offset.y;
+                zy *= scale + mouse.scale;
                 for (var x = 0; x < mainCanvas.width; x++) {
-                    zx = x * mainCanvas.zoom;
+                    zx = x * mainCanvas.zoom + offset.x + mouse.offset.x;
+                    zx *= scale + mouse.scale;
 
                     index = 0;
 
@@ -227,8 +247,31 @@
 
             mainCanvas.context.putImageData(mainCanvas.image, 0, 0);
 
-            var functionTime = new Date().getTime() - functionStart;
-            fpsDiv.innerText = mainCanvas.width + "x" + mainCanvas.height + " " + (1000 / time).toFixed(2) + " FPS (zoom " + mainCanvas.zoom + ", colors " + paletteSize + ", frame " + time.toFixed(0) + "ms, draw " + functionTime + "ms)";
+            drawTime = new Date().getTime() - drawStart;
+//            fpsDiv.innerText = +" " + (1000 / frameTime).toFixed(2) + " FPS (zoom " + mainCanvas.zoom + ", colors " + paletteSize + ", frame " + frameTime.toFixed(0) + "ms, draw " + drawTime + "ms, offset " + (offset.x + mouse.offset.x) + "," + (offset.y + mouse.offset.y) + ")";
+        }
+
+        function updateFpsDiv() {
+            var text = mainCanvas.width + "x" + mainCanvas.height;
+            text += " " + leadingSpace((1000 / frameTime).toFixed(2), 2 + 1 + 2) + " FPS";
+            text += " (zoom " + mainCanvas.zoom;
+            text += ", scale " + (scale + mouse.scale).toFixed(2);
+            text += ", colors " + paletteSize;
+            text += ", frame " + leadingSpace(Math.round(frameTime), 4) + "ms";
+            text += ", draw " + leadingSpace(drawTime, 4) + "ms";
+            text += ", offset " + (offset.x + mouse.offset.x) + "," + (offset.y + mouse.offset.y);
+            text += ")";
+            fpsDiv.innerText = text;
+            setTimeout(updateFpsDiv, 200);
+
+        }
+
+        function leadingSpace(text, size) {
+            var result = text.toString();
+            while (result.length < size) {
+                result = " " + result;
+            }
+            return result;
         }
 
         function toggleDisplay(element) {
@@ -310,9 +353,46 @@
             data[start + 2] = b;
             data[start + 3] = a;
         }
+
+        function mouseMove(event) {
+            if (mouse.pressed) {
+                mouse.offset.x = mouse.init.x - event.x;
+                mouse.offset.y = mouse.init.y - event.y;
+            } else if (mouse.shiftPressed) {
+                var newScale = scale * (mouse.init.y - event.y) / 256;
+                if (newScale + scale > 0.1) {
+                    mouse.scale = newScale;
+                }
+            }
+        }
+
+        function mouseDown(event) {
+            mouse.init.x = event.x;
+            mouse.init.y = event.y;
+            if (event.shiftKey) {
+                mouse.shiftPressed = true;
+            } else {
+                mouse.pressed = true;
+            }
+        }
+
+        function mouseUp(event) {
+            if (mouse.pressed) {
+                mouse.pressed = false;
+                offset.x += mouse.offset.x;
+                offset.y += mouse.offset.y;
+                mouse.offset.x = 0;
+                mouse.offset.y = 0;
+            } else if (mouse.shiftPressed) {
+                mouse.shiftPressed = false;
+                scale += mouse.scale;
+                mouse.scale = 0;
+            }
+        }
+
     </script>
 </head>
-<body onload="init();">
+<body onload="init();" onmousemove="mouseMove(event);" onmousedown="mouseDown(event);" onmouseup="mouseUp(event);">
 <canvas id="palette"></canvas>
 <canvas id="main-zoom-1" class="main"></canvas>
 <canvas id="main-zoom-2" class="main"></canvas>
@@ -324,6 +404,11 @@
 <canvas id="main-zoom-8" class="main"></canvas>
 <canvas id="main-zoom-9" class="main"></canvas>
 <div id="fps">0</div>
-<div id="info">keys: ` full screen | 1 - 9 zoom | a - t colors</div>
+<div id="info">
+    <span>Plasma V1</span> |
+    <span>Keys</span> : <span>`</span> full screen | <span>1 - 9</span> zoom | <span>[ ]</span> scale | <span>a - t</span> colors | <span>mouse drag</span> move | <span>shift mouse drag</span> scale |
+    <span>Krzysztof Smigielski</span> |
+    <a href="https://github.com/nilcaream/javascript-fun/tree/master/plasma">https://github.com/nilcaream/javascript-fun/tree/master/plasma</a>
+</div>
 </body>
 </html>
