@@ -12,6 +12,11 @@ var offset = {x: 0, y: 0};
 var options = {zoom: 2, paletteSize: 512};
 var mouse = {pressed: false, shiftPressed: false, init: {x: 0, y: 0}, offset: {x: 0, y: 0}, scale: 0};
 
+var algorithm = algorithm01;
+var algorithmIndex = 0;
+var algorithms = [algorithm01, algorithm02, algorithm03];
+var drawParameters = {x: 0, y: 0, index: 0, rawX: 0, rawY: 0, d: 0};
+
 var frameTime = 16;
 var drawTime = 16;
 
@@ -55,7 +60,7 @@ function init() {
 }
 
 function initFromHash() {
-    var match = location.hash.match(/#x(\-?[0-9]+)y(\-?[0-9]+)s([0-9\.]+)z([1-9])c([0-9\.]+)r([0-9\.]+)g([0-9\.]+)b([0-9\.]+).*/);
+    var match = location.hash.match(/#x(\-?[0-9]+)y(\-?[0-9]+)s([0-9\.]+)z([1-9])c([0-9\.]+)r([0-9\.]+)g([0-9\.]+)b([0-9\.]+)a([0-9]+).*/);
     if (match) {
         offset.x = parseInt(match[1]);
         offset.y = parseInt(match[2]);
@@ -65,9 +70,15 @@ function initFromHash() {
         paletteInit.red = parseFloat(match[6]);
         paletteInit.green = parseFloat(match[7]);
         paletteInit.blue = parseFloat(match[8]);
+        updateAlgorithm(parseInt(match[9]));
     } else {
         location.hash = "";
     }
+}
+
+function updateAlgorithm(index) {
+    algorithmIndex = index % algorithms.length;
+    algorithm = algorithms[algorithmIndex];
 }
 
 function registerToggles() {
@@ -90,6 +101,7 @@ function registerToggles() {
             offset.y = 0;
             scale = 1;
             options = {zoom: 2, paletteSize: 512};
+            updateAlgorithm(0);
         } else if (e.keyCode === 13) { // 13 enter
             paletteInit = {red: Math.random() * 2 * Math.PI, green: Math.random() * 2 * Math.PI, blue: Math.random() * 2 * Math.PI};
             options = {zoom: mainCanvas.zoom, paletteSize: paletteSize};
@@ -102,6 +114,9 @@ function registerToggles() {
         } else if (e.keyCode === 66) { // 66 B
             paletteInit.blue = mod(paletteInit.blue + 0.1, 2 * Math.PI);
             options = {zoom: mainCanvas.zoom, paletteSize: paletteSize};
+        } else if (e.keyCode === 92) { // 92 \
+            updateAlgorithm(algorithmIndex + 1);
+            updateHash();
         }
         // console.log("keypress " + e.keyCode);
     }
@@ -178,61 +193,75 @@ function animate(timestamp) {
 
     var drawStart = new Date().getTime();
 
-    var index = 0;
-    var rotX;
-    var rotY;
-    var zx = 0;
-    var zy = 0;
-    var d = 0;
-    for (var y = 0; y < mainCanvas.height; y++) {
-        zy = y * mainCanvas.zoom + offset.y + mouse.offset.y;
-        zy *= scale + mouse.scale;
-        for (var x = 0; x < mainCanvas.width; x++) {
-            zx = x * mainCanvas.zoom + offset.x + mouse.offset.x;
-            zx *= scale + mouse.scale;
+    for (drawParameters.rawY = 0; drawParameters.rawY < mainCanvas.height; drawParameters.rawY++) {
+        drawParameters.y = drawParameters.rawY * mainCanvas.zoom + offset.y + mouse.offset.y;
+        drawParameters.y *= scale + mouse.scale;
+        for (drawParameters.rawX = 0; drawParameters.rawX < mainCanvas.width; drawParameters.rawX++) {
+            drawParameters.x = drawParameters.rawX * mainCanvas.zoom + offset.x + mouse.offset.x;
+            drawParameters.x *= scale + mouse.scale;
 
-            index = 0;
-
-            // rotating stripes 1
-            index += paletteSize * 0.00002 * (zx * Math.sin(timestamp / 5000) / 2 + zy * Math.cos(timestamp / 5000) / 2);
-
-            // rotating stripes 2
-            index += paletteSize * 0.000015 * (zx * Math.sin(1 + timestamp / 6000) / 2 - zy * Math.cos(0.7 + timestamp / 4000) / 2);
-
-            // grid
-            index += Math.sin(timestamp / 1300) * paletteSize * 0.2 * (Math.sin(zx / 60) + Math.sin(0.3 + (zx) / 121 + timestamp / 1000));
-            index += Math.cos(timestamp / 2100) * paletteSize * 0.2 * (Math.sin(zy / 60) + Math.sin(0.7 + (zy) / 123 + timestamp / 900));
-
-            // grid-like circle
-            d = distance(zx, zy);
-            index += paletteSize * 0.2 * Math.sin(d / 200 + Math.sin(zx / 100) + Math.sin(zy / 100));
-
-            /*
-            // large circle
-            rotX = mainCanvas.zoom * mainCanvas.width * (1 + 0.5 * Math.sin(timestamp / 5024)) / 2;
-            rotY = mainCanvas.zoom * mainCanvas.height * (1 + 0.5 * Math.cos(timestamp / 4000)) / 2;
-            index += paletteSize * 0.002 * distance(zx - rotX, zy - rotY);
-
-            // larger slow circle
-            rotX = mainCanvas.zoom * mainCanvas.width * (1 + 0.5 * Math.sin(0.3 + timestamp / 1320)) / 2;
-            rotY = mainCanvas.zoom * mainCanvas.height * (1 + 0.5 * Math.cos(3 + timestamp / 2210)) / 2;
-            index += paletteSize * 0.001 * distance(zx - 1.3 * rotY, zy - 0.4 * rotX);
-
-            // stripes
-            rotX = mainCanvas.zoom * mainCanvas.width * (1 + 0.5 * Math.sin(0.8 + timestamp / 2420)) / 2;
-            rotY = mainCanvas.zoom * mainCanvas.height * (1 + 0.5 * Math.cos(2 + timestamp / 2810)) / 2;
-            index += 0.5 * paletteSize * Math.sin(zx / 200 + rotX / 1000);
-            index += 0.5 * paletteSize * Math.sin(rotY / 1210 - zy / 400);
-            */
-
-            index = mod(Math.floor(index - paletteSize * timestamp / 9000), paletteSize);
-            putRGB(mainCanvas.image.data, mainCanvas.width, x, y, palette[0][index], palette[1][index], palette[2][index]);
+            drawParameters.index = mod(Math.floor(algorithm(timestamp, drawParameters) - paletteSize * timestamp / 9000), paletteSize);
+            putRGB(mainCanvas.image.data, mainCanvas.width, drawParameters.rawX, drawParameters.rawY, palette[0][drawParameters.index], palette[1][drawParameters.index], palette[2][drawParameters.index]);
         }
     }
 
     mainCanvas.context.putImageData(mainCanvas.image, 0, 0);
 
     drawTime = new Date().getTime() - drawStart;
+}
+
+function algorithm01(timestamp, parameters) {
+    // large circle
+    parameters.rotX = mainCanvas.zoom * mainCanvas.width * (1 + 0.5 * Math.sin(timestamp / 5024)) / 2;
+    parameters.rotY = mainCanvas.zoom * mainCanvas.height * (1 + 0.5 * Math.cos(timestamp / 4000)) / 2;
+    parameters.index = paletteSize * 0.0005 * (200 + distance(drawParameters.x - parameters.rotX, drawParameters.y - parameters.rotY));
+
+    // larger slow circle
+    parameters.rotX = mainCanvas.zoom * mainCanvas.width * (1 + 0.5 * Math.sin(0.3 + timestamp / 1320)) / 2;
+    parameters.rotY = mainCanvas.zoom * mainCanvas.height * (1 + 0.5 * Math.cos(3 + timestamp / 2210)) / 2;
+    parameters.index += paletteSize * 0.0005 * (200 + distance(drawParameters.x - 1.3 * parameters.rotY, drawParameters.y - 0.4 * parameters.rotX));
+
+    // stripes
+    parameters.rotX = mainCanvas.zoom * mainCanvas.width * (1 + 0.5 * Math.sin(0.8 + timestamp / 2420)) / 2;
+    parameters.rotY = mainCanvas.zoom * mainCanvas.height * (1 + 0.5 * Math.cos(2 + timestamp / 2810)) / 2;
+    parameters.index += 0.5 * paletteSize * Math.sin(drawParameters.x / 200 + parameters.rotX / 1000);
+    parameters.index += 0.5 * paletteSize * Math.sin(parameters.rotY / 1210 - drawParameters.y / 400);
+
+    return parameters.index;
+}
+
+function algorithm02(timestamp, parameters) {
+    // rotating stripes 1
+    parameters.index = paletteSize * 0.00002 * (drawParameters.x * Math.sin(timestamp / 5000) / 2 + drawParameters.y * Math.cos(timestamp / 5000) / 2);
+
+    // rotating stripes 2
+    parameters.index += paletteSize * 0.000015 * (drawParameters.x * Math.sin(1 + timestamp / 6000) / 2 - drawParameters.y * Math.cos(0.7 + timestamp / 4000) / 2);
+
+    // grid
+    parameters.index += Math.sin(timestamp / 1300) * paletteSize * 0.2 * (Math.sin(drawParameters.x / 60) + Math.sin(0.3 + (drawParameters.x) / 121 + timestamp / 1000));
+    parameters.index += Math.cos(timestamp / 2100) * paletteSize * 0.2 * (Math.sin(drawParameters.y / 60) + Math.sin(0.7 + (drawParameters.y) / 123 + timestamp / 900));
+
+    // grid-like circle
+    parameters.d = distance(drawParameters.x, drawParameters.y);
+    parameters.index += paletteSize * 0.2 * Math.sin(parameters.d / 200 + Math.sin(drawParameters.x / 100) + Math.sin(drawParameters.y / 100));
+
+    return parameters.index;
+}
+
+function algorithm03(timestamp, parameters) {
+    // x stripes
+    parameters.index = 0.3 * Math.sin(parameters.x / 200 + timestamp / 1000);
+
+    // rotating xy stripes
+    parameters.index += 0.1 * Math.sin(0.01 * parameters.x * Math.sin(timestamp / 11000) + 0.01 * parameters.y * Math.cos(timestamp / 11100));
+
+    // circle
+    parameters.rotX = (parameters.x - mainCanvas.zoom * mainCanvas.width / 2) * (1 + Math.sin(timestamp / 3000));
+    parameters.rotY = (parameters.y - mainCanvas.zoom * mainCanvas.height / 2) * (1 + Math.cos(timestamp / 4000));
+
+    parameters.index -= 0.2 * Math.sin(Math.sqrt(0.0001 * (parameters.rotX * parameters.rotX + parameters.rotY * parameters.rotY) + 100) + timestamp / 1000);
+
+    return parameters.index * paletteSize;
 }
 
 function updateFpsDiv() {
@@ -245,6 +274,7 @@ function updateFpsDiv() {
     text += ", frame " + leadingSpace(Math.ceil(frameTime), 4) + "ms";
     text += ", draw " + leadingSpace(drawTime, 4) + "ms";
     text += ", offset " + (offset.x + mouse.offset.x) + "," + (offset.y + mouse.offset.y);
+    text += ", " + algorithm.name;
     text += ")";
     fpsDiv.innerText = text;
     setTimeout(updateFpsDiv, 200);
@@ -330,5 +360,7 @@ function mouseUp() {
 }
 
 function updateHash() {
-    location.hash = "x" + offset.x + "y" + offset.y + "s" + scale.toFixed(2) + "z" + mainCanvas.zoom + "c" + paletteSize + "r" + paletteInit.red.toFixed(2) + "g" + paletteInit.green.toFixed(2) + "b" + paletteInit.blue.toFixed(2);
+    location.hash = "x" + offset.x + "y" + offset.y + "s" + scale.toFixed(2) + "z" + mainCanvas.zoom
+        + "c" + paletteSize + "r" + paletteInit.red.toFixed(2) + "g" + paletteInit.green.toFixed(2) + "b" + paletteInit.blue.toFixed(2)
+        + "a" + algorithmIndex;
 }
