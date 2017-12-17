@@ -120,9 +120,7 @@
         }
 
         function initFromHash() {
-            var hash = location.hash;
-            var regexp = /#x(.+)y(.+)s(.+)z(.+)c(.+)r(.+)g(.+)b(.+)#/;
-            var match = hash.match(regexp);
+            var match = location.hash.match(/#x(\-?[0-9]+)y(\-?[0-9]+)s([0-9\.]+)z([1-9])c([0-9\.]+)r([0-9\.]+)g([0-9\.]+)b([0-9\.]+).*/);
             if (match) {
                 offset.x = parseInt(match[1]);
                 offset.y = parseInt(match[2]);
@@ -132,6 +130,8 @@
                 paletteInit.red = parseFloat(match[6]);
                 paletteInit.green = parseFloat(match[7]);
                 paletteInit.blue = parseFloat(match[8]);
+            } else {
+                location.hash = "";
             }
         }
 
@@ -248,6 +248,7 @@
             var rotY;
             var zx = 0;
             var zy = 0;
+            var d = 0;
             for (var y = 0; y < mainCanvas.height; y++) {
                 zy = y * mainCanvas.zoom + offset.y + mouse.offset.y;
                 zy *= scale + mouse.scale;
@@ -257,6 +258,21 @@
 
                     index = 0;
 
+                    // rotating stripes 1
+                    index += paletteSize * 0.00002 * (zx * Math.sin(timestamp / 5000) / 2 + zy * Math.cos(timestamp / 5000) / 2);
+
+                    // rotating stripes 2
+                    index += paletteSize * 0.000015 * (zx * Math.sin(1 + timestamp / 6000) / 2 - zy * Math.cos(0.7 + timestamp / 4000) / 2);
+
+                    // grid
+                    index += Math.sin(timestamp / 1300) * paletteSize * 0.2 * (Math.sin(zx / 60) + Math.sin(0.3 + (zx) / 121 + timestamp / 1000));
+                    index += Math.cos(timestamp / 2100) * paletteSize * 0.2 * (Math.sin(zy / 60) + Math.sin(0.7 + (zy) / 123 + timestamp / 900));
+
+                    // grid-like circle
+                    d = distance(zx, zy);
+                    index += paletteSize * 0.2 * Math.sin(d / 200 + Math.sin(zx / 100) + Math.sin(zy / 100));
+
+                    /*
                     // large circle
                     rotX = mainCanvas.zoom * mainCanvas.width * (1 + 0.5 * Math.sin(timestamp / 5024)) / 2;
                     rotY = mainCanvas.zoom * mainCanvas.height * (1 + 0.5 * Math.cos(timestamp / 4000)) / 2;
@@ -272,8 +288,9 @@
                     rotY = mainCanvas.zoom * mainCanvas.height * (1 + 0.5 * Math.cos(2 + timestamp / 2810)) / 2;
                     index += 0.5 * paletteSize * Math.sin(zx / 200 + rotX / 1000);
                     index += 0.5 * paletteSize * Math.sin(rotY / 1210 - zy / 400);
+                    */
 
-                    index = mod(Math.floor(index - paletteSize * timestamp / 4000), paletteSize);
+                    index = mod(Math.floor(index - paletteSize * timestamp / 9000), paletteSize);
                     putRGB(mainCanvas.image.data, mainCanvas.width, x, y, palette[0][index], palette[1][index], palette[2][index]);
                 }
             }
@@ -378,7 +395,7 @@
         }
 
         function updateHash() {
-            location.hash = "x" + offset.x + "y" + offset.y + "s" + scale.toFixed(2) + "z" + mainCanvas.zoom + "c" + paletteSize + "r" + paletteInit.red.toFixed(2) + "g" + paletteInit.green.toFixed(2) + "b" + paletteInit.blue.toFixed(2) + "#"
+            location.hash = "x" + offset.x + "y" + offset.y + "s" + scale.toFixed(2) + "z" + mainCanvas.zoom + "c" + paletteSize + "r" + paletteInit.red.toFixed(2) + "g" + paletteInit.green.toFixed(2) + "b" + paletteInit.blue.toFixed(2);
         }
     </script>
 </head>
