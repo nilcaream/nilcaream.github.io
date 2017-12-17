@@ -14,7 +14,7 @@ var mouse = {pressed: false, shiftPressed: false, init: {x: 0, y: 0}, offset: {x
 
 var algorithm = algorithm01;
 var algorithmIndex = 0;
-var algorithms = [algorithm01, algorithm02, algorithm03];
+var algorithms = [algorithm01, algorithm02, algorithm03, mandelbrot];
 
 var frameTime = 16;
 var drawTime = 16;
@@ -244,7 +244,7 @@ function algorithm01(timestamp) {
     }
 }
 
-function algorithm02(timestamp, parameters) {
+function algorithm02(timestamp) {
     var index;
     var d;
     var x;
@@ -279,7 +279,7 @@ function algorithm02(timestamp, parameters) {
     }
 }
 
-function algorithm03(timestamp, parameters) {
+function algorithm03(timestamp) {
     var index;
     var rotX;
     var rotY;
@@ -308,6 +308,95 @@ function algorithm03(timestamp, parameters) {
             index -= 0.2 * Math.sin(Math.sqrt(0.0001 * (rotX * rotX + rotY * rotY) + 100) + timestamp / 1000);
 
             index *= paletteSize;
+
+            index = mod(Math.floor(index - paletteSize * timestamp / 9000), paletteSize);
+            putRGB(mainCanvas.image.data, mainCanvas.width, rawX, rawY, palette[0][index], palette[1][index], palette[2][index]);
+        }
+    }
+}
+
+var mandelbrotTimestamp = 0;
+var mandelbrotIndexes = [];
+
+function mandelbrot(timestamp) {
+    var index;
+    var x;
+    var y;
+    var rawX;
+    var rawY;
+
+    var real;
+    var imaginary;
+
+    var newReal;
+    var newImaginary;
+
+    var iterations = 64;
+    var threshold = 64;
+
+    var m = 0;
+    if (timestamp - mandelbrotTimestamp > 1000 || mandelbrotTimestamp === 0) {
+        console.log("redraw " + mandelbrotTimestamp);
+        for (rawY = 0; rawY < mainCanvas.height; rawY++) {
+            y = rawY * mainCanvas.zoom + offset.y + mouse.offset.y;
+            y *= (scale + mouse.scale) / 500;
+            y -= mainCanvas.height * mainCanvas.zoom * ((scale + mouse.scale) / 500) / 2;
+            for (rawX = 0; rawX < mainCanvas.width; rawX++) {
+                x = rawX * mainCanvas.zoom + offset.x + mouse.offset.x;
+                x *= (scale + mouse.scale) / 500;
+                x -= mainCanvas.width * mainCanvas.zoom * ((scale + mouse.scale) / 500) / 2;
+
+                real = x;
+                imaginary = y;
+                index = 0;
+                for (var i = 0; i < iterations; i++) {
+                    newReal = real * real - imaginary * imaginary + x;
+                    newImaginary = 2 * real * imaginary + y;
+
+                    real = newReal;
+                    imaginary = newImaginary;
+
+                    index = paletteSize * i / iterations;
+                    if (real * imaginary > threshold) {
+                        break;
+                    }
+                }
+
+                mandelbrotIndexes[m] = index;
+                m++;
+                index = mod(Math.floor(index - paletteSize * timestamp / 9000), paletteSize);
+
+
+                putRGB(mainCanvas.image.data, mainCanvas.width, rawX, rawY, palette[0][index], palette[1][index], palette[2][index]);
+            }
+        }
+        mandelbrotTimestamp = timestamp;
+    } else {
+        for (rawY = 0; rawY < mainCanvas.height; rawY++) {
+            for (rawX = 0; rawX < mainCanvas.width; rawX++) {
+                index = mod(Math.floor(mandelbrotIndexes[m] - paletteSize * timestamp / 9000), paletteSize);
+                putRGB(mainCanvas.image.data, mainCanvas.width, rawX, rawY, palette[0][index], palette[1][index], palette[2][index]);
+                m++;
+            }
+        }
+    }
+}
+
+function algorithmCenterTest(timestamp) {
+    var index;
+    var x;
+    var y;
+    var rawX;
+    var rawY;
+
+    for (rawY = 0; rawY < mainCanvas.height; rawY++) {
+        y = rawY * mainCanvas.zoom + offset.y + mouse.offset.y;// - mainCanvas.height * mainCanvas.zoom/2;
+        y *= scale + mouse.scale;
+        for (rawX = 0; rawX < mainCanvas.width; rawX++) {
+            x = rawX * mainCanvas.zoom + offset.x + mouse.offset.x;// - mainCanvas.width * mainCanvas.zoom/2;
+            x *= scale + mouse.scale;
+
+            index = paletteSize * Math.min(50, distance(x - (mainCanvas.width * mainCanvas.zoom * (scale + mouse.scale)) / 2, y - (mainCanvas.height * mainCanvas.zoom * (scale + mouse.scale)) / 2));
 
             index = mod(Math.floor(index - paletteSize * timestamp / 9000), paletteSize);
             putRGB(mainCanvas.image.data, mainCanvas.width, rawX, rawY, palette[0][index], palette[1][index], palette[2][index]);
