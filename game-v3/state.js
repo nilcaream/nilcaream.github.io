@@ -122,7 +122,16 @@ State.prototype = {
                 caller.absoluteMove = !caller.absoluteMove;
                 caller.updateHud = true;
             }
+            if (caller.enemies.length < caller.levels.current.enemiesCount && caller.player.health > 0) {
+                caller._addEnemy();
+            }
         }, 1000);
+
+        setInterval(function () {
+            if (caller.explosives.length + caller.player.explosives < caller.levels.current.explosives && caller.player.health > 0) {
+                caller._addExplosive();
+            }
+        }, 2000);
     },
 
     _shootBullet: function (enemy) {
@@ -149,7 +158,7 @@ State.prototype = {
         var playTime = new Date(new Date().getTime() - this.startTime);
         document.getElementById("endTime").innerText = playTime.getUTCMinutes() + ":" + this.utils.leadingZero(playTime.getUTCSeconds(), 100) + "." + this.utils.leadingZero(playTime.getUTCMilliseconds(), 1000);
         document.getElementById("endLevel").innerText = this.levels.number + 1;
-        document.getElementById("endPoints").innerText = this.player.points;
+        document.getElementById("endPoints").innerText = this.player.points.toString();
         document.getElementById("endPointsPerMinute").innerText = (this.player.points / (playTime.getTime() / (1000 * 60))).toFixed(2);
     },
 
@@ -178,49 +187,35 @@ State.prototype = {
         }
     },
 
-    _addMissingEnemies: function () {
-        var caller = this;
-        setTimeout(function () {
-            while (caller.enemies.length < caller.levels.current.enemiesCount && caller.player.health > 0) {
-                caller._addEnemy();
-            }
-        }, 1000);
-    },
-
-    _addMissingExplosives: function () {
-        var caller = this;
-        setTimeout(function () {
-            if (caller.explosives.length + caller.player.explosives < caller.levels.current.explosives && caller.player.health > 0) {
-                caller._addExplosive();
-            }
-        }, 2000);
-    },
-
     _updateGameState: function (time, timestamp) {
         var player = this.player;
         var enemies = this.enemies;
         var explosion = this.explosion;
 
+        var i;
+        var enemy;
+        var explosive;
+        var bullet;
+
         // kill enemies
         if (explosion.startTime > 0) {
-            for (var i = 0; i < enemies.length; i++) {
-                var enemy = enemies[i];
+            for (i = 0; i < enemies.length; i++) {
+                enemy = enemies[i];
                 if (enemy.playerDistance < explosion.radius + 20) {
                     enemies.splice(i, 1);
                     console.log("+" + explosion.points + " points");
                     player.points += explosion.points;
                     explosion.points++;
                     this.updateHud = true;
-                    this._addMissingEnemies();
                 }
             }
         }
 
         // kill bullets
         if (explosion.startTime > 0) {
-            for (var i = 0; i < enemies.length; i++) {
-                var enemy = enemies[i];
-                var bullet = enemy.bullet;
+            for (i = 0; i < enemies.length; i++) {
+                enemy = enemies[i];
+                bullet = enemy.bullet;
                 if (bullet && bullet.playerDistance < explosion.radius + 20) {
                     enemy.bullet = null;
                 }
@@ -228,8 +223,8 @@ State.prototype = {
         }
 
         // hurt player by enemies
-        for (var i = 0; i < enemies.length; i++) {
-            var enemy = enemies[i];
+        for (i = 0; i < enemies.length; i++) {
+            enemy = enemies[i];
             if (enemy.playerDistance < 50) {
                 player.health--;
                 enemies.splice(i, 1);
@@ -238,9 +233,9 @@ State.prototype = {
         }
 
         // hurt player by bullets
-        for (var i = 0; i < enemies.length; i++) {
-            var enemy = enemies[i];
-            var bullet = enemy.bullet;
+        for (i = 0; i < enemies.length; i++) {
+            enemy = enemies[i];
+            bullet = enemy.bullet;
             if (bullet && bullet.playerDistance < 50) {
                 player.health--;
                 enemy.bullet = null;
@@ -254,7 +249,6 @@ State.prototype = {
             explosion.startTime = timestamp;
             player.explosives--;
             this.updateHud = true;
-            this._addMissingExplosives();
         }
 
         // disable explosion
@@ -270,47 +264,44 @@ State.prototype = {
         }
 
         // collect explosives
-        for (var i = 0; i < this.explosives.length; i++) {
-            var explosive = this.explosives[i];
+        for (i = 0; i < this.explosives.length; i++) {
+            explosive = this.explosives[i];
             if (explosive.playerDistance < 50 || explosive.playerDistance < explosion.radius + 10) {
                 player.explosives++;
                 this.explosives.splice(i, 1);
                 this.updateHud = true;
-                this._addMissingExplosives();
             }
         }
 
         // remove off-radar enemies
-        for (var i = 0; i < enemies.length; i++) {
-            var enemy = enemies[i];
+        for (i = 0; i < enemies.length; i++) {
+            enemy = enemies[i];
             if (enemy.playerDistance > this.worldSize - 20) {
                 enemies.splice(i, 1);
                 this.updateHud = true;
-                this._addMissingEnemies();
             }
         }
 
         // remove off-radar explosives
-        for (var i = 0; i < this.explosives.length; i++) {
-            var explosive = this.explosives[i];
+        for (i = 0; i < this.explosives.length; i++) {
+            explosive = this.explosives[i];
             if (explosive.playerDistance > Math.max(this.canvas.width, this.canvas.height, this.worldSize / 2)) {
                 this.explosives.splice(i, 1);
                 this.updateHud = true;
-                this._addMissingExplosives();
             }
         }
 
         // remove off-radar bullets
-        for (var i = 0; i < enemies.length; i++) {
-            var enemy = enemies[i];
+        for (i = 0; i < enemies.length; i++) {
+            enemy = enemies[i];
             if (enemy.bullet && enemy.bullet.playerDistance > this.worldSize - 20) {
                 enemy.bullet = null;
             }
         }
 
         // shoot bullets
-        for (var i = 0; i < enemies.length; i++) {
-            var enemy = enemies[i];
+        for (i = 0; i < enemies.length; i++) {
+            enemy = enemies[i];
             if (!enemy.bullet && enemy.playerDistance < 450 && Math.abs(enemy.swing) < 3 && Math.random() > this.levels.current.bulletChance) {
                 this._shootBullet(enemy);
                 break;

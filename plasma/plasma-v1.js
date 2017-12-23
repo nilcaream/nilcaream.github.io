@@ -82,10 +82,8 @@ function registerToggles() {
             options = {zoom: mainCanvas.zoom, paletteSize: Math.ceil(Math.pow(2, e.keyCode - 96))};
         } else if (e.keyCode === 91) { // 91 [
             scale = Math.max(0.1, scale / 1.2);
-            updateHash();
         } else if (e.keyCode === 93) { // 93 ]
             scale *= 1.2;
-            updateHash();
         } else if (e.keyCode === 32) { // 32 space
             paletteInit = {red: 0, green: 0.4, blue: 0.7};
             offset.x = 0;
@@ -107,8 +105,9 @@ function registerToggles() {
             options = {zoom: mainCanvas.zoom, paletteSize: paletteSize};
         } else if (e.keyCode === 92) { // 92 \
             updateAlgorithm(algorithmIndex + 1);
-            updateHash();
         }
+        updateHash();
+        repaint = true;
         // console.log("keypress " + e.keyCode);
     }
 }
@@ -315,8 +314,9 @@ function algorithm03(timestamp) {
     }
 }
 
+var repaint = true;
 var mandelbrotTimestamp = 0;
-var mandelbrotIndexes = [];
+var mandelbrotIndexes = [0];
 
 function mandelbrot(timestamp) {
     var index;
@@ -335,7 +335,7 @@ function mandelbrot(timestamp) {
     var threshold = 64;
 
     var m = 0;
-    if (timestamp - mandelbrotTimestamp > 1000 || mandelbrotTimestamp === 0) {
+    if (repaint) {
         console.log("redraw " + mandelbrotTimestamp);
         for (rawY = 0; rawY < mainCanvas.height; rawY++) {
             y = rawY * mainCanvas.zoom + offset.y + mouse.offset.y;
@@ -348,7 +348,15 @@ function mandelbrot(timestamp) {
 
                 real = x;
                 imaginary = y;
-                index = 0;
+
+                if (m < 2) {
+                    index = 0;
+                } else if(mandelbrotIndexes[m-1] === 0 && mandelbrotIndexes[m-2] > 0) {
+                    index = 0
+                } else {
+                    index = mandelbrotIndexes[m-1];
+                }
+
                 for (var i = 0; i < iterations; i++) {
                     newReal = real * real - imaginary * imaginary + x;
                     newImaginary = 2 * real * imaginary + y;
@@ -356,8 +364,8 @@ function mandelbrot(timestamp) {
                     real = newReal;
                     imaginary = newImaginary;
 
-                    index = paletteSize * i / iterations;
                     if (real * imaginary > threshold) {
+                        index = paletteSize * i / iterations;
                         break;
                     }
                 }
@@ -366,11 +374,11 @@ function mandelbrot(timestamp) {
                 m++;
                 index = mod(Math.floor(index - paletteSize * timestamp / 9000), paletteSize);
 
-
                 putRGB(mainCanvas.image.data, mainCanvas.width, rawX, rawY, palette[0][index], palette[1][index], palette[2][index]);
             }
         }
         mandelbrotTimestamp = timestamp;
+        repaint = false;
     } else {
         for (rawY = 0; rawY < mainCanvas.height; rawY++) {
             for (rawX = 0; rawX < mainCanvas.width; rawX++) {
@@ -497,6 +505,7 @@ function mouseUp() {
         mouse.scale = 0;
     }
     updateHash();
+    repaint = true;
 }
 
 function updateHash() {
