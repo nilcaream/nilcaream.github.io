@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>3x3 Cube</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <style>
+        @page {
+            size: A4;
+            margin: 10mm;
+        }
+
+        @media print {
+        }
+
+        body {
+            margin: auto;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            font-family: monospace;
+        }
+
+        #algorithms {
+            /*border: 1px solid black;*/
+        }
+
+        #algorithms .id {
+            font-size: 1em;
+            color: cornflowerblue;
+            margin-right: 1em;
+        }
+
+        #algorithms .name {
+            font-size: 1em;
+            color: lightskyblue;
+        }
+
+        #algorithms .sequence {
+            font-size: 1.5em;
+        }
+
+        #algorithms .cube {
+            margin-bottom: 1em;
+        }
+
+        #algorithms td {
+            padding: 1em;
+        }
+
+        #wrapper {
+            padding: 1em;
+            margin: 0 auto;
+            width: 55em;
+        }
+
+    </style>
+    <script language="JavaScript">
+        var algs = {
+            oll26: {
+                id: "OLL 26",
+                name: "-S / Antisune",
+                sequence: "R'U'RU' R'U2R",
+                image: "images/oll26.png"
+            },
+            oll27: {
+                id: "OLL 27",
+                name: "S / Sune",
+                sequence: "RUR'U RU2R'",
+                image: "images/oll27.png"
+            },
+            oll21: {
+                id: "OLL 21",
+                name: "H / Cross",
+                sequence: "R'U'RU' (R'URU') R'U2R",
+                image: "images/oll21.png"
+            },
+            oll22: {
+                id: "OLL 22",
+                name: "Pi / Wheel",
+                sequence: "R U2R2 (U'R2U') R2U2 R",
+                image: "images/oll22.png"
+            },
+            oll23: {
+                id: "OLL 23",
+                name: "U / Headlights",
+                sequence: "(R'U'RU' R'U2R) (RUR'U RU2R')",
+                image: "images/oll23.png"
+            },
+            oll24: {
+                id: "OLL 24",
+                name: "T / Shark",
+                sequence: "LFR'F' L'FRF'",
+                image: "images/oll24.png"
+            },
+            oll25: {
+                id: "OLL 25",
+                name: "L / Bowtie",
+                sequence: "RU2R'U' (RUR'U')(RUR'U') RU'R'",
+                image: "images/oll25.png"
+            }
+        };
+
+        function init() {
+            var table = $("#algorithms");
+            addRow(table, [algs.oll26, algs.oll27]);
+            addRow(table, [algs.oll21, algs.oll22]);
+            addRow(table, [algs.oll23, algs.oll24]);
+            addRow(table, [algs.oll25]);
+        }
+
+        function addRow(table, elements) {
+            var tr = $("<tr></tr>");
+            elements.forEach(function (element) {
+                var td = $("<td></td>");
+
+                var id = $("<span></span>").addClass("id").text(element.id);
+                var name = $("<span></span>").addClass("name").text(element.name);
+                var title = $("<div></div>").addClass("title").append(id).append(name);
+
+                var algorithm = $("<div></div>").text(element.sequence).addClass("sequence");
+
+                var cube = $("<div></div>").addClass("cube");
+                var img = $("<img>").attr("src", element.image);
+                cube.append(img);
+
+                td.append(title);
+                td.append(algorithm);
+                td.append(cube);
+
+                tr.append(td);
+            });
+            table.append(tr);
+        }
+    </script>
+</head>
+<body onload="init()">
+<div id="wrapper">
+    <!--
+        Cube images generated with VisualCube.
+        href="https://www.speedsolving.com/wiki/extensions/algdb/vcube/visualcube.php
+    -->
+    <table id="algorithms"></table>
+</div>
+</body>
+</html>
