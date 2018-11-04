@@ -13,13 +13,14 @@ function State(canvasId, debugDivId, hudBackCanvasId, hudFrontCanvasId, pointsDi
     this.utils = new Utils();
     this.levels = new Levels();
     this.debug = new Debug(debugDivId);
-    this.controller = new Controller();
     this.graphics = new Graphics(canvasId, hudBackCanvasId, hudFrontCanvasId, pointsDivId, levelDivId);
+    this.controller = new Controller(this.graphics.main.width, this.graphics.main.height);
 
     this.lastRefreshTimestamp = 0;
     this.worldSize = this.graphics.worldSize;
 
     this._registerKeyboardListeners();
+    this._registerTouchListeners();
     this._startIntervalJobs();
 }
 
@@ -53,7 +54,9 @@ State.prototype = {
         this.controller.update();
 
         if (this.isRunning()) {
-            if (this.absoluteMove) {
+            if (this.controller.type === "mobile") {
+                this._updatePlayerAngle(time, timestamp);
+            } else if (this.absoluteMove) {
                 this._updatePlayerVelocityAbsolute(time);
             } else {
                 this._updatePlayerVelocityRelative(time, timestamp);
@@ -76,7 +79,12 @@ State.prototype = {
         }
         if (this.updateHud) {
             this.updateHud = false;
-            var controllers = [this.absoluteMove ? "moveAbsolute" : "moveRelative", this.controller.type];
+            var controllers;
+            if (this.controller.type === "mobile") {
+                controllers = ["mobile"];
+            } else {
+                controllers = [this.absoluteMove ? "moveAbsolute" : "moveRelative", this.controller.type];
+            }
             this.graphics.drawHudFront(this.player.explosives, this.levels.current.explosives, this.player.health, this.levels.current.health, this.player.points, controllers);
         }
     },
@@ -90,25 +98,65 @@ State.prototype = {
             caller.controller.keyPressed[e.keyCode] = false;
         };
         document.onkeypress = function (e) {
-            // console.log(e.keyCode);
-            if (e.keyCode === 92) { // \
+            if (caller.debug.enabled) {
+                console.log(e);
+            }
+            if (e.code === "Backslash") {
                 caller.controller.toggle();
                 caller.updateHud = true;
-            } else if (e.keyCode === 97) { // a
+            } else if (e.code === "KeyA") {
                 caller.absoluteMove = !caller.absoluteMove;
                 caller.updateHud = true;
-            } else if (e.keyCode === 96) { // 96 `
+            } else if (e.code === "KeyM") {
+                caller.mobile = !caller.mobile;
+                if (caller.mobile) {
+                    caller.player.x = caller.canvas.width / 2;
+                    caller.player.y = caller.canvas.height / 2;
+                    caller.absoluteMove = false;
+                }
+                caller.updateHud = true;
+            } else if (e.code === "Backquote") {
                 if (caller.debug.toggle()) {
                     document.getElementById("wrapper").style.cursor = "default";
                 } else {
                     document.getElementById("wrapper").style.cursor = "none";
                 }
-            } else if (e.keyCode === 13) { // 13 enter
+            } else if (e.code === "Enter") {
                 caller._resetGame(caller.levels.number);
-            } else if (e.keyCode >= 48 && e.keyCode <= 48 + 10) { // 48 0; 49 1...
-                caller._resetGame((e.keyCode - 48 - 1 + 10) % 10);
+            } else if (e.code.startsWith("Digit")) {
+                var digit = parseInt(e.code.substring("Digit".length));
+                caller._resetGame(digit === 0 ? 9 : digit - 1);
             }
         };
+    },
+
+    _registerTouchListeners: function () {
+        var caller = this;
+        var processTouch = function (event) {
+            // console.log(event);
+            // console.log(event.type);
+            // console.log(event.touches);
+            caller.controller.touches = event.touches;
+        };
+
+        var pane = document.getElementById("hudFront");
+        pane.addEventListener('touchmove', processTouch, false);
+        pane.addEventListener('touchstart', processTouch, false);
+        pane.addEventListener('touchend', processTouch, false);
+    },
+
+    _interpretHash: function () {
+        var state = this;
+        var hashes = window.location.hash.substring(1).split(":");
+        if (hashes.indexOf("mobile") !== -1) {
+            this.controller.type = "mobile";
+        }
+        hashes.forEach(function (hash) {
+            if (hash.startsWith("level")) {
+                var digit = parseInt(hash.substring("level".length));
+                state._resetGame(digit === 0 ? 9 : digit - 1);
+            }
+        });
     },
 
     _startIntervalJobs: function () {
@@ -203,7 +251,9 @@ State.prototype = {
                 enemy = enemies[i];
                 if (enemy.playerDistance < explosion.radius + 20) {
                     enemies.splice(i, 1);
-                    console.log("+" + explosion.points + " points");
+                    if (this.debug.enabled) {
+                        console.log("+" + explosion.points + " points");
+                    }
                     player.points += explosion.points;
                     explosion.points++;
                     this.updateHud = true;
@@ -314,6 +364,34 @@ State.prototype = {
         }
     },
 
+    _updatePlayerAngle: function (time, timestamp) {
+        var player = this.player;
+        var controller = this.controller;
+
+        var angleDiff = Math.abs(player.angle - controller.angle);
+        var delta = ((time / 5) - player.speed / 10);
+
+        if (controller.angle > player.angle) {
+            if (angleDiff < 180) {
+                player.angle = Math.min(player.angle + delta, controller.angle);
+            } else {
+                player.angle -= delta;
+            }
+        } else {
+            if (angleDiff < 180) {
+                player.angle = Math.max(player.angle - delta, controller.angle);
+            } else {
+                player.angle += delta;
+            }
+        }
+
+        if (controller.touches.length > 0) {
+            player.speed += time / 200;
+        } else {
+            player.speed -= time / 400;
+        }
+    },
+
     _updatePlayerVelocityRelative: function (time, timestamp) {
         var result = {angle: this.player.angle, speed: 0};
         var controller = this.controller;
@@ -390,9 +468,13 @@ State.prototype = {
     _updatePositions: function (time, timestamp) {
         var player = this.player;
         var canvas = this.canvas;
+        var moveAll = {};
 
-        var noGo = 200;
-        var zone = 250;
+        var borderWidth = 50;
+        var minDistance = 100;
+
+        var noGo = minDistance;
+        var zone = minDistance + borderWidth;
 
         if (player.angle > 360) {
             player.angle -= 360;
@@ -424,15 +506,21 @@ State.prototype = {
         }
         player.borderY = Math.min(0.8, player.borderY);
 
+        if (this.controller.type === "mobile") {
+            player.borderX = 0;
+            player.borderY = 0;
+            player.x = canvas.width / 2;
+            player.y = canvas.height / 2;
+        } else {
+            player.x += player.borderX * player.diffX;
+            player.y += player.borderY * player.diffY;
+        }
 
-        player.x += player.borderX * player.diffX;
-        player.y += player.borderY * player.diffY;
+        moveAll.x = (1 - player.borderX) * player.diffX;
+        moveAll.y = (1 - player.borderY) * player.diffY;
 
-        var moveAllX = (1 - player.borderX) * player.diffX;
-        var moveAllY = (1 - player.borderY) * player.diffY;
-
-        this._moveAll(moveAllX, moveAllY);
-        this.graphics.moveSky(time / 256, 0, time / 512, 0);
+        this._moveAll(moveAll.x, moveAll.y);
+        this.graphics.moveSky(time / 256, 0, -time / 512, 0);
 
         for (var i = 0; i < this.enemies.length; i++) {
             var enemy = this.enemies[i];
@@ -459,7 +547,7 @@ State.prototype = {
             explosive.playerDistance = this.utils.distance(explosive, player);
         }
 
-        return {x: moveAllX, y: moveAllY};
+        return moveAll;
     },
 
     _moveAll: function (x, y) {

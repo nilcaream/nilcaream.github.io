@@ -30,6 +30,14 @@ Debug.prototype = {
             text += "controller.(fire,select,start) = " + controller.fire + " " + controller.select + " " + controller.start + "\n";
             text += "--------------------\n";
 
+            if (controller.touches.length > 0) {
+                for (var i = 0; i < controller.touches.length; i++) {
+                    var touch = controller.touches[i];
+                    text += "touch[" + i + "].(x,y) = " + touch.clientX.toFixed(2) + " " + touch.clientY.toFixed(2) + "\n";
+                }
+                text += "--------------------\n";
+            }
+
             var gamepad = controller.gamepad();
             if (gamepad) {
                 text += gamepad.id.replace(/ +/g, " ") + "\n";

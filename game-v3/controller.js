@@ -1,9 +1,12 @@
-function Controller() {
+function Controller(width, height) {
+    this.width = width;
+    this.height = height;
 }
 
 Controller.prototype = {
     constructor: Controller,
 
+    types: ["keyboard", "gamepad", "mobile"],
     type: "keyboard",
     left: 0,
     right: 0,
@@ -13,6 +16,8 @@ Controller.prototype = {
     select: false,
     start: false,
     keyPressed: {},
+    touches: [],
+    angle: 0,
 
     gamepad: function () {
         if (navigator.getGamepads() && navigator.getGamepads().length > 0 && navigator.getGamepads()[0] !== null) {
@@ -23,20 +28,15 @@ Controller.prototype = {
     },
 
     toggle: function () {
-        if (this.type === "keyboard") {
-            if (this.gamepad()) {
-                this.type = "gamepad";
-            } else {
-                console.log("Game pad not available");
-            }
-        } else {
-            this.type = "keyboard";
-        }
+        var next = (this.types.indexOf(this.type) + 1) % this.types.length;
+        this.type = this.types[next];
         return this.type;
     },
 
     update: function () {
-        if (this.type === "keyboard") {
+        if (this.type === "mobile") {
+            this._updateTouches();
+        } else if (this.type === "keyboard") {
             this._updateKeyboard();
         } else if (this.type === "gamepad") {
             this._updateGamepad();
@@ -73,7 +73,6 @@ Controller.prototype = {
     _updateGamepad: function () {
         var pad = this.gamepad();
         if (pad === null) {
-            console.log("Gamepad not found");
             return;
         }
 
@@ -116,5 +115,47 @@ Controller.prototype = {
 
         this.fire = pad.buttons[4].pressed || pad.buttons[5].pressed || pad.buttons[6].pressed || pad.buttons[7].pressed;
         this.fire = this.fire || pad.buttons[10].pressed || pad.buttons[11].pressed;
+    },
+
+    _updateTouches: function () {
+        var controller = this;
+        controller.fire = false;
+        controller.up = 0;
+        controller.down = 0;
+        controller.left = 0;
+        controller.right = 0;
+
+        var origin = {
+            x: controller.width * 3 / 4,
+            y: controller.height / 2
+        };
+
+        for (var i = 0; i < this.touches.length; i++) {
+            var touch = this.touches[i];
+            // console.log(touch);
+            if (touch.clientX < controller.width / 3) {
+                controller.fire = true;
+            } else if (touch.clientX > controller.width / 2) {
+                var angle = 90 + Math.atan2(touch.clientY - origin.y, touch.clientX - origin.x) * 180 / Math.PI;
+                angle = angle > 0 ? angle : 360 + angle;
+                // console.log(angle);
+
+                controller.angle = angle;
+
+                if (angle > 0 && angle < 90) {
+                    controller.up = (90 - angle) / 90;
+                    controller.right = angle / 90;
+                } else if (angle > 90 && angle < 180) {
+                    controller.down = (angle - 90) / 90;
+                    controller.right = (180 - angle) / 90;
+                } else if (angle > 180 && angle < 270) {
+                    controller.down = (270 - angle) / 90;
+                    controller.left = (angle - 180) / 90;
+                } else if (angle > 270 && angle < 360) {
+                    controller.up = (angle - 270) / 90;
+                    controller.left = (360 - angle) / 90;
+                }
+            }
+        }
     }
 };

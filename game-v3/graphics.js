@@ -38,6 +38,8 @@ function Graphics(mainCanvasId, hudBackCanvasId, hudFrontCanvasId, pointsDivId, 
     this.images.load("moveAbsolute", "move-absolute.png");
     this.images.load("moveRelative", "move-relative.png");
     this.images.load("bullet", "connection.png");
+    this.images.load("mobile", "tablet.png");
+    this.images.load("touch", "movement.png");
 
     this.worldSize = Math.sqrt(this.main.width * this.main.width + this.main.height * this.main.height) * 3 / 2;
     this.hud.radar.scale = this.worldSize / this.hud.radar.radius;
@@ -185,6 +187,16 @@ Graphics.prototype = {
             var image = this.images.get(controllers[i]);
             context.drawImage(image, -image.width, -image.height);
             context.translate(-image.width - 5, 0);
+        }
+        context.restore();
+
+        var border = 128;
+        context.save();
+        context.clearRect(3 * canvas.width / 4 - border / 2, canvas.height / 2 - border / 2, border, border);
+        if (controllers.indexOf("mobile") !== -1) {
+            context.translate(3 * canvas.width / 4, canvas.height / 2);
+            var image = this.images.get("touch");
+            context.drawImage(image, -image.width / 2, -image.height / 2);
         }
         context.restore();
 

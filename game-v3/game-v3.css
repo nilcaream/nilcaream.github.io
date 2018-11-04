@@ -50,6 +50,7 @@ div#debug {
     white-space: pre;
     font-size: 10px;
     line-height: 9px;
+    overflow: hidden;
 }
 
 body {
@@ -100,4 +101,8 @@ li {
 
 a:visited, a {
     color: #00aa00;
+}
+
+* {
+    user-select: none;
 }
