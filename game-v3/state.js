@@ -3,6 +3,7 @@ function State(canvasId, debugDivId, hudBackCanvasId, hudFrontCanvasId, pointsDi
 
     this.startTime = 0;
     this.enemies = [];
+    this.bullets = [];
     this.explosives = [];
     this.updateHud = true;
     this.absoluteMove = true;
@@ -67,7 +68,7 @@ State.prototype = {
         }
 
         if (this.debug.enabled) {
-            this.debug.update(timestamp, this.player, this.explosion, this.controller, this.enemies, this.explosives, time, this.worldSize, this.canvas);
+            this.debug.update(timestamp, this.player, this.explosion, this.controller, this.enemies, this.bullets, this.explosives, time, this.worldSize, this.canvas);
         }
 
         this.lastRefreshTimestamp = timestamp;
@@ -75,7 +76,7 @@ State.prototype = {
 
     updateGraphics: function (timestamp) {
         if (this.isRunning()) {
-            this.graphics.drawMain(timestamp, this.player, this.explosion, this.enemies, this.explosives);
+            this.graphics.drawMain(timestamp, this.player, this.explosion, this.enemies, this.explosives, this.bullets);
         }
         if (this.updateHud) {
             this.updateHud = false;
@@ -189,9 +190,11 @@ State.prototype = {
         bullet.x = enemy.x;
         bullet.y = enemy.y;
         bullet.speed = this.levels.current.bulletSpeed;
-        bullet.angle = 90 + Math.atan2(player.y - enemy.y, player.x - enemy.x) * 180 / Math.PI;
 
-        enemy.bullet = bullet;
+        // TODO improve collision-predicted angle
+        bullet.angle = 90 + Math.atan2(player.y + 100 * player.diffY - enemy.y, player.x + 100 * player.diffX - enemy.x) * 180 / Math.PI;
+
+        this.bullets.push(bullet);
     },
 
     _showEndGame: function () {
@@ -217,6 +220,7 @@ State.prototype = {
 
         this.levels.set(newLevel);
         this.enemies = [];
+        this.bullets = [];
         this.explosives = [];
         this.player.x = this.canvas.width / 2;
         this.player.y = this.canvas.height / 2;
@@ -238,6 +242,7 @@ State.prototype = {
     _updateGameState: function (time, timestamp) {
         var player = this.player;
         var enemies = this.enemies;
+        var bullets = this.bullets;
         var explosion = this.explosion;
 
         var i;
@@ -263,11 +268,11 @@ State.prototype = {
 
         // kill bullets
         if (explosion.startTime > 0) {
-            for (i = 0; i < enemies.length; i++) {
-                enemy = enemies[i];
-                bullet = enemy.bullet;
-                if (bullet && bullet.playerDistance < explosion.radius + 20) {
-                    enemy.bullet = null;
+            var newBullets = [];
+            for (i = 0; i < bullets.length; i++) {
+                bullet = bullets[i];
+                if (bullet.playerDistance < explosion.radius + 20) {
+                    bullets.splice(i, 1);
                 }
             }
         }
@@ -283,12 +288,11 @@ State.prototype = {
         }
 
         // hurt player by bullets
-        for (i = 0; i < enemies.length; i++) {
-            enemy = enemies[i];
-            bullet = enemy.bullet;
-            if (bullet && bullet.playerDistance < 50) {
+        for (i = 0; i < bullets.length; i++) {
+            bullet = bullets[i];
+            if (bullet.playerDistance < 50) {
                 player.health--;
-                enemy.bullet = null;
+                bullets.splice(i, 1);
                 this.updateHud = true;
             }
         }
@@ -323,10 +327,13 @@ State.prototype = {
             }
         }
 
+        var zone1 = 0.5 * this.worldSize;
+        var zone2 = 0.75 * this.worldSize;
+
         // remove off-radar enemies
         for (i = 0; i < enemies.length; i++) {
             enemy = enemies[i];
-            if (enemy.playerDistance > this.worldSize - 20) {
+            if (enemy.playerDistance > zone2) {
                 enemies.splice(i, 1);
                 this.updateHud = true;
             }
@@ -335,24 +342,25 @@ State.prototype = {
         // remove off-radar explosives
         for (i = 0; i < this.explosives.length; i++) {
             explosive = this.explosives[i];
-            if (explosive.playerDistance > Math.max(this.canvas.width, this.canvas.height, this.worldSize / 2)) {
+            if (explosive.playerDistance > zone1) {
                 this.explosives.splice(i, 1);
                 this.updateHud = true;
             }
         }
 
         // remove off-radar bullets
-        for (i = 0; i < enemies.length; i++) {
-            enemy = enemies[i];
-            if (enemy.bullet && enemy.bullet.playerDistance > this.worldSize - 20) {
-                enemy.bullet = null;
+        for (i = 0; i < bullets.length; i++) {
+            bullet = bullets[i];
+            if (bullet.playerDistance > zone1) {
+                bullets.splice(i, 1);
             }
         }
 
         // shoot bullets
         for (i = 0; i < enemies.length; i++) {
+            // TODO review freq of shooting
             enemy = enemies[i];
-            if (!enemy.bullet && enemy.playerDistance < 450 && Math.abs(enemy.swing) < 3 && Math.random() > this.levels.current.bulletChance) {
+            if (enemy.playerDistance < 550 && Math.abs(enemy.swing) < 3 && Math.random() < this.levels.current.bulletChance / 50) {
                 this._shootBullet(enemy);
                 break;
             }
@@ -531,14 +539,14 @@ State.prototype = {
             enemy.angle = enemy.angle + enemy.swing;
             enemy.x += enemy.speed * Math.sin(enemy.angle * Math.PI / 180) * time / 16;
             enemy.y += -enemy.speed * Math.cos(enemy.angle * Math.PI / 180) * time / 16;
+        }
 
-            if (enemy.bullet) {
-                var bullet = enemy.bullet;
-                bullet.playerDistance = this.utils.distance(bullet, player);
-                bullet.x += bullet.speed * Math.sin(bullet.angle * Math.PI / 180) * time / 16;
-                bullet.y += -bullet.speed * Math.cos(bullet.angle * Math.PI / 180) * time / 16;
-                bullet.rotation += time / 5;
-            }
+        for (var i = 0; i < this.bullets.length; i++) {
+            var bullet = this.bullets[i];
+            bullet.playerDistance = this.utils.distance(bullet, player);
+            bullet.x += bullet.speed * Math.sin(bullet.angle * Math.PI / 180) * time / 16;
+            bullet.y += -bullet.speed * Math.cos(bullet.angle * Math.PI / 180) * time / 16;
+            bullet.rotation += time / 5;
         }
 
         for (var i = 0; i < this.explosives.length; i++) {
@@ -554,6 +562,10 @@ State.prototype = {
         for (var i = 0; i < this.enemies.length; i++) {
             var enemy = this.enemies[i];
             enemy.move(-x, -y);
+        }
+        for (var i = 0; i < this.bullets.length; i++) {
+            var bullet = this.bullets[i];
+            bullet.move(-x, -y);
         }
         for (var i = 0; i < this.explosives.length; i++) {
             var explosive = this.explosives[i];
@@ -654,13 +666,5 @@ Enemy.prototype = {
     constructor: Enemy,
 
     swing: 0,
-    swingOffset: 0,
-    bullet: null,
-
-    move: function (dx, dy) {
-        Particle.prototype.move.call(this, dx, dy);
-        if (this.bullet) {
-            this.bullet.move(dx, dy);
-        }
-    }
+    swingOffset: 0
 };

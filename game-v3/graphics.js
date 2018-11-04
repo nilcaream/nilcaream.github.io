@@ -64,18 +64,18 @@ Graphics.prototype = {
         return this.images.onInitialized(callback);
     },
 
-    drawMain: function (timestamp, player, explosion, enemies, explosives) {
+    drawMain: function (timestamp, player, explosion, enemies, explosives, bullets) {
         this.main.ctrContext.clearRect(0, 0, this.main.width, this.main.height);
 
         this._drawSkies();
         this._drawExplosives(explosives);
         this._drawEnemies(enemies);
-        this._drawBullets(enemies);
+        this._drawBullets(bullets);
         if (explosion.startTime > 0) {
             this._drawExplosion(timestamp, explosion);
         }
         this._drawPlayer(player);
-        this._drawRadar(player, enemies, explosives);
+        this._drawRadar(player, enemies, explosives, bullets);
     },
 
     drawHudBack: function (maxExplosives, maxHealth, levelNumber) {
@@ -192,9 +192,9 @@ Graphics.prototype = {
 
         var border = 128;
         context.save();
-        context.clearRect(canvas.width - 128 - border / 2, canvas.height / 2 - border / 2, border, border);
+        context.clearRect(canvas.width - 192 - border / 2, canvas.height / 2 - border / 2, border, border);
         if (controllers.indexOf("mobile") !== -1) {
-            context.translate(canvas.width - 128, canvas.height / 2);
+            context.translate(canvas.width - 192, canvas.height / 2);
             var image = this.images.get("touch");
             context.drawImage(image, -image.width / 2, -image.height / 2);
         }
@@ -225,7 +225,7 @@ Graphics.prototype = {
         }
     },
 
-    _drawRadar: function (player, enemies, explosives) {
+    _drawRadar: function (player, enemies, explosives, bullets) {
         var canvas = this.hudFront;
         var context = this.hudFront.ctrContext;
 
@@ -242,11 +242,9 @@ Graphics.prototype = {
         }
 
         context.fillStyle = "#8888ff";
-        for (var i = 0; i < enemies.length; i++) {
-            var bullet = enemies[i].bullet;
-            if (bullet) {
-                context.fillRect(Math.ceil((bullet.x - player.x) / this.hud.radar.scale - 1), Math.ceil((bullet.y - player.y) / this.hud.radar.scale - 1), 3, 3);
-            }
+        for (var i = 0; i < bullets.length; i++) {
+            var bullet = bullets[i];
+            context.fillRect(Math.ceil((bullet.x - player.x) / this.hud.radar.scale - 1), Math.ceil((bullet.y - player.y) / this.hud.radar.scale - 1), 3, 3);
         }
 
         context.fillStyle = "green";
@@ -279,19 +277,16 @@ Graphics.prototype = {
         }
     },
 
-    _drawBullets: function (enemies) {
+    _drawBullets: function (bullets) {
         var image = this.images.get("bullet");
         var context = this.main.ctrContext;
-        for (var i = 0; i < enemies.length; i++) {
-            var enemy = enemies[i];
-            if (enemy.bullet) {
-                var bullet = enemy.bullet;
-                context.save();
-                context.translate(bullet.x, bullet.y);
-                context.rotate(bullet.rotation * Math.PI / 180);
-                context.drawImage(image, -image.width / 2, -image.height / 2);
-                context.restore();
-            }
+        for (var i = 0; i < bullets.length; i++) {
+            var bullet = bullets[i];
+            context.save();
+            context.translate(bullet.x, bullet.y);
+            context.rotate(bullet.rotation * Math.PI / 180);
+            context.drawImage(image, -image.width / 2, -image.height / 2);
+            context.restore();
         }
     },
 

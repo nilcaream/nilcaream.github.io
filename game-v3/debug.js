@@ -8,7 +8,7 @@ function Debug(divId) {
 Debug.prototype = {
     constructor: Debug,
 
-    update: function (timestamp, player, explosion, controller, enemies, explosives, frameTime, worldSize, canvas) {
+    update: function (timestamp, player, explosion, controller, enemies, bullets, explosives, frameTime, worldSize, canvas) {
         if (timestamp - this.lastRefreshTimestamp > this.refreshTime) {
             this.lastRefreshTimestamp = timestamp;
             var text = "FPS = " + (1000 / frameTime).toFixed(2) + "\n";
@@ -59,12 +59,13 @@ Debug.prototype = {
                 text += "enemy[" + i + "].(speed,angle) = " + enemy.speed.toFixed(2) + " " + enemy.angle.toFixed(2) + "\n";
                 text += "enemy[" + i + "].(swing,rotation) = " + enemy.swing.toFixed(2) + " " + enemy.rotation.toFixed(2) + "\n";
                 text += "enemy[" + i + "].playerDistance = " + enemy.playerDistance.toFixed(2) + "\n";
-                var bullet = enemy.bullet;
-                if (bullet) {
-                    text += "enemy.bullet[" + i + "].(x,y) = " + bullet.x.toFixed(2) + " " + bullet.y.toFixed(2) + "\n";
-                    text += "enemy.bullet[" + i + "].(speed,angle,rotation) = " + bullet.speed.toFixed(2) + " " + bullet.angle.toFixed(2) + " " + bullet.rotation.toFixed(2) + "\n";
-                    text += "enemy.bullet[" + i + "].playerDistance = " + bullet.playerDistance.toFixed(2) + "\n";
-                }
+            }
+            for (var i = 0; i < bullets.length; i++) {
+                var bullet = bullets[i];
+                text += "--------------------\n";
+                text += "bullet[" + i + "].(x,y) = " + bullet.x.toFixed(2) + " " + bullet.y.toFixed(2) + "\n";
+                text += "bullet[" + i + "].(speed,angle,rotation) = " + bullet.speed.toFixed(2) + " " + bullet.angle.toFixed(2) + " " + bullet.rotation.toFixed(2) + "\n";
+                text += "bullet[" + i + "].playerDistance = " + bullet.playerDistance.toFixed(2) + "\n";
             }
             for (var i = 0; i < explosives.length; i++) {
                 var explosive = explosives[i];
