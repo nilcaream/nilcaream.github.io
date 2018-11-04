@@ -126,7 +126,7 @@ Controller.prototype = {
         controller.right = 0;
 
         var origin = {
-            x: controller.width - 256,
+            x: controller.width - 128,
             y: controller.height / 2
         };
 
