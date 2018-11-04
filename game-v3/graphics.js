@@ -192,9 +192,9 @@ Graphics.prototype = {
 
         var border = 128;
         context.save();
-        context.clearRect(3 * canvas.width / 4 - border / 2, canvas.height / 2 - border / 2, border, border);
+        context.clearRect(canvas.width - 256 - border / 2, canvas.height / 2 - border / 2, border, border);
         if (controllers.indexOf("mobile") !== -1) {
-            context.translate(3 * canvas.width / 4, canvas.height / 2);
+            context.translate(canvas.width - 256, canvas.height / 2);
             var image = this.images.get("touch");
             context.drawImage(image, -image.width / 2, -image.height / 2);
         }
