@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>2x2 Cube</title>
+    <script src="jquery-3.3.1.min.js"></script>
+    <style>
+        @page {
+            size: A4;
+            margin: 10mm;
+        }
+
+        @media print {
+        }
+
+        body {
+            margin: auto;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            font-family: monospace;
+        }
+
+        #algorithms {
+            /*border: 1px solid black;*/
+        }
+
+        #algorithms .id {
+            font-size: 1em;
+            color: cornflowerblue;
+            margin-right: 1em;
+        }
+
+        #algorithms .name {
+            font-size: 1em;
+            color: lightskyblue;
+        }
+
+        #algorithms .sequence {
+            font-size: 1.5em;
+        }
+
+        #algorithms .cube {
+            margin-bottom: 1em;
+        }
+
+        #algorithms td {
+            padding: 1em;
+            vertical-align: bottom;
+        }
+
+        #wrapper {
+            padding: 1em;
+            margin: 0 auto;
+            width: 55em;
+        }
+
+    </style>
+    <script language="JavaScript">
+        var algs = {
+            oll26: {
+                id: "OLL 26",
+                name: "-S / Antisune",
+                sequence: "R'U'RU' R'U2R",
+                image: "images/2x2-oll26.png",
+                source: "https://www.speedsolving.com/wiki/extensions/algdb/vcube/visualcube.php?fmt=png&bg=w&size=160&pzl=2&sch=wddddd&stage=ll&view=plan&case=R%27U%27RU%27%20R%27U2R"
+            },
+            oll27: {
+                id: "OLL 27",
+                name: "S / Sune",
+                sequence: "RUR'U RU2R'",
+                image: "images/2x2-oll27.png",
+                source: "https://www.speedsolving.com/wiki/extensions/algdb/vcube/visualcube.php?fmt=png&bg=w&size=160&pzl=2&sch=wddddd&stage=ll&view=plan&case=RUR%27U%20RU2R%27"
+            },
+            oll21: {
+                id: "OLL 21",
+                name: "H / Cross",
+                sequence: "R2U2 R U2R2",
+                image: "images/2x2-oll21.png",
+                source: "https://www.speedsolving.com/wiki/extensions/algdb/vcube/visualcube.php?fmt=png&bg=w&size=160&pzl=2&sch=wddddd&stage=ll&view=plan&case=R2U2%20R%20U2R2"
+            },
+            oll22: {
+                id: "OLL 22",
+                name: "Pi / Wheel",
+                sequence: "F (RUR'U') (RUR'U') F'",
+                image: "images/2x2-oll22.png",
+                source: "https://www.speedsolving.com/wiki/extensions/algdb/vcube/visualcube.php?fmt=png&bg=w&size=160&pzl=2&sch=wddddd&stage=ll&view=plan&case=F%20(RUR%27U%27)%20(RUR%27U%27)%20F%27"
+            },
+            oll23: {
+                id: "OLL 23",
+                name: "U / Headlights",
+                sequence: "F (RUR'U') F'",
+                image: "images/2x2-oll23.png",
+                source: "https://www.speedsolving.com/wiki/extensions/algdb/vcube/visualcube.php?fmt=png&bg=w&size=160&pzl=2&sch=wddddd&stage=ll&view=plan&case=F%20(RUR%27U%27)%20F%27"
+            },
+            oll24: {
+                id: "OLL 24",
+                name: "T / Shark",
+                sequence: "LFR'F' L'FRF'",
+                alternatives: ["(RUR'U') R'F RF'"],
+                image: "images/2x2-oll24.png",
+                source: "https://www.speedsolving.com/wiki/extensions/algdb/vcube/visualcube.php?fmt=png&bg=w&size=160&pzl=2&sch=wddddd&stage=ll&view=plan&case=(RUR%27U%27)%20R%27F%20RF%27"
+            },
+            oll25: {
+                id: "OLL 25",
+                name: "L / Bowtie",
+                sequence: "F' (RUR'U') R'FR",
+                image: "images/2x2-oll25.png",
+                source: "https://www.speedsolving.com/wiki/extensions/algdb/vcube/visualcube.php?fmt=png&bg=w&size=160&pzl=2&sch=wddddd&stage=ll&view=plan&case=F%27%20(RUR%27U%27)%20R%27FR"
+            },
+            cll40: {
+                id: "CLL 40",
+                name: "T permutation",
+                sequence: "RU2R'U' RU2L'U R'U'L",
+                image: "images/2x2-cll40.png",
+                source: "https://www.speedsolving.com/wiki/extensions/algdb/vcube/visualcube.php?fmt=png&bg=w&sch=yrbwog&size=160&pzl=2&stage=oll&view=plan&case=RU2R%27U%27%20RU2L%27U%20R%27U%27L"
+            },
+            cll41: {
+                id: "CLL 41",
+                name: "Y permutation",
+                sequence: "RU'R'U' F2U' RUR'D R2",
+                image: "images/2x2-cll41.png",
+                source: "https://www.speedsolving.com/wiki/extensions/algdb/vcube/visualcube.php?fmt=png&bg=w&sch=yrbwog&size=160&pzl=2&stage=oll&view=plan&case=RU%27R%27U%27%20F2U%27%20RUR%27D%20R2"
+            },
+            cpllaa: {
+                id: "CPLL A a",
+                name: "T permutation",
+                sequence: "R'F (R'B2 RF'R') B2R2",
+                image: "images/2x2-cpllaa.png",
+                source: "https://www.speedsolving.com/wiki/extensions/algdb/vcube/visualcube.php?fmt=png&bg=w&sch=yrbwog&size=160&pzl=2&stage=oll&view=plan&case=R%27%20F%20(R%27%20B2%20R%20F%27%20R%27)%20B2%20R2"
+            },
+            pbl1: {
+                id: "PBL 1",
+                name: "Diagonal Column Swap",
+                sequence: "R2 B2 R2",
+                image: "images/2x2-pbl1.png"
+            },
+            pbl2: {
+                id: "PBL 2",
+                name: "Adjacent Column Swap",
+                sequence: "R2U' B2U2 R2U' R2",
+                image: "images/2x2-pbl2.png"
+            },
+            pbl5: {
+                id: "PBL 5",
+                name: "Adjacent U + Diagonal D",
+                sequence: "RU'R F2 R'UR'",
+                image: "images/2x2-pbl5.png",
+                source: "https://www.speedsolving.com/wiki/index.php/Special:MediawikiAlgDB?mode=view&view=default&puzzle=2&group=PBL&cid=5"
+            }
+        };
+
+        function init() {
+            var table = $("#algorithms");
+            addRow(table, [algs.oll26, algs.oll27]);
+            addRow(table, [algs.oll21, algs.oll22]);
+            addRow(table, [algs.oll23, algs.oll24]);
+            addRow(table, [algs.oll25]);
+            addRow(table, [algs.cll40, algs.cpllaa]);
+            addRow(table, [algs.cll41]);
+            addRow(table, [algs.pbl1, algs.pbl2]);
+            addRow(table, [algs.pbl5]);
+        }
+
+        function addRow(table, elements) {
+            var tr = $("<tr></tr>");
+            elements.forEach(function (element) {
+                var td = $("<td></td>");
+
+                var id = $("<span></span>").addClass("id").text(element.id);
+                var name = $("<span></span>").addClass("name").text(element.name);
+                var title = $("<div></div>").addClass("title").append(id).append(name);
+
+                var algorithm = $("<div></div>").text(element.sequence).addClass("sequence");
+                var alternatives = [];
+                if (element.alternatives) {
+                    element.alternatives.forEach(function (alternative) {
+                        alternatives.push($("<div></div>").text(alternative).addClass("alternative"));
+                    });
+                }
+
+                var cube = $("<div></div>").addClass("cube");
+                var img = $("<img>").attr("src", element.image);
+                cube.append(img);
+
+                td.append(title);
+                td.append(algorithm);
+                if (alternatives.length) {
+                    td.append(alternatives.reduce(function (previousValue, currentValue) {
+                        return previousValue + " " + currentValue
+                    }));
+                }
+                td.append(cube);
+
+                tr.append(td);
+            });
+            table.append(tr);
+        }
+    </script>
+</head>
+<body onload="init()">
+<div id="wrapper">
+    <!--
+        Cube images generated with VisualCube.
+        href="https://www.speedsolving.com/wiki/extensions/algdb/vcube/visualcube.php
+    -->
+    <table id="algorithms"></table>
+</div>
+</body>
+</html>
