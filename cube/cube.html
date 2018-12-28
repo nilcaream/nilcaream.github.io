@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Cube</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <script src="jquery-3.3.1.min.js"></script>
+    <script src="algorithms.js"></script>
+    <link rel="stylesheet" href="cube.css" type="text/css">
+    <script language="JavaScript">
+        function init() {
+            var table = $("#algorithms");
+            window.location.hash.substring(1).split("+")
+                .forEach(function (row) {
+                    var cellRefs = [];
+                    row.split(":").filter(function (cellRef) {
+                        return /^[a-z0-9.]+$/.test(cellRef);
+                    }).forEach(function (cellRef) {
+                        cellRefs.push(cellRef);
+                    });
+                    addRow(table, cellRefs);
+                });
+        }
+
+        function addRow(table, cellRefs) {
+            var tr = $("<tr></tr>");
+            cellRefs.forEach(function (cellRef) {
+                var split = cellRef.split(".");
+                var cubeType = split[0];
+                var algorithmName = split[1];
+                var algorithm = algorithms[cubeType][algorithmName];
+
+                var td = $("<td></td>");
+
+                var id = $("<span></span>").addClass("id").text(algorithm.id);
+                var name = $("<span></span>").addClass("name").text(algorithm.name);
+                var title = $("<div></div>").addClass("title").append(id).append(name);
+
+                var sequence = $("<div></div>").text(algorithm.sequence).addClass("sequence");
+                var alternatives = [];
+                if (algorithm.alternatives) {
+                    algorithm.alternatives.forEach(function (alternative) {
+                        alternatives.push($("<div></div>").text(alternative).addClass("alternative"));
+                    });
+                }
+
+                var cube = $("<div></div>").addClass("cube");
+                var img = $("<img/>").attr("src", "images/" + cubeType + "-" + algorithmName + ".png");
+                cube.append(img);
+
+                td.append(title);
+                td.append(sequence);
+                if (alternatives.length) {
+                    td.append(alternatives.reduce(function (previousValue, currentValue) {
+                        return previousValue + " " + currentValue
+                    }));
+                }
+                td.append(cube);
+
+                tr.append(td);
+            });
+            table.append(tr);
+        }
+    </script>
+</head>
+<body onload="init()">
+<div id="wrapper">
+    <!--
+        Cube images generated with VisualCube.
+        href="https://www.speedsolving.com/wiki/extensions/algdb/vcube/visualcube.php
+    -->
+    <table id="algorithms"></table>
+</div>
+</body>
+</html>

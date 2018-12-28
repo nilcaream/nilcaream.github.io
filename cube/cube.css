@@ -1,0 +1,51 @@
+@page {
+    size: A4;
+    margin: 10mm;
+}
+
+@media print {
+}
+
+body {
+    margin: auto;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    font-family: monospace;
+}
+
+#algorithms {
+    /*border: 1px solid black;*/
+}
+
+#algorithms .id {
+    font-size: 1em;
+    color: cornflowerblue;
+    margin-right: 1em;
+}
+
+#algorithms .name {
+    font-size: 1em;
+    color: lightskyblue;
+}
+
+#algorithms .sequence {
+    font-size: 1.5em;
+}
+
+#algorithms .cube {
+    margin-bottom: 1em;
+}
+
+#algorithms td {
+    padding: 1em;
+    vertical-align: bottom;
+}
+
+#wrapper {
+    padding: 1em;
+    margin: 0 auto;
+    width: 55em;
+}
