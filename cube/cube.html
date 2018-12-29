@@ -10,7 +10,8 @@
     <script language="JavaScript">
         function init() {
             var table = $("#algorithms");
-            window.location.hash.substring(1).split("+")
+            var hash = window.location.hash.length > 4 ? window.location.hash : "#4:2x2.oll21:3x3.oll22:2x2.oll21:3x3.oll22+2x2.oll21:3x3.oll22:2x2.oll24";
+            hash.substring(3).split("+")
                 .forEach(function (row) {
                     var cellRefs = [];
                     row.split(":").filter(function (cellRef) {
@@ -20,6 +21,8 @@
                     });
                     addRow(table, cellRefs);
                 });
+
+            $("#algorithms td").addClass("w" + hash.charAt(1));
         }
 
         function addRow(table, cellRefs) {
@@ -64,12 +67,12 @@
     </script>
 </head>
 <body onload="init()">
-<div id="wrapper">
+<div id="wrapper" class="ma">
     <!--
         Cube images generated with VisualCube.
         href="https://www.speedsolving.com/wiki/extensions/algdb/vcube/visualcube.php
     -->
-    <table id="algorithms"></table>
+    <table id="algorithms" class="ma"></table>
 </div>
 </body>
 </html>

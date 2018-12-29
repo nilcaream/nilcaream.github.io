@@ -6,46 +6,48 @@
 @media print {
 }
 
-body {
+html, body {
+    font-size: 13px;
+    margin: 0.2rem;
+    font-family: monospace;
+    white-space: nowrap;
+}
+
+.ma {
     margin: auto;
 }
 
-* {
-    margin: 0;
-    padding: 0;
-    font-family: monospace;
+.w2 {
+    width: 50%;
 }
 
-#algorithms {
-    /*border: 1px solid black;*/
+.w3 {
+    width: 33%;
+}
+
+.w4 {
+    width: 25%;
 }
 
 #algorithms .id {
-    font-size: 1em;
     color: cornflowerblue;
-    margin-right: 1em;
+    margin-right: 1rem;
 }
 
 #algorithms .name {
-    font-size: 1em;
     color: lightskyblue;
 }
 
 #algorithms .sequence {
-    font-size: 1.5em;
+    font-size: 1.5rem;
 }
 
 #algorithms .cube {
-    margin-bottom: 1em;
+    margin-bottom: 0.4rem;
 }
 
 #algorithms td {
-    padding: 1em;
+    padding: 0.2rem;
     vertical-align: bottom;
 }
 
-#wrapper {
-    padding: 1em;
-    margin: 0 auto;
-    width: 55em;
-}
