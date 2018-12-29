@@ -39,7 +39,7 @@ html, body {
 }
 
 #algorithms .sequence {
-    font-size: 1.5rem;
+    font-size: 1.4rem;
 }
 
 #algorithms .cube {
@@ -47,7 +47,7 @@ html, body {
 }
 
 #algorithms td {
-    padding: 0.2rem;
+    padding: 0.4rem;
     vertical-align: bottom;
 }
 

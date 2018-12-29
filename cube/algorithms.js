@@ -21,7 +21,7 @@ var algorithms = {
         oll22: {
             id: "OLL 22",
             name: "Pi / Wheel",
-            sequence: "F (RUR'U') (RUR'U') F'",
+            sequence: "F (RUR'U')(RUR'U') F'",
             source: "https://www.speedsolving.com/wiki/extensions/algdb/vcube/visualcube.php?fmt=png&bg=w&size=160&pzl=2&sch=wddddd&stage=ll&view=plan&case=F%20(RUR%27U%27)%20(RUR%27U%27)%20F%27"
         },
         oll23: {
