@@ -10,7 +10,7 @@
     <script language="JavaScript">
         function init() {
             var table = $("#algorithms");
-            var hash = window.location.hash.length > 4 ? window.location.hash : "#4:2x2.oll21:3x3.oll22:2x2.oll21:3x3.oll22+2x2.oll21:3x3.oll22:2x2.oll24";
+            var hash = window.location.hash.length > 4 ? window.location.hash : buildDefaults();
             hash.substring(3).split("+")
                 .forEach(function (row) {
                     var cellRefs = [];
@@ -23,10 +23,29 @@
                 });
 
             $("#algorithms td").addClass("w" + hash.charAt(1));
+            $("td.space").attr("colspan", hash.charAt(1));
+            //window.location.hash = hash;
+        }
+
+        function buildDefaults() {
+            var result = "#4:";
+            var counter = 0;
+            Object.keys(algorithms).forEach(function (cubeType) {
+                Object.keys(algorithms[cubeType]).forEach(function (algorithmName) {
+                    counter++;
+                    result += cubeType + "." + algorithmName + (counter % 4 === 0 ? "+" : ":");
+                });
+                result += "++";
+                counter = 0;
+            });
+            return result.replace(/\++$/, "");
         }
 
         function addRow(table, cellRefs) {
             var tr = $("<tr></tr>");
+            if (cellRefs.length === 0) {
+                tr.append($("<td class='space'></td>"));
+            }
             cellRefs.forEach(function (cellRef) {
                 var split = cellRef.split(".");
                 var cubeType = split[0];
@@ -36,8 +55,9 @@
                 var td = $("<td></td>");
 
                 var id = $("<span></span>").addClass("id").text(algorithm.id);
+                var link = algorithm.source ? $("<a></a>").attr("href", algorithm.source).addClass("id").text(algorithm.id) : undefined;
                 var name = $("<span></span>").addClass("name").text(algorithm.name);
-                var title = $("<div></div>").addClass("title").append(id).append(name);
+                var title = $("<div></div>").addClass("title").append(link || id).append(name);
 
                 var sequence = $("<div></div>").html(algorithm.sequence.replace("_", "<br/>")).addClass("sequence");
                 var alternatives = [];
@@ -50,6 +70,10 @@
                 var cube = $("<div></div>").addClass("cube");
                 var img = $("<img/>").attr("src", "images/" + cubeType + "-" + algorithmName + ".png");
                 cube.append(img);
+                img.click(function(){
+                    window.location.href = algorithm.vcube || $(this).attr("src");
+                });
+
 
                 td.append(title);
                 td.append(sequence);
