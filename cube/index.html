@@ -39,7 +39,7 @@
                 var name = $("<span></span>").addClass("name").text(algorithm.name);
                 var title = $("<div></div>").addClass("title").append(id).append(name);
 
-                var sequence = $("<div></div>").text(algorithm.sequence).addClass("sequence");
+                var sequence = $("<div></div>").html(algorithm.sequence.replace("_", "<br/>")).addClass("sequence");
                 var alternatives = [];
                 if (algorithm.alternatives) {
                     algorithm.alternatives.forEach(function (alternative) {

@@ -21,7 +21,7 @@ var algorithms = {
         oll22: {
             id: "OLL 22",
             name: "Pi / Wheel",
-            sequence: "F (RUR'U')(RUR'U') F'",
+            sequence: "F (RUR'U')2 F'",
             source: "https://www.speedsolving.com/wiki/extensions/algdb/vcube/visualcube.php?fmt=png&bg=w&size=160&pzl=2&sch=wddddd&stage=ll&view=plan&case=F%20(RUR%27U%27)%20(RUR%27U%27)%20F%27"
         },
         oll23: {
@@ -102,7 +102,7 @@ var algorithms = {
         oll23: {
             id: "OLL 23",
             name: "U / Headlights",
-            sequence: "(R'U'RU' R'U2R) (RUR'U RU2R')"
+            sequence: "(R'U'RU' R'U2R)_(RUR'U RU2R')"
         },
         oll24: {
             id: "OLL 24",
@@ -112,7 +112,7 @@ var algorithms = {
         oll25: {
             id: "OLL 25",
             name: "L / Bowtie",
-            sequence: "RU2R'U' (RUR'U')(RUR'U') RU'R'"
+            sequence: "RU2R'U' (RUR'U')2 RU'R'"
         }
     }
 };
