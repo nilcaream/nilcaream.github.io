@@ -143,13 +143,60 @@ var algorithms = {
             vcube: "https://www.speedsolving.com/wiki/extensions/algdb/vcube/visualcube.php?fmt=png&bg=w&sch=yrbwog&size=160&pzl=3&stage=pll&view=plan&case=R%20U%20R%27%20U%27%20R%27%20F%20R2%20U%27%20R%27%20U%27%20R%20U%20R%27%20F%27",
             source: "https://www.speedsolving.com/wiki/index.php/PLL"
         },
-
         plljb: {
             id: "PLL Jb",
             name: "J permutation b",
             sequence: "RU2R'U' RU2L'U R'U'L",
             vcube: "https://www.speedsolving.com/wiki/extensions/algdb/vcube/visualcube.php?fmt=png&bg=w&sch=yrbwog&size=160&pzl=3&stage=pll&view=plan&case=RU2R%27U%27%20RU2L%27U%20R%27U%27L",
             source: "https://www.speedsolving.com/wiki/index.php/PLL"
-        }
+        },
+        epllh: {
+            id: "EPLL H",
+            name: "H permutation",
+            sequence: "M2 U (M2 U2 M2) U M2",
+            vcube: "https://www.speedsolving.com/wiki/extensions/algdb/vcube/visualcube.php?fmt=png&bg=w&sch=yrbwog&size=160&pzl=3&stage=pll&view=plan&case=M2%20U%20(M2%20U2%20M2)%20U%20M2",
+            source: "https://www.speedsolving.com/wiki/index.php/PLL"
+        },
+        epllua: {
+            id: "EPLL Ua",
+            name: "U permutation a",
+            sequence: "M2 U (M'U2M) U M2",
+            vcube: "https://www.speedsolving.com/wiki/extensions/algdb/vcube/visualcube.php?fmt=png&bg=w&sch=yrbwog&size=160&pzl=3&stage=pll&view=plan&case=M2%20U%20(M%27%20U2%20M)%20U%20M2",
+            source: "https://www.speedsolving.com/wiki/index.php/PLL"
+        },
+        epllub: {
+            id: "EPLL Ub",
+            name: "U permutation b",
+            sequence: "M2 U' (M'U2M) U' M2",
+            vcube: "https://www.speedsolving.com/wiki/extensions/algdb/vcube/visualcube.php?fmt=png&bg=w&sch=yrbwog&size=160&pzl=3&stage=pll&view=plan&case=M2%20U%27%20(M%27%20U2%20M)%20U%27%20M2",
+            source: "https://www.speedsolving.com/wiki/index.php/PLL"
+        },
+        epllz: {
+            id: "EPLL Z",
+            name: "Z permutation",
+            sequence: "M2 U (M' U2M2U2 M') U' M2",
+            vcube: "https://www.speedsolving.com/wiki/extensions/algdb/vcube/visualcube.php?fmt=png&bg=w&sch=yrbwog&size=160&pzl=3&stage=pll&view=plan&case=M2%20U%20(M%27%20U2%20M2%20U2%20M%27)%20U%27%20M2",
+            source: "https://www.speedsolving.com/wiki/index.php/PLL"
+        },
+        cfllb: {
+            id: "CF LLb",
+            name: "Last ledge DB",
+            sequence: "UM' U2 M'U",
+            source: "http://rubikscube.info/beginner.php"
+        },
+        cfllf: {
+            id: "CF LLf",
+            name: "Last ledge DF",
+            sequence: "U'M U2 MU'",
+            source: "http://rubikscube.info/beginner.php"
+        },
+        cffm: {
+            id: "CF FM",
+            name: "Flip Midges",
+            sequence: "(M'U)3 U (MU)3 U",
+            vcube: "https://www.speedsolving.com/wiki/extensions/algdb/vcube/visualcube.php?fmt=png&bg=w&sch=yrbwog&size=160&pzl=3&stage=pll&view=plan&case=M%27UM%27UM%27U%20U%20MUMUMU%20Uxz%27",
+            source: "http://rubikscube.info/beginner.php"
+        },
+
     }
 };
