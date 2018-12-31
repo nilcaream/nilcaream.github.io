@@ -52,12 +52,17 @@ var cdraw = {
             var midY = y + cdraw._size / 2;
             cdraw._context.lineWidth = cdraw._size / 32;
 
-            color.substring(2).split(",").forEach(function (part) {
-                var sx = (part.split("")[0] - 1) * cdraw._size / 2;
-                var sy = (part.split("")[1] - 1) * cdraw._size / 2;
+            cdraw._context.fillStyle = "black";
+            color.substring(2).split(",").filter(function (element) {
+                return element;
+            }).forEach(function (element) {
+                var split = element.split("");
+                var sx = (split[0] - 1) * cdraw._size / (split[2] || 2);
+                var sy = (split[1] - 1) * cdraw._size / (split[2] || 2);
                 cdraw._context.moveTo(midX, midY);
                 cdraw._context.lineTo(midX + sx, midY + sy);
                 cdraw._context.stroke();
+                cdraw._context.fillRect(midX - cdraw._size / 64, midY - cdraw._size / 64, cdraw._size / 32, cdraw._size / 32);
             });
         });
 
