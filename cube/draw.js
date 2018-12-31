@@ -42,29 +42,6 @@ var cdraw = {
             cdraw._context.fillStyle = cdraw.colorsMap[color[0]];
             cdraw._context.fillRect(x, y, cdraw._size, cdraw._size);
 
-            // gradients
-            var stop0 = "#000000";
-            var stop1 = cdraw._rgba(cdraw.colorsMap[color[0]], 0);
-            var stop2 = "#404040";
-
-            // horizontal
-            var grd = cdraw._context.createLinearGradient(x, y, x + cdraw._size, y);
-            grd.addColorStop(0, stop0);
-            grd.addColorStop(0.05, stop1);
-            grd.addColorStop(0.9, stop1);
-            grd.addColorStop(1, stop2);
-            cdraw._context.fillStyle = grd;
-            cdraw._context.fillRect(x, y, cdraw._size, cdraw._size);
-
-            // vertical
-            grd = cdraw._context.createLinearGradient(x, y, x, y + cdraw._size);
-            grd.addColorStop(0, stop0);
-            grd.addColorStop(0.05, stop1);
-            grd.addColorStop(0.9, stop1);
-            grd.addColorStop(1, stop2);
-            cdraw._context.fillStyle = grd;
-            cdraw._context.fillRect(x, y, cdraw._size, cdraw._size);
-
             // border
             cdraw._context.lineWidth = cdraw._size / 32;
             cdraw._context.strokeStyle = cdraw.colorsMap.black;
@@ -83,5 +60,15 @@ var cdraw = {
                 cdraw._context.stroke();
             });
         });
+
+        // shadow border
+        cdraw._context.lineWidth = cdraw._size / 16;
+        cdraw._context.strokeStyle = "rgba(0,0,0,0.1)";
+        cdraw._context.strokeRect(cdraw._origin + cdraw._context.lineWidth / 2, cdraw._origin + cdraw._context.lineWidth / 2, cdraw._type * (cdraw._size + cdraw._size / 32) - cdraw._context.lineWidth - cdraw._size / 32, cdraw._type * (cdraw._size + cdraw._size / 32) - cdraw._context.lineWidth - cdraw._size / 32);
+
+        // extra border
+        cdraw._context.lineWidth = cdraw._size / 32;
+        cdraw._context.strokeStyle = "black";
+        cdraw._context.strokeRect(cdraw._origin - cdraw._context.lineWidth / 2, cdraw._origin - cdraw._context.lineWidth / 2, cdraw._type * (cdraw._size + cdraw._size / 32) + cdraw._context.lineWidth - cdraw._size / 32, cdraw._type * (cdraw._size + cdraw._size / 32) + cdraw._context.lineWidth - cdraw._size / 32);
     }
 };
