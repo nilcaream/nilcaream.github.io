@@ -1,10 +1,12 @@
 var cdraw = {
-    begin: function (size, canvasId, type) {
+    begin: function (type) {
         this._type = type;
-        this._size = size;
-        this._origin = size;
-        this._canvas = $("#" + canvasId);
-        this._context = this._canvas[0].getContext("2d");
+        this._size = 512;
+        this._origin = 128;
+        this._width = this._size * 3 + this._origin * 2;
+        this._height = this._size * 3 + this._origin * 2;
+        this._canvas = $("<canvas></canvas>").attr("width", this._width).attr("height", this._height)[0];
+        this._context = this._canvas.getContext("2d");
     },
     colorsMap: {
         B: "#0000ff",
@@ -16,8 +18,50 @@ var cdraw = {
         D: "#404040",
         black: "#000000",
     },
-    end: function () {
+    end: function (size) {
+        var boundaries = this._findBoundaries();
+        var width = boundaries.width + 1;
+        var height = boundaries.height + 1;
 
+        var cropCanvas = $("<canvas></canvas>").attr("width", width).attr("height", height)[0];
+        var cropContext = cropCanvas.getContext("2d");
+        cropContext.imageSmoothingQuality = 'low';
+        cropContext.drawImage(this._canvas, -boundaries.xMin, -boundaries.yMin);
+
+        if (size) {
+            var scale = size / Math.max(width, height);
+            width = Math.ceil(width) * scale;
+            height = Math.ceil(height) * scale;
+            var resizeCanvas = $("<canvas></canvas>").attr("width", width).attr("height", height)[0];
+            var resizeContext = resizeCanvas.getContext("2d");
+            resizeContext.imageSmoothingQuality = 'high';
+            resizeContext.drawImage(cropCanvas, 0, 0, width, height);
+            return resizeCanvas.toDataURL("image/png");
+        } else {
+            return cropCanvas.toDataURL("image/png");
+        }
+    },
+    _findBoundaries: function () {
+        var data = this._context.getImageData(0, 0, this._width, this._height).data;
+        var results = {
+            xMin: this._width,
+            xMax: 0,
+            yMin: this._height,
+            yMax: 0
+        };
+        for (var i = 0, x = 0, y = 0; i < data.length; i += 4) {
+            if (data[i] !== 0 || data[i + 1] !== 0 || data[i + 2] !== 0 || data[i + 3] !== 0) {
+                x = (i / 4) % this._width;
+                y = Math.floor(i / (4 * this._width));
+                results.xMin = Math.min(results.xMin, x);
+                results.xMax = Math.max(results.xMax, x);
+                results.yMin = Math.min(results.yMin, y);
+                results.yMax = Math.max(results.yMax, y);
+            }
+        }
+        results.width = results.xMax - results.xMin;
+        results.height = results.yMax - results.yMin;
+        return results;
     },
     // "#11ffee", 0.5
     _rgba: function (rgb, a) {
@@ -28,7 +72,7 @@ var cdraw = {
         console.log("rgba(" + r + "," + g + "," + b + "," + a + ")");
         return "rgba(" + r + "," + g + "," + b + "," + a + ")";
     },
-    // ["Y:11,02","B"]
+    // ["Y:11,02,012","B"]
     u: function (colorsArray) {
         var cdraw = this;
         colorsArray.forEach(function (color, index) {

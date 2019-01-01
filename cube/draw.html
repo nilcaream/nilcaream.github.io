@@ -8,18 +8,18 @@
     <script src="draw.js"></script>
     <script language="JavaScript">
         function init() {
-            cdraw.begin(64, "canvas", 3);
+            cdraw.begin(3);
             cdraw.u(["Y:01,10", "B:004,204", "G:028,228,123", "R", "D", "W", "O", "O", "Y"]);
+            $("body").append($("<img/>").attr("src", cdraw.end(512)));
         }
     </script>
-
     <style>
-        canvas {
-            border: 1px solid black;
+        img {
+            border: 8px solid dimgray;
+            padding: 8px;
+            background-color: lightgray;
         }
     </style>
 </head>
-<body onload="init()">
-<canvas id="canvas" width="1600" height="1600"></canvas>
-</body>
+<body onload="init()"></body>
 </html>
