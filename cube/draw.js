@@ -1,7 +1,7 @@
 var cdraw = {
     begin: function (type) {
         this._type = type;
-        this._size = 512;
+        this._size = 256;
         this._origin = this._size * 2;
         this._width = this._size * type + this._origin * 2;
         this._height = this._size * type + this._origin * 2;
@@ -110,7 +110,7 @@ var cdraw = {
             cdraw._context.stroke();
 
             // arrows
-            cdraw._context.lineWidth = cdraw._size / 32;
+            cdraw._context.lineWidth = cdraw._size / 16;
 
             cdraw._context.fillStyle = "black";
 

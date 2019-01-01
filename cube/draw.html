@@ -8,22 +8,45 @@
     <script src="draw.js"></script>
     <script language="JavaScript">
         function init() {
-            cdraw.begin(4);
-            cdraw.u(["Y:01,10", "B:004,204", "G10:028,228,121", "R", "D", "W", "O", "O", "Y", "R", "B", "O", "B", "B", "D", "W"]);
-            cdraw.f(["R", "G", "B", "Y", "W", "O", "D", "R", "Y", "R", "G", "B", "O", "D", "W", "G"]);
-            cdraw.b(["R", "G", "B", "Y", "W", "O", "D", "R", "Y", "R", "G", "B", "O", "D", "W", "G"]);
-            cdraw.l(["R", "G", "B", "Y", "W", "O", "D", "R", "Y", "R", "G", "B", "O", "D", "W", "G"]);
-            cdraw.r(["R", "G", "B", "Y", "W", "O", "D", "R", "Y", "R", "G", "B", "O", "D", "W", "G"]);
-            $("body").append($("<img/>").attr("src", cdraw.raw(512, "white")));
+            // 3x3 J perm b
+            cdraw.begin(3);
+            cdraw.u(["Y", "Y", "Y", "Y", "Y", "Y", "Y", "Y", "Y"]);
+            cdraw.f(["B", "R", "R"]);
+            cdraw.b(["R", "G", "G"]);
+            cdraw.l(["O", "O", "O"]);
+            cdraw.r(["G", "B", "B"]);
+            $("#cdraw").append($("<img/>").attr("src", cdraw.end(512, "white")));
+
+            // 2x2 Sune
+            cdraw.begin(2);
+            cdraw.u(["D", "D", "W", "D"]);
+            cdraw.f(["D", "W"]);
+            cdraw.b(["D", "W"]);
+            cdraw.l(["D", "D"]);
+            cdraw.r(["D", "W"]);
+            $("#cdraw").append($("<img/>").attr("src", cdraw.end(512, "white")));
+
+            // 3x3 CF LLb
+            cdraw.begin(3);
+            cdraw.u(["D", "D", "D", "D", "D", "D", "D", "D", "D"]);
+            cdraw.f(["D", "D", "D"]);
+            cdraw.b(["D", "D", "D", "D", "D", "D", "D", "W", "D"]);
+            cdraw.l(["W", "D", "W"]);
+            cdraw.r(["Y", "Y", "Y"]);
+            $("#cdraw").append($("<img/>").attr("src", cdraw.end(512, "white")));
         }
     </script>
     <style>
         img {
-            border: 8px solid dimgray;
+            /*border: 8px solid dimgray;*/
             padding: 8px;
-            background-color: lightgray;
+            /*background-color: lightgray;*/
         }
     </style>
 </head>
+<div id="cdraw"></div>
+<div id="vcube" style="zoom:2.9;">
+    <img src="images/3x3-plljb.png"/> <img src="images/2x2-oll27.png"/> <img src="images/3x3-cfllb.png"/>
+</div>
 <body onload="init()"></body>
 </html>
