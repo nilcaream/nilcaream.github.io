@@ -10,6 +10,7 @@
         function init() {
             cdraw.begin(3);
             cdraw.u(["Y:01,10", "B:004,204", "G10:028,228,121", "R", "D", "W", "O", "O", "Y"]);
+            cdraw.side(["R", "G", "B", "Y", "W", "O", "D", "R", "G"]);
             $("body").append($("<img/>").attr("src", cdraw.raw()));
         }
     </script>

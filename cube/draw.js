@@ -125,8 +125,15 @@ var cdraw = {
     // ["Y","B","G"]
     side: function (colorsArray) {
         var cdraw = this;
-        colorsArray.forEach(function (color, index) {
-
-        });
+        for (var i = 0; i < colorsArray.length; i += cdraw._type) {
+            var depth = Math.floor(i / cdraw._type);
+            // handle first
+            console.log("first" + depth + " " + colorsArray[i]);
+            for (var j = i + 1; j < i + cdraw._type - 1; j++) {
+                console.log("mid" + depth + " " + colorsArray[j]);
+            }
+            // handle last
+            console.log("last" + depth + " " + colorsArray[i + cdraw._type - 1]);
+        }
     }
 };
