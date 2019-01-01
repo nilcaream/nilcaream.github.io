@@ -162,6 +162,7 @@ var cdraw = {
     },
     // ["Y","B","G"]
     _side: function (colorsArray) {
+        var tga = 4.1;
         var cdraw = this;
         var canvas = $("<canvas></canvas>").attr("width", 2 * this._origin + this._type * (this._size * 17 / 16)).attr("height", 2 * this._origin + this._size)[0];
         var context = canvas.getContext("2d");
@@ -174,8 +175,12 @@ var cdraw = {
             context.fillStyle = cdraw.colorsMap[colorsArray[i]];
             var depth = Math.floor(i / cdraw._type);
 
-            var height = this._size * (11 - 2 * depth) / 32;
             var edgeOffset = depth * this._size / 13;
+
+            var height = (this._size - edgeOffset) / 4;
+            var width = this._size - edgeOffset;
+
+            var top = (width * tga - height) / tga;
 
             var x = cdraw._size / 8 + edgeOffset;
             var y = cdraw._size / 8 + totalHeight;
@@ -183,9 +188,9 @@ var cdraw = {
             console.log("first" + depth + " " + colorsArray[i]);
             context.beginPath();
             context.moveTo(x, y);
-            context.lineTo(x + this._size - edgeOffset, y);
-            context.lineTo(x + this._size - edgeOffset, y + height);
-            context.lineTo(x + this._size / (17 + depth), y + height);
+            context.lineTo(x + width, y);
+            context.lineTo(x + width, y + height);
+            context.lineTo(x + width - top, y + height);
             context.lineTo(x, y);
             context.closePath();
             context.fill();
@@ -211,8 +216,8 @@ var cdraw = {
             context.beginPath();
             x = cdraw._size / 8 + (j % cdraw._type) * (cdraw._size * 34 / 32) + (cdraw._size * 1 / 64);
             context.moveTo(x, y);
-            context.lineTo(x + this._size - edgeOffset, y);
-            context.lineTo(x + this._size * (16 + depth) / (17 + depth) - edgeOffset, y + height);
+            context.lineTo(x + width, y);
+            context.lineTo(x + top, y + height);
             context.lineTo(x, y + height);
             context.lineTo(x, y);
             context.closePath();
