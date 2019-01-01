@@ -84,6 +84,7 @@ var cdraw = {
     // ["Y11:11,02,012","B"]
     u: function (colorsArray) {
         var cdraw = this;
+        colorsArray = colorsArray.slice(0, this._type * this._type);
         colorsArray.forEach(function (element, index) {
             var mainSplit = element.split(":");
 
@@ -169,7 +170,7 @@ var cdraw = {
         context.strokeStyle = cdraw.colorsMap.black;
 
         var totalHeight = 0;
-        for (var i = 0; i < colorsArray.length; i += cdraw._type) {
+        for (var i = 0; i < Math.min(colorsArray.length, this._type * this._type); i += cdraw._type) {
             context.fillStyle = cdraw.colorsMap[colorsArray[i]];
             var depth = Math.floor(i / cdraw._type);
 

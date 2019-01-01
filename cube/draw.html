@@ -8,13 +8,13 @@
     <script src="draw.js"></script>
     <script language="JavaScript">
         function init() {
-            cdraw.begin(4);
+            cdraw.begin(5);
             cdraw.u(["Y:01,10", "B:004,204", "G10:028,228,121", "R", "D", "W", "O", "O", "Y", "R", "B", "O", "B", "B", "D", "W"]);
             cdraw.f(["R", "G", "B", "Y", "W", "O", "D", "R", "Y", "R", "G", "B", "O", "D", "W", "G"]);
             cdraw.b(["R", "G", "B", "Y", "W", "O", "D", "R", "Y", "R", "G", "B", "O", "D", "W", "G"]);
             cdraw.l(["R", "G", "B", "Y", "W", "O", "D", "R", "Y", "R", "G", "B", "O", "D", "W", "G"]);
             cdraw.r(["R", "G", "B", "Y", "W", "O", "D", "R", "Y", "R", "G", "B", "O", "D", "W", "G"]);
-            $("body").append($("<img/>").attr("src", cdraw.end(256, "white")));
+            $("body").append($("<img/>").attr("src", cdraw.end(512, "white")));
         }
     </script>
     <style>
