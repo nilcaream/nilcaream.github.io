@@ -1,22 +1,25 @@
 var cdraw = {
     begin: function (type) {
         this._type = type;
-        this._size = 512;
-        this._origin = 128;
+        this._size = 256;
+        this._origin = this._size;
         this._width = this._size * 3 + this._origin * 2;
         this._height = this._size * 3 + this._origin * 2;
         this._canvas = $("<canvas></canvas>").attr("width", this._width).attr("height", this._height)[0];
         this._context = this._canvas.getContext("2d");
     },
     colorsMap: {
-        B: "#0000ff",
-        O: "#ff8000",
-        Y: "#ffff00",
+        B: "#0000f2",
+        O: "#ff8600",
+        Y: "#fefe00",
         W: "#ffffff",
-        G: "#00ff00",
-        R: "#ff0000",
-        D: "#404040",
+        G: "#00f300",
+        R: "#fe0000",
+        D: "#808080",
         black: "#000000",
+    },
+    raw: function () {
+        return this._canvas.toDataURL("image/png");
     },
     end: function (size) {
         var boundaries = this._findBoundaries();
@@ -72,32 +75,41 @@ var cdraw = {
         console.log("rgba(" + r + "," + g + "," + b + "," + a + ")");
         return "rgba(" + r + "," + g + "," + b + "," + a + ")";
     },
-    // ["Y:11,02,012","B"]
+    // ["Y11:11,02,012","B"]
     u: function (colorsArray) {
         var cdraw = this;
-        colorsArray.forEach(function (color, index) {
+        colorsArray.forEach(function (element, index) {
+            var mainSplit = element.split(":");
+
+            var color = mainSplit[0][0];
+            var options = mainSplit[1] || "";
+            var midDeltaX = mainSplit[0][1] || 1;
+            var midDeltaY = mainSplit[0][2] || 1;
+
             var col = index % cdraw._type;
             var row = Math.floor(index / cdraw._type);
 
-            var x = cdraw._origin + col * (cdraw._size + cdraw._size / 32);
-            var y = cdraw._origin + row * (cdraw._size + cdraw._size / 32);
+            var x = cdraw._origin + col * (cdraw._size + cdraw._size / 16);
+            var y = cdraw._origin + row * (cdraw._size + cdraw._size / 16);
 
             // normal
-            cdraw._context.fillStyle = cdraw.colorsMap[color[0]];
+            cdraw._context.fillStyle = cdraw.colorsMap[color];
             cdraw._context.fillRect(x, y, cdraw._size, cdraw._size);
 
             // border
-            cdraw._context.lineWidth = cdraw._size / 32;
+            cdraw._context.lineWidth = cdraw._size / 8;
             cdraw._context.strokeStyle = cdraw.colorsMap.black;
             cdraw._context.strokeRect(x, y, cdraw._size, cdraw._size);
 
             // arrows
-            var midX = x + cdraw._size / 2;
-            var midY = y + cdraw._size / 2;
             cdraw._context.lineWidth = cdraw._size / 32;
 
             cdraw._context.fillStyle = "black";
-            color.substring(2).split(",").filter(function (element) {
+
+            var midX = x + cdraw._size / 2 + (midDeltaX - 1) * cdraw._size / 4;
+            var midY = y + cdraw._size / 2 + (midDeltaY - 1) * cdraw._size / 4;
+
+            options.split(",").filter(function (element) {
                 return element;
             }).forEach(function (element) {
                 var split = element.split("");
@@ -109,15 +121,12 @@ var cdraw = {
                 cdraw._context.fillRect(midX - cdraw._size / 64, midY - cdraw._size / 64, cdraw._size / 32, cdraw._size / 32);
             });
         });
+    },
+    // ["Y","B","G"]
+    side: function (colorsArray) {
+        var cdraw = this;
+        colorsArray.forEach(function (color, index) {
 
-        // shadow border
-        cdraw._context.lineWidth = cdraw._size / 16;
-        cdraw._context.strokeStyle = "rgba(0,0,0,0.1)";
-        cdraw._context.strokeRect(cdraw._origin + cdraw._context.lineWidth / 2, cdraw._origin + cdraw._context.lineWidth / 2, cdraw._type * (cdraw._size + cdraw._size / 32) - cdraw._context.lineWidth - cdraw._size / 32, cdraw._type * (cdraw._size + cdraw._size / 32) - cdraw._context.lineWidth - cdraw._size / 32);
-
-        // extra border
-        cdraw._context.lineWidth = cdraw._size / 32;
-        cdraw._context.strokeStyle = "black";
-        cdraw._context.strokeRect(cdraw._origin - cdraw._context.lineWidth / 2, cdraw._origin - cdraw._context.lineWidth / 2, cdraw._type * (cdraw._size + cdraw._size / 32) + cdraw._context.lineWidth - cdraw._size / 32, cdraw._type * (cdraw._size + cdraw._size / 32) + cdraw._context.lineWidth - cdraw._size / 32);
+        });
     }
 };
