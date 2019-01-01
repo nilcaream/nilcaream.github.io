@@ -106,7 +106,8 @@ var cdraw = {
             // border
             cdraw._context.lineWidth = cdraw._size / 8;
             cdraw._context.strokeStyle = cdraw.colorsMap.black;
-            cdraw._context.strokeRect(x, y, cdraw._size, cdraw._size);
+            cdraw._roundRect(cdraw._context, x, y, cdraw._size, cdraw._size, cdraw._size / 64);
+            cdraw._context.stroke();
 
             // arrows
             cdraw._context.lineWidth = cdraw._size / 32;
@@ -129,6 +130,16 @@ var cdraw = {
                 cdraw._context.fillRect(midX - cdraw._size / 64, midY - cdraw._size / 64, cdraw._size / 32, cdraw._size / 32);
             });
         });
+    },
+    // https://stackoverflow.com/a/7838871
+    _roundRect: function (context, x, y, w, h, r) {
+        context.beginPath();
+        context.moveTo(x + r, y);
+        context.arcTo(x + w, y, x + w, y + h, r);
+        context.arcTo(x + w, y + h, x, y + h, r);
+        context.arcTo(x, y + h, x, y, r);
+        context.arcTo(x, y, x + w, y, r);
+        context.closePath();
     },
     // ["Y","B","G"]
     f: function (colorsArray) {
@@ -185,13 +196,15 @@ var cdraw = {
             var x = cdraw._size / 8 + edgeOffset;
             var y = cdraw._size / 8 + totalHeight;
 
+            var r = cdraw._size / 64;
+
             console.log("first" + depth + " " + colorsArray[i]);
             context.beginPath();
-            context.moveTo(x, y);
-            context.lineTo(x + width, y);
-            context.lineTo(x + width, y + height);
-            context.lineTo(x + width - top, y + height);
-            context.lineTo(x, y);
+            context.moveTo(x + r, y);
+            context.arcTo(x + width, y, x + width, y + height, r);
+            context.arcTo(x + width, y + height, x + width - top, y + height, r);
+            context.arcTo(x + width - top, y + height, x, y, r);
+            context.arcTo(x, y, x + width, y, r);
             context.closePath();
             context.fill();
             context.stroke();
@@ -199,14 +212,8 @@ var cdraw = {
             for (var j = i + 1; j < i + cdraw._type - 1; j++) {
                 context.fillStyle = cdraw.colorsMap[colorsArray[j]];
                 console.log("mid" + depth + " " + colorsArray[j]);
-                context.beginPath();
                 x = cdraw._size / 8 + (j % cdraw._type) * (cdraw._size * 17 / 16) + (cdraw._size * 1 / 64);
-                context.moveTo(x, y);
-                context.lineTo(x + this._size * 63 / 64, y);
-                context.lineTo(x + this._size * 63 / 64, y + height);
-                context.lineTo(x, y + height);
-                context.lineTo(x, y);
-                context.closePath();
+                cdraw._roundRect(context, x, y, this._size * 63 / 64, height, r);
                 context.fill();
                 context.stroke();
             }
@@ -215,11 +222,11 @@ var cdraw = {
             console.log("last" + depth + " " + colorsArray[i + cdraw._type - 1]);
             context.beginPath();
             x = cdraw._size / 8 + (j % cdraw._type) * (cdraw._size * 34 / 32) + (cdraw._size * 1 / 64);
-            context.moveTo(x, y);
-            context.lineTo(x + width, y);
-            context.lineTo(x + top, y + height);
-            context.lineTo(x, y + height);
-            context.lineTo(x, y);
+            context.moveTo(x + r, y);
+            context.arcTo(x + width, y, x + top, y + height, r);
+            context.arcTo(x + top, y + height, x, y + height, r);
+            context.arcTo(x, y + height, x, y, r);
+            context.arcTo(x, y, x + width, y, r);
             context.closePath();
             context.fill();
             context.stroke();
