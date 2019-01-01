@@ -1,10 +1,10 @@
 var cdraw = {
     begin: function (type) {
         this._type = type;
-        this._size = 256;
-        this._origin = this._size;
-        this._width = this._size * 3 + this._origin * 2;
-        this._height = this._size * 3 + this._origin * 2;
+        this._size = 512;
+        this._origin = this._size * 2;
+        this._width = this._size * type + this._origin * 2;
+        this._height = this._size * type + this._origin * 2;
         this._canvas = $("<canvas></canvas>").attr("width", this._width).attr("height", this._height)[0];
         this._context = this._canvas.getContext("2d");
     },
@@ -118,22 +118,78 @@ var cdraw = {
                 cdraw._context.moveTo(midX, midY);
                 cdraw._context.lineTo(midX + sx, midY + sy);
                 cdraw._context.stroke();
+                // center dot
                 cdraw._context.fillRect(midX - cdraw._size / 64, midY - cdraw._size / 64, cdraw._size / 32, cdraw._size / 32);
             });
         });
     },
     // ["Y","B","G"]
-    side: function (colorsArray) {
+    f: function (colorsArray) {
+        var canvas = this._side(colorsArray);
+        this._context.drawImage(canvas, this._origin - cdraw._size / 8, this._origin - this._size / 8 + this._type * this._size * 17 / 16 + this._size * 3 / 64);
+    },
+    // ["Y","B","G"]
+    _side: function (colorsArray) {
         var cdraw = this;
+        var canvas = $("<canvas></canvas>").attr("width", 2 * this._origin + this._type * (this._size * 17 / 16)).attr("height", 2 * this._origin + this._size)[0];
+        var context = canvas.getContext("2d");
+
+        context.lineWidth = cdraw._size / 16;
+        context.strokeStyle = cdraw.colorsMap.black;
+
+        var totalHeight = 0;
         for (var i = 0; i < colorsArray.length; i += cdraw._type) {
+            context.fillStyle = cdraw.colorsMap[colorsArray[i]];
             var depth = Math.floor(i / cdraw._type);
-            // handle first
+
+            var height = this._size * (11 - 2 * depth) / 32;
+            var edgeOffset = depth * this._size / 16;
+
+            var x = cdraw._size / 8 + edgeOffset;
+            var y = cdraw._size / 8 + totalHeight;
+
             console.log("first" + depth + " " + colorsArray[i]);
+            context.beginPath();
+            context.moveTo(x, y);
+            context.lineTo(x + this._size - edgeOffset, y);
+            context.lineTo(x + this._size - edgeOffset, y + height);
+            context.lineTo(x + this._size / 17, y + height);
+            context.lineTo(x, y);
+            context.closePath();
+            context.fill();
+            context.stroke();
+
             for (var j = i + 1; j < i + cdraw._type - 1; j++) {
+                context.fillStyle = cdraw.colorsMap[colorsArray[j]];
                 console.log("mid" + depth + " " + colorsArray[j]);
+                context.beginPath();
+                x = cdraw._size / 8 + (j % cdraw._type) * (cdraw._size * 17 / 16) + (cdraw._size * 1 / 64);
+                context.moveTo(x, y);
+                context.lineTo(x + this._size * 63 / 64, y);
+                context.lineTo(x + this._size * 63 / 64, y + height);
+                context.lineTo(x, y + height);
+                context.lineTo(x, y);
+                context.closePath();
+                context.fill();
+                context.stroke();
             }
-            // handle last
+
+            context.fillStyle = cdraw.colorsMap[colorsArray[i + cdraw._type - 1]];
             console.log("last" + depth + " " + colorsArray[i + cdraw._type - 1]);
+            context.beginPath();
+            x = cdraw._size / 8 + (j % cdraw._type) * (cdraw._size * 34 / 32) + (cdraw._size * 1 / 64);
+            context.moveTo(x, y);
+            context.lineTo(x + this._size - edgeOffset, y);
+            context.lineTo(x + this._size * 16 / 17 - edgeOffset, y + height);
+            context.lineTo(x, y + height);
+            context.lineTo(x, y);
+            context.closePath();
+            context.fill();
+            context.stroke();
+
+            totalHeight += height + cdraw._size * 5 / 64;
         }
+
+        return canvas;
     }
 };

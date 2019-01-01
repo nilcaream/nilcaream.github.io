@@ -8,9 +8,9 @@
     <script src="draw.js"></script>
     <script language="JavaScript">
         function init() {
-            cdraw.begin(3);
-            cdraw.u(["Y:01,10", "B:004,204", "G10:028,228,121", "R", "D", "W", "O", "O", "Y"]);
-            cdraw.side(["R", "G", "B", "Y", "W", "O", "D", "R", "G"]);
+            cdraw.begin(4);
+            cdraw.u(["Y:01,10", "B:004,204", "G10:028,228,121", "R", "D", "W", "O", "O", "Y", "R", "B", "O", "B", "B", "D", "W"]);
+            cdraw.f(["R", "G", "B", "Y", "W", "O", "D", "R", "Y", "R", "G", "B", "O", "D", "W", "G"]);
             $("body").append($("<img/>").attr("src", cdraw.raw()));
         }
     </script>
