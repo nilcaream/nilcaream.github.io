@@ -21,16 +21,20 @@ var cdraw = {
     raw: function () {
         return this._canvas.toDataURL("image/png");
     },
-    end: function (size) {
-        var boundaries = this._findBoundaries();
+    end: function (size, backgroundColor) {
+        var boundaries = this._findBoundaries(this._context);
         var width = boundaries.width + 1;
         var height = boundaries.height + 1;
+        var cropCanvas = this._autoCrop(this._canvas, boundaries);
 
-        var cropCanvas = $("<canvas></canvas>").attr("width", width).attr("height", height)[0];
-        var cropContext = cropCanvas.getContext("2d");
-        cropContext.imageSmoothingQuality = 'low';
-        cropContext.drawImage(this._canvas, -boundaries.xMin, -boundaries.yMin);
-
+        if (backgroundColor) {
+            var backgroundCanvas = $("<canvas></canvas>").attr("width", cropCanvas.width * (1 + 1 / 64)).attr("height", cropCanvas.height * (1 + 1 / 64))[0];
+            var backgroundContext = backgroundCanvas.getContext("2d");
+            backgroundContext.fillStyle = backgroundColor;
+            backgroundContext.fillRect(0, 0, backgroundCanvas.width, backgroundCanvas.height);
+            backgroundContext.drawImage(cropCanvas, cropCanvas.width * 1 / 128, cropCanvas.height * 1 / 128);
+            cropCanvas = backgroundCanvas;
+        }
         if (size) {
             var scale = size / Math.max(width, height);
             width = Math.ceil(width) * scale;
@@ -44,8 +48,19 @@ var cdraw = {
             return cropCanvas.toDataURL("image/png");
         }
     },
-    _findBoundaries: function () {
-        var data = this._context.getImageData(0, 0, this._width, this._height).data;
+    _autoCrop: function (canvas, boundaries) {
+        var width = boundaries.width + 1;
+        var height = boundaries.height + 1;
+
+        var cropCanvas = $("<canvas></canvas>").attr("width", width).attr("height", height)[0];
+        var cropContext = cropCanvas.getContext("2d");
+        cropContext.imageSmoothingQuality = 'low';
+        cropContext.drawImage(canvas, -boundaries.xMin, -boundaries.yMin);
+
+        return cropCanvas;
+    },
+    _findBoundaries: function (context) {
+        var data = context.getImageData(0, 0, this._width, this._height).data;
         var results = {
             xMin: this._width,
             xMax: 0,
@@ -65,15 +80,6 @@ var cdraw = {
         results.width = results.xMax - results.xMin;
         results.height = results.yMax - results.yMin;
         return results;
-    },
-    // "#11ffee", 0.5
-    _rgba: function (rgb, a) {
-        var r = parseInt(rgb.substring(1, 3), 16);
-        var g = parseInt(rgb.substring(3, 5), 16);
-        var b = parseInt(rgb.substring(5, 7), 16);
-        console.log(rgb);
-        console.log("rgba(" + r + "," + g + "," + b + "," + a + ")");
-        return "rgba(" + r + "," + g + "," + b + "," + a + ")";
     },
     // ["Y11:11,02,012","B"]
     u: function (colorsArray) {
@@ -126,7 +132,32 @@ var cdraw = {
     // ["Y","B","G"]
     f: function (colorsArray) {
         var canvas = this._side(colorsArray);
-        this._context.drawImage(canvas, this._origin - cdraw._size / 8, this._origin - this._size / 8 + this._type * this._size * 17 / 16 + this._size * 3 / 64);
+        this._context.drawImage(canvas, this._origin - this._size * 3 / 64, this._origin - this._size / 8 + this._type * this._size * 17 / 16 + this._size * 9 / 64);
+    },
+    // ["Y","B","G"]
+    b: function (colorsArray) {
+        var canvas = this._rotate(this._side(colorsArray), 1);
+        this._context.drawImage(canvas, this._origin - this._size * 3 / 64, this._origin - canvas.height - this._size * 5 / 64);
+    },
+    // ["Y","B","G"]
+    r: function (colorsArray) {
+        var canvas = this._rotate(this._side(colorsArray), -0.5);
+        this._context.drawImage(canvas, this._origin - this._size * 7 / 64 + this._size / 8 + this._type * this._size * 17 / 16, this._origin - canvas.height - this._size / 8 + this._type * this._size * 17 / 16 + this._size * 7 / 64);
+    },
+    // ["Y","B","G"]
+    l: function (colorsArray) {
+        var canvas = this._rotate(this._side(colorsArray), 0.5);
+        this._context.drawImage(canvas, this._origin - this._size * 5 / 64 - canvas.width, this._origin - canvas.height - this._size / 8 + this._type * this._size * 17 / 16 + this._size * 7 / 64);
+    },
+    // ["Y","B","G"]
+    _rotate: function (canvas, factor) {
+        var scaleCanvas = $("<canvas></canvas>").attr("width", Math.max(canvas.width, canvas.height)).attr("height", Math.max(canvas.width, canvas.height))[0];
+        var scaleContext = scaleCanvas.getContext("2d");
+        scaleContext.translate(scaleCanvas.width / 2, scaleCanvas.height / 2,);
+        scaleContext.rotate(Math.PI * factor);
+        scaleContext.translate(-scaleCanvas.width / 2, -scaleCanvas.height / 2,);
+        scaleContext.drawImage(canvas, 0, 0);
+        return this._autoCrop(scaleCanvas, this._findBoundaries(scaleContext));
     },
     // ["Y","B","G"]
     _side: function (colorsArray) {
@@ -143,7 +174,7 @@ var cdraw = {
             var depth = Math.floor(i / cdraw._type);
 
             var height = this._size * (11 - 2 * depth) / 32;
-            var edgeOffset = depth * this._size / 16;
+            var edgeOffset = depth * this._size / 13;
 
             var x = cdraw._size / 8 + edgeOffset;
             var y = cdraw._size / 8 + totalHeight;
@@ -153,7 +184,7 @@ var cdraw = {
             context.moveTo(x, y);
             context.lineTo(x + this._size - edgeOffset, y);
             context.lineTo(x + this._size - edgeOffset, y + height);
-            context.lineTo(x + this._size / 17, y + height);
+            context.lineTo(x + this._size / (17 + depth), y + height);
             context.lineTo(x, y);
             context.closePath();
             context.fill();
@@ -180,7 +211,7 @@ var cdraw = {
             x = cdraw._size / 8 + (j % cdraw._type) * (cdraw._size * 34 / 32) + (cdraw._size * 1 / 64);
             context.moveTo(x, y);
             context.lineTo(x + this._size - edgeOffset, y);
-            context.lineTo(x + this._size * 16 / 17 - edgeOffset, y + height);
+            context.lineTo(x + this._size * (16 + depth) / (17 + depth) - edgeOffset, y + height);
             context.lineTo(x, y + height);
             context.lineTo(x, y);
             context.closePath();
@@ -190,6 +221,6 @@ var cdraw = {
             totalHeight += height + cdraw._size * 5 / 64;
         }
 
-        return canvas;
+        return this._autoCrop(canvas, this._findBoundaries(context));
     }
 };
