@@ -8,6 +8,12 @@
     <script src="draw.js"></script>
     <script language="JavaScript">
         function init() {
+
+            // 4x4
+            cdraw.begin(4);
+            cdraw.u(["W","W","W","W","W","W","W","W","W","W","W","W","W","W","W","W"]);
+            $("#cdraw").append($("<img/>").attr("src", cdraw.end(512, "white")));
+
             // 3x3 J perm b
             cdraw.begin(3);
             cdraw.u(["Y", "Y", "Y", "Y", "Y", "Y", "Y", "Y", "Y"]);
@@ -34,6 +40,14 @@
             cdraw.l(["W", "D", "W"]);
             cdraw.r(["Y", "Y", "Y"]);
             $("#cdraw").append($("<img/>").attr("src", cdraw.end(512, "white")));
+
+            // poly test
+            // cdraw.begin(3);
+            // cdraw._roundPoly(cdraw._context, [[50, 50, 10], [250, 50, 20], [300, 100, 30], [250, 150, 40], [50, 150, 50]]);
+            // cdraw._context.lineWidth = cdraw._size / 8;
+            // cdraw._context.strokeStyle = "orange";
+            // cdraw._context.stroke();
+            // $("#cdraw").append($("<img/>").attr("src", cdraw.end(512, "white")));
         }
     </script>
     <style>
