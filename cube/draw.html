@@ -9,6 +9,12 @@
     <script language="JavaScript">
         function init() {
 
+            // 3x3 edge test
+            cdraw.begin(3);
+            cdraw.u(["Y", "Y", "Y", "Y", "Y", "Y", "Y", "Y", "Y"]);
+            // cdraw._side(["R", "G", "B"]);
+            $("#cdraw").append($("<img/>").attr("src", cdraw.end(512, "white")));
+
             // 4x4
             cdraw.begin(4);
             cdraw.u(["W","W","W","W","W","W","W","W","W","W","W","W","W","W","W","W"]);

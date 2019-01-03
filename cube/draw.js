@@ -64,25 +64,30 @@ var cdraw = {
         return cropCanvas;
     },
     _findBoundaries: function (context) {
-        var data = context.getImageData(0, 0, this._width, this._height).data;
-        var results = {
-            xMin: this._width,
-            xMax: 0,
-            yMin: this._height,
-            yMax: 0
-        };
-        for (var i = 0, x = 0, y = 0; i < data.length; i += 4) {
-            if (data[i] !== 0 || data[i + 1] !== 0 || data[i + 2] !== 0 || data[i + 3] !== 0) {
-                x = (i / 4) % this._width;
-                y = Math.floor(i / (4 * this._width));
-                results.xMin = Math.min(results.xMin, x);
-                results.xMax = Math.max(results.xMax, x);
-                results.yMin = Math.min(results.yMin, y);
-                results.yMax = Math.max(results.yMax, y);
+        var canvas = context.canvas;
+        var width = canvas.width;
+        var height = canvas.height;
+        var data = context.getImageData(0, 0, width, height).data;
+
+        var xMin = width;
+        var xMax = 0;
+        var yMin = height;
+        var yMax = 0;
+
+        var x, y, i;
+
+        for (i = 0, x = 0, y = 0; i < data.length; i += 4) {
+            if (data[i] > 0 || data[i + 1] > 0 || data[i + 2] > 0 || data[i + 3] > 0) {
+                x = (i >> 2) % width;
+                y = Math.floor(i / (4 * width));
+                xMin = Math.min(xMin, x);
+                xMax = Math.max(xMax, x);
+                yMin = Math.min(yMin, y);
+                yMax = Math.max(yMax, y);
             }
         }
-        results.width = results.xMax - results.xMin;
-        results.height = results.yMax - results.yMin;
+        var results = {xMin: xMin, xMax: xMax, yMin: yMin, yMax: yMax, width: xMax - xMin, height: yMax - yMin};
+        console.log("bounds x:" + xMin + ":" + xMax + " y:" + yMin + ":" + yMax + " w:" + results.width + " h:" + results.height);
         return results;
     },
     // ["Y11:11,02,012","B","R00:22]
@@ -142,7 +147,7 @@ var cdraw = {
                 r[3] *= rMultiplier;
             }
 
-            console.log("U" + row + col + " " + color + " o=(" + x + "," + y + ") r=(" + r + ")");
+            console.log("U" + row + col + " " + color + " o=(" + x.toFixed(2) + "," + y.toFixed(2) + ") r=(" + r[0].toFixed(2) + "," + r[1].toFixed(2) + "," + r[2].toFixed(2) + "," + r[3].toFixed(2) + ")");
 
             // normal
             cdraw._context.fillStyle = cdraw.colorsMap[color];
@@ -212,7 +217,6 @@ var cdraw = {
         var canvas = this._rotate(this._side(colorsArray), 0.5);
         this._context.drawImage(canvas, this._origin - this._size * 5 / 64 - canvas.width, this._origin - canvas.height - this._size / 8 + this._type * this._size * 17 / 16 + this._size * 7 / 64);
     },
-    // ["Y","B","G"]
     _rotate: function (canvas, factor) {
         var scaleCanvas = $("<canvas></canvas>").attr("width", Math.max(canvas.width, canvas.height)).attr("height", Math.max(canvas.width, canvas.height))[0];
         var scaleContext = scaleCanvas.getContext("2d");
