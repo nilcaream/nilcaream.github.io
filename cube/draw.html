@@ -7,7 +7,21 @@
     <script src="jquery-3.3.1.min.js"></script>
     <script src="draw.js"></script>
     <script language="JavaScript">
-        function init() {
+
+        function add(input) {
+            let dataUrl;
+            const type = input.constructor.name;
+            if (type === "String") {
+                dataUrl = input;
+            } else if (type === "HTMLCanvasElement") {
+                dataUrl = input.toDataURL("image/png");
+            } else if (type === "CanvasRenderingContext2D") {
+                dataUrl = input.canvas.toDataURL("image/png");
+            }
+            $("#ncd").append($("<img/>").attr("src", dataUrl));
+        }
+
+        function testCrop() {
             const context = NilCube._createContext(400);
             context.fillStyle = "green";
             context.fillRect(50, 50, 150, 150);
@@ -17,57 +31,66 @@
             context.fillRect(52, 52, 146, 146);
 
             const croppedContext = NilCube._autoCrop(context);
-            $("#cdraw").append($("<img/>").attr("src", context.canvas.toDataURL("image/png")));
-            $("#cdraw").append($("<img/>").attr("src", croppedContext.canvas.toDataURL("image/png")));
+            ncd.append($("<img/>").attr("src", context.canvas.toDataURL("image/png")));
+            ncd.append($("<img/>").attr("src", croppedContext.canvas.toDataURL("image/png")));
+        }
+
+        function init() {
+            const base = new NilCube(3);
+            const u = base.u("Y", "Y", "Y", "Y", "Y", "Y", "Y", "Y", "Y");
+            add(u);
+            add(base.toImage("raw"));
+            add(base.toImage());
+            add(base.toImage(512, "white"));
         }
 
         function initOld() {
 
             // 3x3 edge test
-            cdraw.begin(3);
-            cdraw.u(["Y", "Y", "Y", "Y", "Y", "Y", "Y", "Y", "Y"]);
-            // cdraw._side(["R", "G", "B"]);
-            $("#cdraw").append($("<img/>").attr("src", cdraw.end(512, "white")));
+            ncd.begin(3);
+            ncd.u(["Y", "Y", "Y", "Y", "Y", "Y", "Y", "Y", "Y"]);
+            // ncd._side(["R", "G", "B"]);
+            ncd.append($("<img/>").attr("src", ncd.end(512, "white")));
 
             // 4x4
-            cdraw.begin(4);
-            cdraw.u(["W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W"]);
-            $("#cdraw").append($("<img/>").attr("src", cdraw.end(512, "white")));
+            ncd.begin(4);
+            ncd.u(["W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W"]);
+            ncd.append($("<img/>").attr("src", ncd.end(512, "white")));
 
             // 3x3 J perm b
-            cdraw.begin(3);
-            cdraw.u(["Y", "Y", "Y", "Y", "Y", "Y", "Y", "Y", "Y"]);
-            cdraw.f(["B", "R", "R"]);
-            cdraw.b(["R", "G", "G"]);
-            cdraw.l(["O", "O", "O"]);
-            cdraw.r(["G", "B", "B"]);
-            $("#cdraw").append($("<img/>").attr("src", cdraw.end(512, "white")));
+            ncd.begin(3);
+            ncd.u(["Y", "Y", "Y", "Y", "Y", "Y", "Y", "Y", "Y"]);
+            ncd.f(["B", "R", "R"]);
+            ncd.b(["R", "G", "G"]);
+            ncd.l(["O", "O", "O"]);
+            ncd.r(["G", "B", "B"]);
+            ncd.append($("<img/>").attr("src", ncd.end(512, "white")));
 
             // 2x2 Sune
-            cdraw.begin(2);
-            cdraw.u(["D", "D", "W", "D"]);
-            cdraw.f(["D", "W"]);
-            cdraw.b(["D", "W"]);
-            cdraw.l(["D", "D"]);
-            cdraw.r(["D", "W"]);
-            $("#cdraw").append($("<img/>").attr("src", cdraw.end(512, "white")));
+            ncd.begin(2);
+            ncd.u(["D", "D", "W", "D"]);
+            ncd.f(["D", "W"]);
+            ncd.b(["D", "W"]);
+            ncd.l(["D", "D"]);
+            ncd.r(["D", "W"]);
+            ncd.append($("<img/>").attr("src", ncd.end(512, "white")));
 
             // 3x3 CF LLb
-            cdraw.begin(3);
-            cdraw.u(["D", "D", "D", "D", "D", "D", "D", "D", "D"]);
-            cdraw.f(["D", "D", "D"]);
-            cdraw.b(["D", "D", "D", "D", "D", "D", "D", "W", "D"]);
-            cdraw.l(["W", "D", "W"]);
-            cdraw.r(["Y", "Y", "Y"]);
-            $("#cdraw").append($("<img/>").attr("src", cdraw.end(512, "white")));
+            ncd.begin(3);
+            ncd.u(["D", "D", "D", "D", "D", "D", "D", "D", "D"]);
+            ncd.f(["D", "D", "D"]);
+            ncd.b(["D", "D", "D", "D", "D", "D", "D", "W", "D"]);
+            ncd.l(["W", "D", "W"]);
+            ncd.r(["Y", "Y", "Y"]);
+            ncd.append($("<img/>").attr("src", ncd.end(512, "white")));
 
             // poly test
-            // cdraw.begin(3);
-            // cdraw._roundPoly(cdraw._context, [[50, 50, 10], [250, 50, 20], [300, 100, 30], [250, 150, 40], [50, 150, 50]]);
-            // cdraw._context.lineWidth = cdraw._size / 8;
-            // cdraw._context.strokeStyle = "orange";
-            // cdraw._context.stroke();
-            // $("#cdraw").append($("<img/>").attr("src", cdraw.end(512, "white")));
+            // ncd.begin(3);
+            // ncd._roundPoly(ncd._context, [[50, 50, 10], [250, 50, 20], [300, 100, 30], [250, 150, 40], [50, 150, 50]]);
+            // ncd._context.lineWidth = ncd._size / 8;
+            // ncd._context.strokeStyle = "orange";
+            // ncd._context.stroke();
+            // ncd.append($("<img/>").attr("src", ncd.end(512, "white")));
         }
     </script>
     <style>
@@ -78,9 +101,9 @@
         }
     </style>
 </head>
-<div id="cdraw"></div>
+<div id="ncd"></div>
 <div id="vcube" style="zoom:2.9;">
-    <img src="images/3x3-plljb.png"/> <img src="images/2x2-oll27.png"/> <img src="images/3x3-cfllb.png"/>
+    <!--<img src="images/3x3-plljb.png"/> <img src="images/2x2-oll27.png"/> <img src="images/3x3-cfllb.png"/>-->
 </div>
 <body onload="init()"></body>
 </html>

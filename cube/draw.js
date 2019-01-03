@@ -8,7 +8,8 @@ class NilCube {
         this._edgeWidth = this._cubicleSize / 5;
         this._radius = this._cubicleSize / 12;
         this._cubeSize = this._type * (this._cubicleSize + this._cubiclePadding);
-        this._worldSize = (this._type + 1) * (this._cubicleSize + this._cubiclePadding);
+        this._cubePadding = this._cubicleSize;
+        this._worldSize = this._cubePadding * 2 + this._cubeSize;
 
         this._colorsMap = {
             B: "#0000f2",
@@ -25,45 +26,47 @@ class NilCube {
         this._walls = {}
     }
 
-    setColor(id, color) {
-        this._colorsMap[id] = color;
+    setColor(key, color) {
+        this._colorsMap[key] = color;
     }
 
     toImage(size, backgroundColor) {
         const nc = this;
-        const context = NilCube._createContext(nc._worldSize);
-        context.translate(nc._cubicleSize / 2, nc._cubicleSize / 2);
+        let context = NilCube._createContext(nc._worldSize);
+        context.translate(nc._cubePadding, nc._cubePadding);
 
         // U
         context.drawImage(nc._walls.u.canvas, 0, 0);
 
         // TODO add more walls
 
-        let boundaries = NilCube._findBoundaries(this._context);
-        let width = boundaries.width + 1;
-        let height = boundaries.height + 1;
-        let cropCanvas = NilCube._autoCrop(this._canvas, boundaries);
+        if (size !== "raw") {
+            context = NilCube._autoCrop(context);
+        }
 
         if (backgroundColor) {
-            const backgroundCanvas = $("<canvas></canvas>").attr("width", Math.ceil(cropCanvas.width * (1 + 1 / 64))).attr("height", Math.ceil(cropCanvas.height * (1 + 1 / 64)))[0];
-            const backgroundContext = backgroundCanvas.getContext("2d");
+            const backgroundContext = NilCube._createContext(context.canvas.width + 2, context.canvas.height + 2);
             backgroundContext.fillStyle = backgroundColor;
-            backgroundContext.fillRect(0, 0, backgroundCanvas.width, backgroundCanvas.height);
-            backgroundContext.drawImage(cropCanvas, Math.ceil(cropCanvas.width * 1 / 128), Math.ceil(cropCanvas.height * 1 / 128));
-            cropCanvas = backgroundCanvas;
+            backgroundContext.fillRect(0, 0, backgroundContext.canvas.width, backgroundContext.canvas.height);
+            backgroundContext.drawImage(context.canvas, 1, 1);
+            context = backgroundContext;
         }
-        if (size) {
+
+        if (!isNaN(size)) {
+            let width = context.canvas.width;
+            let height = context.canvas.height;
+
             const scale = size / Math.max(width, height);
             width = Math.ceil(width * scale);
             height = Math.ceil(height * scale);
-            const resizeCanvas = $("<canvas></canvas>").attr("width", width).attr("height", height)[0];
-            const resizeContext = resizeCanvas.getContext("2d");
+
+            const resizeContext = NilCube._createContext(width, height);
             resizeContext.imageSmoothingQuality = 'high';
-            resizeContext.drawImage(cropCanvas, 0, 0, width, height);
-            return resizeCanvas.toDataURL("image/png");
-        } else {
-            return cropCanvas.toDataURL("image/png");
+            resizeContext.drawImage(context.canvas, 0, 0, width, height);
+            context = resizeContext;
         }
+
+        return context.canvas.toDataURL("image/png");
     }
 
     static _autoCrop(context, boundaries = NilCube._findBoundaries(context)) {
@@ -105,19 +108,19 @@ class NilCube {
         return results;
     }
 
-    // ["Y11:11,02,012","B","R00:22]
-    u(elements) {
+    // "Y11:11,02,012","B","R00:22
+    u() {
         const nc = this;
-        const size = Math.round(nc._cubicleSize * (nc._type + 1 / 2));
+        const elements = Array.prototype.slice.call(arguments).slice(0, nc._type * nc._type);
+        const size = Math.round(nc._worldSize);
         const context = NilCube._createContext(size, size);
 
-        context.translate(Math.round(nc._cubicleSize / 4), Math.round(nc._cubicleSize / 4));
+        context.translate(nc._cubePadding, nc._cubePadding);
 
         // core
         context.fillStyle = nc._colorsMap.core;
         context.fillRect(nc._cubicleSize / 2, nc._cubicleSize / 2, (nc._cubicleSize + nc._cubiclePadding) * (nc._type - 1), (nc._cubicleSize + nc._cubiclePadding) * (nc._type - 1));
 
-        elements = elements.slice(0, nc._type * nc._type);
         elements.forEach(function (element, index) {
             const mainSplit = element.split(":");
 
@@ -130,8 +133,8 @@ class NilCube {
             const row = Math.floor(index / nc._type);
             const size = nc._cubicleSize;
 
-            const x = nc._origin + col * (nc._cubicleSize + nc._cubiclePadding);
-            const y = nc._origin + row * (nc._cubicleSize + nc._cubiclePadding);
+            const x = col * (nc._cubicleSize + nc._cubiclePadding);
+            const y = row * (nc._cubicleSize + nc._cubiclePadding);
 
             const rMultiplier = 3;
             const r = [nc._radius, nc._radius, nc._radius, nc._radius];
@@ -201,8 +204,8 @@ class NilCube {
             */
         });
 
-        nc._walls.u = context;
-        return context;
+        nc._walls.u = NilCube._autoCrop(context);
+        return nc._walls.u;
     }
 
     // https://stackoverflow.com/a/7838871
