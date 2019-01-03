@@ -8,6 +8,20 @@
     <script src="draw.js"></script>
     <script language="JavaScript">
         function init() {
+            const context = NilCube._createContext(400);
+            context.fillStyle = "green";
+            context.fillRect(50, 50, 150, 150);
+            context.fillStyle = "green";
+            context.fillRect(51, 51, 148, 148);
+            context.fillStyle = "blue";
+            context.fillRect(52, 52, 146, 146);
+
+            const croppedContext = NilCube._autoCrop(context);
+            $("#cdraw").append($("<img/>").attr("src", context.canvas.toDataURL("image/png")));
+            $("#cdraw").append($("<img/>").attr("src", croppedContext.canvas.toDataURL("image/png")));
+        }
+
+        function initOld() {
 
             // 3x3 edge test
             cdraw.begin(3);
@@ -17,7 +31,7 @@
 
             // 4x4
             cdraw.begin(4);
-            cdraw.u(["W","W","W","W","W","W","W","W","W","W","W","W","W","W","W","W"]);
+            cdraw.u(["W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W"]);
             $("#cdraw").append($("<img/>").attr("src", cdraw.end(512, "white")));
 
             // 3x3 J perm b
@@ -58,9 +72,9 @@
     </script>
     <style>
         img {
-            /*border: 8px solid dimgray;*/
-            padding: 8px;
-            /*background-color: lightgray;*/
+            border: 1px solid dimgray;
+            padding: 1px;
+            background-color: lightgray;
         }
     </style>
 </head>
