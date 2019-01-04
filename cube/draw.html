@@ -22,7 +22,7 @@
         }
 
         function testCrop() {
-            const context = NilCube._createContext(400);
+            const context = NilCube.createContext(400);
             context.fillStyle = "green";
             context.fillRect(50, 50, 150, 150);
             context.fillStyle = "green";
@@ -30,61 +30,190 @@
             context.fillStyle = "blue";
             context.fillRect(52, 52, 146, 146);
 
-            const croppedContext = NilCube._autoCrop(context);
+            const croppedContext = NilCube.autoCrop(context);
             add(context);
             add(croppedContext);
         }
 
         function init() {
+            standardCases();
+
             const base = new NilCube(3);
-            const u = base.u("Y", "Y", "Y", "Y", "Y", "Y", "Y", "Y", "Y");
-            const f = base.f("R", "G", "B", "O", "Y", "D", "W", "B", "G");
+            const u = base.u(
+                "Y", "G", "Y",
+                "B", "Y", "R",
+                "Y", "O", "Y");
+            const f = base.f(
+                "O", "Y", "D"
+            );
+            const b = base.b(
+                "R", "G", "B"
+            );
+            const r = base.r(
+                "D", "Y", "W"
+            );
+            const l = base.l(
+                "B", "G", "B"
+            );
             // add(u);
-            add(f);
+            // add(f);
+            // add(b);
+            // add(l);
+            // add(r);
             // add(base.toImage("raw"));
             // add(base.toImage());
             // add(base.toImage(512, "white"));
+
+            // initOld();
+            // testCrop();
+
+            // positioning();
         }
 
-        function initOld() {
+        function positioning() {
+            add(NilCube.asImage(0, null, {
+                type: 2,
+                u: ["W", "W", "W", "W"]
+            }));
 
-            // 3x3 edge test
-            ncd.begin(3);
-            ncd.u(["Y", "Y", "Y", "Y", "Y", "Y", "Y", "Y", "Y"]);
-            // ncd._side(["R", "G", "B"]);
-            ncd.append($("<img/>").attr("src", ncd.end(512, "white")));
+            add(NilCube.asImage(0, null, {
+                type: 2,
+                u: ["W", "W", "W", "W"],
+                f: ["W", "W"],
+                b: ["W", "W"],
+                r: ["W", "W"],
+                l: ["W", "W"],
+            }));
 
-            // 4x4
-            ncd.begin(4);
-            ncd.u(["W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W"]);
-            ncd.append($("<img/>").attr("src", ncd.end(512, "white")));
+            add(NilCube.asImage(0, null, {
+                type: 2,
+                u: ["W", "W", "W", "W"],
+                f: ["W", "W", "D", "D"],
+                b: ["W", "W", "D", "D"],
+                r: ["W", "W", "D", "D"],
+                l: ["W", "W", "D", "D"],
+            }));
 
-            // 3x3 J perm b
-            ncd.begin(3);
-            ncd.u(["Y", "Y", "Y", "Y", "Y", "Y", "Y", "Y", "Y"]);
-            ncd.f(["B", "R", "R"]);
-            ncd.b(["R", "G", "G"]);
-            ncd.l(["O", "O", "O"]);
-            ncd.r(["G", "B", "B"]);
-            ncd.append($("<img/>").attr("src", ncd.end(512, "white")));
+            add(NilCube.asImage(0, null, {
+                type: 3,
+                u: ["W", "W", "W", "W", "W", "W", "W", "W", "W"]
+            }));
 
-            // 2x2 Sune
-            ncd.begin(2);
-            ncd.u(["D", "D", "W", "D"]);
-            ncd.f(["D", "W"]);
-            ncd.b(["D", "W"]);
-            ncd.l(["D", "D"]);
-            ncd.r(["D", "W"]);
-            ncd.append($("<img/>").attr("src", ncd.end(512, "white")));
+            add(NilCube.asImage(0, null, {
+                type: 3,
+                u: ["W", "W", "W", "W", "W", "W", "W", "W", "W"],
+                f: ["W", "W", "W"],
+                b: ["W", "W", "W"],
+                r: ["W", "W", "W"],
+                l: ["W", "W", "W"],
+            }));
+
+            add(NilCube.asImage(0, null, {
+                type: 3,
+                u: ["W", "W", "W", "W", "W", "W", "W", "W", "W"],
+                f: ["W", "W", "W", "D", "D", "D"],
+                b: ["W", "W", "W", "D", "D", "D"],
+                r: ["W", "W", "W", "D", "D", "D"],
+                l: ["W", "W", "W", "D", "D", "D"],
+            }));
+
+            add(NilCube.asImage(0, null, {
+                type: 4,
+                u: ["W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W"]
+            }));
+
+            add(NilCube.asImage(0, null, {
+                type: 4,
+                u: ["W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W"],
+                f: ["W", "W", "W", "W"],
+                b: ["W", "W", "W", "W"],
+                r: ["W", "W", "W", "W"],
+                l: ["W", "W", "W", "W"],
+            }));
+
+            add(NilCube.asImage(0, null, {
+                type: 4,
+                u: ["W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W"],
+                f: ["W", "W", "W", "W", "D", "D", "D", "D"],
+                b: ["W", "W", "W", "W", "D", "D", "D", "D"],
+                r: ["W", "W", "W", "W", "D", "D", "D", "D"],
+                l: ["W", "W", "W", "W", "D", "D", "D", "D"],
+            }));
+
+            add(NilCube.asImage(0, null, {
+                type: 5,
+                u: ["W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W"]
+            }));
+
+            add(NilCube.asImage(0, null, {
+                type: 5,
+                u: ["W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W"],
+                f: ["W", "W", "W", "W", "W"],
+                b: ["W", "W", "W", "W", "W"],
+                r: ["W", "W", "W", "W", "W"],
+                l: ["W", "W", "W", "W", "W"],
+            }));
+
+            add(NilCube.asImage(0, null, {
+                type: 5,
+                u: ["W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W"],
+                f: ["W", "W", "W", "W", "W", "D", "D", "D", "D", "D"],
+                b: ["W", "W", "W", "W", "W", "D", "D", "D", "D", "D"],
+                r: ["W", "W", "W", "W", "W", "D", "D", "D", "D", "D"],
+                l: ["W", "W", "W", "W", "W", "D", "D", "D", "D", "D"],
+            }));
+        }
+
+        function standardCases() {
+            const edgeTest = {
+                type: 3,
+                u: ["Y", "Y", "Y", "Y", "Y", "Y", "Y", "Y", "Y"],
+                f: ["G", "G", "G"],
+                b: ["B", "B", "B"],
+                r: ["O", "O", "O"],
+                l: ["R", "R", "R"],
+            };
+            add(NilCube.asImage(256, "white", edgeTest));
+
+            const base4x4 = {
+                type: 4,
+                u: ["W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W"]
+            };
+            add(NilCube.asImage(256, "white", base4x4));
+
+            const jpermb = {
+                type: 3,
+                u: ["Y", "Y", "Y10:026,226,121", "Y", "Y", "Y:10,12,02,015", "Y", "Y02:105,215,201", "Y12:006,206,101"],
+                f: ["B", "R", "R"],
+                b: ["R", "G", "G"],
+                l: ["O", "O", "O"],
+                r: ["G", "B", "B"]
+            };
+            add(NilCube.asImage(512, "white", jpermb));
+
+            const sune2 = {
+                type: 2,
+                u: ["D", "D", "W", "D"],
+                f: ["D", "W"],
+                b: ["D", "W"],
+                l: ["D", "D"],
+                r: ["D", "W"],
+            };
+            add(NilCube.asImage(256, "white", sune2));
+
+            sune2.cube = "#eeeeee";
+            sune2.core = "#bbbbbb";
+            sune2.dark = "#dddddd";
+            add(NilCube.asImage(256, "white", sune2));
 
             // 3x3 CF LLb
-            ncd.begin(3);
-            ncd.u(["D", "D", "D", "D", "D", "D", "D", "D", "D"]);
-            ncd.f(["D", "D", "D"]);
-            ncd.b(["D", "D", "D", "D", "D", "D", "D", "W", "D"]);
-            ncd.l(["W", "D", "W"]);
-            ncd.r(["Y", "Y", "Y"]);
-            ncd.append($("<img/>").attr("src", ncd.end(512, "white")));
+            // ncd.begin(3);
+            // ncd.u(["D", "D", "D", "D", "D", "D", "D", "D", "D"]);
+            // ncd.f(["D", "D", "D"]);
+            // ncd.b(["D", "D", "D", "D", "D", "D", "D", "W", "D"]);
+            // ncd.l(["W", "D", "W"]);
+            // ncd.r(["Y", "Y", "Y"]);
+            // ncd.append($("<img/>").attr("src", ncd.end(512, "white")));
 
             // poly test
             // ncd.begin(3);
