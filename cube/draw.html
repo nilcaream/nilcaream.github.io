@@ -31,17 +31,19 @@
             context.fillRect(52, 52, 146, 146);
 
             const croppedContext = NilCube._autoCrop(context);
-            ncd.append($("<img/>").attr("src", context.canvas.toDataURL("image/png")));
-            ncd.append($("<img/>").attr("src", croppedContext.canvas.toDataURL("image/png")));
+            add(context);
+            add(croppedContext);
         }
 
         function init() {
             const base = new NilCube(3);
             const u = base.u("Y", "Y", "Y", "Y", "Y", "Y", "Y", "Y", "Y");
-            add(u);
-            add(base.toImage("raw"));
-            add(base.toImage());
-            add(base.toImage(512, "white"));
+            const f = base.f("R", "G", "B", "O", "Y", "D", "W", "B", "G");
+            // add(u);
+            add(f);
+            // add(base.toImage("raw"));
+            // add(base.toImage());
+            // add(base.toImage(512, "white"));
         }
 
         function initOld() {
