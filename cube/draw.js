@@ -22,7 +22,8 @@ class NilCube {
             D: "#808080",
             cube: "#000000",
             core: "#303030",
-            arrow: "#000000",
+            arrowFront: "#000000",
+            arrowBack: "rgba(255,255,255,0.2)",
         };
 
         this._walls = {}
@@ -45,6 +46,9 @@ class NilCube {
             nc.setColor("D", parameters.dark);
         }
 
+        if (parameters.a) {
+            nc.a.apply(nc, parameters.a)
+        }
         if (parameters.u) {
             nc.u.apply(nc, parameters.u)
         }
@@ -77,6 +81,12 @@ class NilCube {
         context.drawImage(NilCube.autoCrop(nc._walls.u).canvas, 0, 0);
 
         let wall;
+        // arrows
+        wall = NilCube.toCanvas(nc._walls.ua);
+        if (wall) {
+            context.drawImage(wall, 0, 0);
+        }
+
         context.translate(nc._cubicleSize / 32, nc._cubicleSize / 32);
 
         // F
@@ -175,6 +185,40 @@ class NilCube {
         return results;
     }
 
+    // "00:22", "11:03", "xy:XY"
+    a() {
+        const nc = this;
+        const elements = Array.prototype.slice.call(arguments);
+        const context = NilCube.createContext(nc._cubeSize, nc._cubeSize);
+
+        context.lineCap = "round";
+        context.translate(nc._cubicleOuterSize / 2 + nc._edgeWidth / 6, nc._cubicleOuterSize / 2 + nc._edgeWidth / 6);
+
+        const draw = (element) => {
+            const mainSplit = element.split(":");
+
+            const x0 = mainSplit[0][0] * nc._cubicleOuterSize;
+            const y0 = mainSplit[0][1] * nc._cubicleOuterSize;
+            const x1 = mainSplit[1][0] * nc._cubicleOuterSize;
+            const y1 = mainSplit[1][1] * nc._cubicleOuterSize;
+
+            context.moveTo(x0, y0);
+            context.lineTo(x1, y1);
+            context.stroke();
+        };
+
+        context.lineWidth = nc._edgeWidth / 2.2;
+        context.strokeStyle = nc._colorsMap.arrowBack;
+        elements.forEach(draw);
+
+        context.lineWidth = nc._edgeWidth / 3;
+        context.strokeStyle = nc._colorsMap.arrowFront;
+        elements.forEach(draw);
+
+        nc._walls.ua = context;
+        return nc._walls.ua;
+    }
+
     // "Y11:11,02,012","B","R00:22
     u() {
         const nc = this;
@@ -188,14 +232,7 @@ class NilCube {
         context.fillStyle = nc._colorsMap.core;
         context.fillRect(nc._cubicleSize / 2, nc._cubicleSize / 2, (nc._cubicleSize + nc._cubiclePadding) * (nc._type - 1), (nc._cubicleSize + nc._cubiclePadding) * (nc._type - 1));
 
-        elements.forEach(function (element, index) {
-            const mainSplit = element.split(":");
-
-            const color = mainSplit[0][0];
-            const options = mainSplit[1] || "";
-            const midDeltaX = mainSplit[0][1] || 1;
-            const midDeltaY = mainSplit[0][2] || 1;
-
+        elements.forEach(function (color, index) {
             const col = index % nc._type;
             const row = Math.floor(index / nc._type);
             const size = nc._cubicleSize;
@@ -246,26 +283,6 @@ class NilCube {
             NilCube.roundPoly(context, [[x, y, r[0]], [x + size, y, r[1]], [x + size, y + size, r[2]], [x, y + size, r[3]]]);
             context.stroke();
             context.fill();
-
-            // arrows
-            context.lineWidth = nc._edgeWidth / 8;
-            context.fillStyle = nc._colorsMap.arrow;
-
-            var midX = x + nc._cubicleSize / 2 + (midDeltaX - 1) * nc._cubicleSize / 4;
-            var midY = y + nc._cubicleSize / 2 + (midDeltaY - 1) * nc._cubicleSize / 4;
-
-            options.split(",").filter(function (element) {
-                return element;
-            }).forEach(function (element) {
-                var split = element.split("");
-                var sx = (split[0] - 1) * nc._cubicleSize / (split[2] || 2);
-                var sy = (split[1] - 1) * nc._cubicleSize / (split[2] || 2);
-                context.moveTo(midX, midY);
-                context.lineTo(midX + sx, midY + sy);
-                context.stroke();
-                // center dot
-                // context.fillRect(midX - nc._cubicleSize / 64, midY - nc._cubicleSize / 64, nc._cubicleSize / 32, nc._cubicleSize / 32);
-            });
         });
 
         nc._walls.u = context;
@@ -316,16 +333,14 @@ class NilCube {
                 + ") (" + points[2][0].toFixed(2) + "," + points[2][1].toFixed(2)
                 + ") (" + points[3][0].toFixed(2) + "," + points[3][1].toFixed(2) + ")");
 
-        let a = aBase;
-        let b = bBase;
-        let r = rBase;
-        let bTotal = 0;
+        let a, b, r, bTotal;
 
         const context = NilCube.createContext(nc._cubeSize, 2 * nc._cubicleSize);
         context.translate(0, nc._cubiclePadding);
         context.strokeStyle = nc._colorsMap.cube;
 
         // left
+        a = aBase;
         b = bBase;
         r = rBase;
         bTotal = 0;
