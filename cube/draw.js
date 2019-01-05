@@ -230,15 +230,15 @@ class NilCube {
 
         // core
         context.fillStyle = nc._colorsMap.core;
-        context.fillRect(nc._cubicleSize / 2, nc._cubicleSize / 2, (nc._cubicleSize + nc._cubiclePadding) * (nc._type - 1), (nc._cubicleSize + nc._cubiclePadding) * (nc._type - 1));
+        context.fillRect(nc._cubicleSize / 2, nc._cubicleSize / 2, nc._cubicleOuterSize * (nc._type - 1), nc._cubicleOuterSize * (nc._type - 1));
 
         elements.forEach(function (color, index) {
             const col = index % nc._type;
             const row = Math.floor(index / nc._type);
             const size = nc._cubicleSize;
 
-            const x = col * (nc._cubicleSize + nc._cubiclePadding);
-            const y = row * (nc._cubicleSize + nc._cubiclePadding);
+            const x = col * nc._cubicleOuterSize;
+            const y = row * nc._cubicleOuterSize;
 
             const rMultiplier = 3;
             const r = [nc._radius, nc._radius, nc._radius, nc._radius];
@@ -313,6 +313,92 @@ class NilCube {
         rotateContext.drawImage(canvas, 16, 16);
 
         return NilCube.autoCrop(rotateContext);
+    }
+
+    static skew(context, t = 0) {
+        const canvas = context.canvas;
+        const skew = NilCube.createContext(canvas.width, canvas.height);
+        skew.transform(1, 0, t, 1, 0, 0);
+        skew.drawImage(canvas, 0, 0);
+        return skew;
+    }
+
+    static fakePerspective(context) {
+        const canvas = context.canvas;
+        const width = canvas.width;
+        const height = canvas.height;
+
+        const mid = 0.2;
+        const edge = (1 - mid) / 2;
+
+        const fake = NilCube.createContext(width, height);
+
+        fake.drawImage(NilCube.skew(context, 0.1).canvas, 0, 0, width * edge, height, 0, 0, width * edge, height);
+        fake.drawImage(canvas, width * edge, 0, width * mid, height, width * edge, 0, width * mid, height);
+        fake.drawImage(NilCube.skew(context, -0.1).canvas, width * (1 - edge), 0, width * edge, height, width * (1 - edge), 0, width * edge, height);
+
+        return fake;
+    }
+
+    // "YBG"
+    _side2(elements) {
+        const colors = elements.replace(/[^A-Za-z]/g, "");
+
+        const nc = this;
+        const d = nc._cubicleSize / 32;
+        const e = 0.8;
+        const f = 0.85;
+
+        const bBase = nc._cubicleSize * 22 / 64;
+        const rBase = nc._radius * 3 / 4;
+
+        const log = (label, points) =>
+            console.log(label
+                + " (" + points[0][0].toFixed(2) + "," + points[0][1].toFixed(2)
+                + ") (" + points[1][0].toFixed(2) + "," + points[1][1].toFixed(2)
+                + ") (" + points[2][0].toFixed(2) + "," + points[2][1].toFixed(2)
+                + ") (" + points[3][0].toFixed(2) + "," + points[3][1].toFixed(2) + ")");
+
+        let b, r, bTotal;
+
+        const context = NilCube.createContext(nc._cubeSize + nc._cubicleSize, 2 * nc._cubicleSize);
+        context.translate(nc._cubicleSize / 2, nc._cubicleSize / 2);
+        context.strokeStyle = nc._colorsMap.cube;
+
+        // middle
+        b = bBase;
+        r = rBase;
+        bTotal = 0;
+        context.translate(nc._cubicleOuterSize, 0);
+        context.lineWidth = nc._edgeWidth / 3;
+        for (let i = 0; i < colors.length; i++) {
+
+            const col = i % nc._type;
+            const row = Math.floor(i / nc._type);
+            const color = colors[i];
+            context.fillStyle = nc._colorsMap[color];
+
+            const size = nc._cubicleOuterSize - nc._edgeWidth / 8;
+            const x = (col - 1) * nc._cubicleOuterSize;
+            const y = bTotal;
+
+            const points = [[x, y], [x + size, y], [x + size, y + b], [x, y + b]];
+            log("M edge " + row + col + " " + color, points);
+
+            NilCube.roundPoly(context, points, r);
+            context.fill();
+            context.stroke();
+
+            if (col === nc._type - 1) {
+                bTotal += b + d;
+                b *= e;
+                r *= e;
+                context.lineWidth *= f;
+            }
+        }
+        context.translate(-nc._cubicleOuterSize, 0);
+
+        return context;
     }
 
     // ["Y","B","G"]

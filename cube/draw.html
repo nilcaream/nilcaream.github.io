@@ -35,29 +35,41 @@
             add(croppedContext);
         }
 
-        function init() {
-            standardCases();
+        function testWall() {
+            const nc = new NilCube(3);
+            const s = nc._side2("YYYY RBGO WWWW DDDD", false, 0.6);
+            add(NilCube.skew(s, -0.2));
+            add(NilCube.skew(s, 0.2));
+            add(NilCube.fakePerspective(s));
+            add(s);
+            add(NilCube.fakePerspective(NilCube.autoCrop(s)));
+            add(NilCube.autoCrop(s));
+        }
 
-            const base = new NilCube(3);
-            const u = base.u(
-                "Y", "G", "Y",
-                "B", "Y", "R",
-                "Y", "O", "Y");
-            const f = base.f(
-                "O", "Y", "D"
-            );
-            const b = base.b(
-                "R", "G", "B"
-            );
-            const r = base.r(
-                "D", "Y", "W"
-            );
-            const l = base.l(
-                "B", "G", "B"
-            );
-            const a = base.a(
-                "00:22", "01:10", "21:00"
-            );
+        function init() {
+            testWall();
+            // standardCases();
+
+            // const base = new NilCube(3);
+            // const u = base.u(
+            //     "Y", "G", "Y",
+            //     "B", "Y", "R",
+            //     "Y", "O", "Y");
+            // const f = base.f(
+            //     "O", "Y", "D"
+            // );
+            // const b = base.b(
+            //     "R", "G", "B"
+            // );
+            // const r = base.r(
+            //     "D", "Y", "W"
+            // );
+            // const l = base.l(
+            //     "B", "G", "B"
+            // );
+            // const a = base.a(
+            //     "00:22", "01:10", "21:00"
+            // );
             // add(a);
             // add(u);
             // add(f);
@@ -165,6 +177,15 @@
                 b: ["W", "W", "W", "W", "W", "D", "D", "D", "D", "D"],
                 r: ["W", "W", "W", "W", "W", "D", "D", "D", "D", "D"],
                 l: ["W", "W", "W", "W", "W", "D", "D", "D", "D", "D"],
+            }));
+
+            add(NilCube.asImage(0, null, {
+                type: 5,
+                u: ["W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W"],
+                f: ["W", "W", "W", "W", "W", "D", "D", "D", "D", "D", "Y", "Y", "Y", "Y", "Y", "G", "G", "G", "G", "G", "G"],
+                b: ["W", "W", "W", "W", "W", "D", "D", "D", "D", "D", "Y", "Y", "Y", "Y", "Y", "G", "G", "G", "G", "G", "G"],
+                r: ["W", "W", "W", "W", "W", "D", "D", "D", "D", "D", "Y", "Y", "Y", "Y", "Y", "G", "G", "G", "G", "G", "G"],
+                l: ["W", "W", "W", "W", "W", "D", "D", "D", "D", "D", "Y", "Y", "Y", "Y", "Y", "G", "G", "G", "G", "G", "G"],
             }));
         }
 
