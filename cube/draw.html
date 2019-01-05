@@ -35,19 +35,33 @@
             add(croppedContext);
         }
 
+        function testWall3() {
+            const nc = new NilCube(3);
+            // add(nc.u("Y","Y","Y","Y","Y","Y","Y","Y","Y"));
+            add(nc._wall("RGB"));
+            add(nc._wall("RGB", {height: 1, lineWidth: 1}, false));
+            add(nc._wall("YYYYYY"));
+            add(nc._wall("RYRYDYBYB"));
+            add(nc._wall("RGBYRGBYRGBYRGBYRG", {height: 0.75, lineWidth: 0.8}, false));
+        }
+
         function testWall() {
             const nc = new NilCube(3);
-            const s = nc._side2("YYYY RBGO WWWW DDDD", false, 0.6);
-            add(NilCube.skew(s, -0.2));
-            add(NilCube.skew(s, 0.2));
-            add(NilCube.fakePerspective(s));
-            add(s);
-            add(NilCube.fakePerspective(NilCube.autoCrop(s)));
-            add(NilCube.autoCrop(s));
+            add(nc._cubicle("Y", 1000, 800, 50, 40, {row: 1, col: 2}));
+            // const w = nc._wall("YYYY RBGO WWWW DDDD", false, 0.7);
+            // add(w);
+            // const s = nc._side2("YYYY RBGO WWWW DDDD", false, 0.6);
+            // add(s);
+            // add(NilCube.skew(s, -0.2));
+            // add(NilCube.skew(s, 0.2));
+            // add(NilCube.fakePerspective(s));
+            // add(s);
+            // add(NilCube.fakePerspective(NilCube.autoCrop(s)));
+            // add(NilCube.autoCrop(s));
         }
 
         function init() {
-            testWall();
+            testWall3();
             // standardCases();
 
             // const base = new NilCube(3);
@@ -253,7 +267,7 @@
     <style>
         img {
             border: 1px solid dimgray;
-            padding: 1px;
+            padding: 0;
             background-color: lightgray;
         }
     </style>

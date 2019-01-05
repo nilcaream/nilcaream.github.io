@@ -4,13 +4,10 @@ class NilCube {
         this._type = type;
         this._cubicleSize = cubicleSize;
 
-        this._cubiclePadding = this._cubicleSize / 7;
-        this._cubicleOuterSize = this._cubicleSize + this._cubiclePadding;
-        this._edgeWidth = this._cubicleSize / 5;
+        this._lineWidth = this._cubicleSize / 5;
         this._radius = this._cubicleSize / 12;
-        this._cubeSize = this._type * this._cubicleOuterSize;
-        this._cubePadding = this._cubicleSize;
-        this._worldSize = this._cubePadding * 3 + this._cubeSize;
+        this._cubeSize = this._type * this._cubicleSize;
+        this._worldSize = (this._type + 1) * this._cubicleSize;
 
         this._colorsMap = {
             B: "#0000f2",
@@ -192,7 +189,7 @@ class NilCube {
         const context = NilCube.createContext(nc._cubeSize, nc._cubeSize);
 
         context.lineCap = "round";
-        context.translate(nc._cubicleOuterSize / 2 + nc._edgeWidth / 6, nc._cubicleOuterSize / 2 + nc._edgeWidth / 6);
+        context.translate(nc._cubicleOuterSize / 2 + nc._lineWidth / 6, nc._cubicleOuterSize / 2 + nc._lineWidth / 6);
 
         const draw = (element) => {
             const mainSplit = element.split(":");
@@ -207,11 +204,11 @@ class NilCube {
             context.stroke();
         };
 
-        context.lineWidth = nc._edgeWidth / 2.2;
+        context.lineWidth = nc._lineWidth / 2.2;
         context.strokeStyle = nc._colorsMap.arrowBack;
         elements.forEach(draw);
 
-        context.lineWidth = nc._edgeWidth / 3;
+        context.lineWidth = nc._lineWidth / 3;
         context.strokeStyle = nc._colorsMap.arrowFront;
         elements.forEach(draw);
 
@@ -219,33 +216,93 @@ class NilCube {
         return nc._walls.ua;
     }
 
-    // "Y11:11,02,012","B","R00:22
-    u() {
+    // "YYYYBYYYY"
+    u(colors) {
         const nc = this;
-        const elements = Array.prototype.slice.call(arguments, 0, nc._type * nc._type);
-        const size = Math.round(nc._cubeSize + nc._cubicleSize);
-        const context = NilCube.createContext(size, size);
+        const context = nc._wall(colors);
+        const canvas = context.canvas;
 
-        context.translate(Math.round(nc._cubicleSize / 2), Math.round(nc._cubicleSize / 2));
+        console.log("U " + colors + " " + canvas.width + "x" + canvas.height);
+        nc._walls.u = context;
+
+        return context;
+    }
+
+    // ["Y","B","G"]
+    f() {
+        console.log("F wall");
+        const context = this._side(Array.prototype.slice.call(arguments));
+        this._walls.f = NilCube.autoCrop(context);
+        return context;
+    }
+
+    // ["Y","B","G"]
+    b() {
+        console.log("B wall");
+        const context = this._side(Array.prototype.slice.call(arguments));
+        this._walls.b = NilCube.rotate(NilCube.autoCrop(context), 1);
+        return context;
+    }
+
+    // ["Y","B","G"]
+    r() {
+        console.log("R wall");
+        const context = this._side(Array.prototype.slice.call(arguments));
+        this._walls.r = NilCube.rotate(NilCube.autoCrop(context), -0.5);
+        return context;
+    }
+
+    // ["Y","B","G"]
+    l() {
+        console.log("L wall");
+        const context = this._side(Array.prototype.slice.call(arguments));
+        this._walls.l = NilCube.rotate(NilCube.autoCrop(context), 0.5);
+        return context;
+    }
+
+    _wall(colors, shrink = {height: 1, lineWidth: 1}, cutCorners = true) {
+        colors = colors.replace(/[^A-Za-z]/g, "");
+        const nc = this;
+
+        const hFactor = (row) => (1 - Math.pow(shrink.height, row)) / (1 - shrink.height);
+        const rowsCount = Math.ceil(colors.length / nc._type);
+        const imageHeight = nc._cubicleSize * (shrink.height === 1 ? rowsCount : hFactor(rowsCount));
+
+        const context = NilCube.createContext(nc._cubicleSize * nc._type, imageHeight);
 
         // core
         context.fillStyle = nc._colorsMap.core;
-        context.fillRect(nc._cubicleSize / 2, nc._cubicleSize / 2, nc._cubicleOuterSize * (nc._type - 1), nc._cubicleOuterSize * (nc._type - 1));
+        context.fillRect(nc._cubicleSize / 2, nc._cubicleSize / 2, nc._cubicleSize * (nc._type - 1), imageHeight - nc._cubicleSize / 2 - nc._cubicleSize * Math.pow(shrink.height, rowsCount - 1) / 2);
 
-        elements.forEach(function (color, index) {
+
+        colors.split("").forEach(function (color, index) {
             const col = index % nc._type;
             const row = Math.floor(index / nc._type);
-            const size = nc._cubicleSize;
 
-            const x = col * nc._cubicleOuterSize;
-            const y = row * nc._cubicleOuterSize;
+            const x = col * nc._cubicleSize;
+            const y = shrink.height === 1 ? row * nc._cubicleSize : Math.floor(nc._cubicleSize * (1 - Math.pow(shrink.height, row)) / (1 - shrink.height));
 
-            const rMultiplier = 3;
-            const r = [nc._radius, nc._radius, nc._radius, nc._radius];
+            const cornerCut = cutCorners ? {row: row, col: col} : false;
+            const cubicle = nc._cubicle(color, nc._cubicleSize, Math.ceil(nc._cubicleSize * Math.pow(shrink.height, row)), nc._lineWidth * Math.pow(shrink.lineWidth, row), nc._radius, cornerCut);
+            context.drawImage(cubicle.canvas, x, y);
+        });
 
-            // corner cutting improvements
-            if (col === 0 && row === 0) {
-                // corners
+        return context;
+    }
+
+    _cubicle(color, width, height, lineWidth, radius = 0, cornerCut = false) {
+        const nc = this;
+        const context = NilCube.createContext(width, height);
+        const r = [radius, radius, radius, radius];
+
+        context.lineWidth = lineWidth;
+
+        if (cornerCut) {
+            const row = cornerCut.row;
+            const col = cornerCut.col;
+            const rMultiplier = cornerCut.m || 3;
+
+            if (col === 0 && row === 0) { // corners
                 r[2] *= nc._type === 2 ? rMultiplier : 1;
             } else if (col === nc._type - 1 && row === 0) {
                 r[3] *= nc._type === 2 ? rMultiplier : 1;
@@ -253,8 +310,7 @@ class NilCube {
                 r[1] *= nc._type === 2 ? rMultiplier : 1;
             } else if (col === nc._type - 1 && row === nc._type - 1) {
                 r[0] *= nc._type === 2 ? rMultiplier : 1;
-                // edges
-            } else if (row === 0) {
+            } else if (row === 0) { // edges
                 r[2] *= rMultiplier;
                 r[3] *= rMultiplier;
             } else if (row === nc._type - 1) {
@@ -266,32 +322,29 @@ class NilCube {
             } else if (col === nc._type - 1) {
                 r[0] *= rMultiplier;
                 r[3] *= rMultiplier;
-            } else {
-                // middle
+            } else { // middle
                 r[0] *= rMultiplier;
                 r[1] *= rMultiplier;
                 r[2] *= rMultiplier;
                 r[3] *= rMultiplier;
             }
+        }
 
-            console.log("U" + row + col + " " + color + " o=(" + x.toFixed(2) + "," + y.toFixed(2) + ") r=(" + r[0].toFixed(2) + "," + r[1].toFixed(2) + "," + r[2].toFixed(2) + "," + r[3].toFixed(2) + ")");
+        // cubicle
+        const c = lineWidth / 2;
+        context.fillStyle = nc._colorsMap[color];
+        context.strokeStyle = nc._colorsMap.cube;
+        context.lineCap = "round";
+        NilCube.roundPoly(context, [[c, c, r[0]], [0 + width - c, c, r[1]], [0 + width - c, 0 + height - c, r[2]], [c, 0 + height - c, r[3]]]);
+        context.stroke();
+        context.fill();
 
-            // cubicle
-            context.fillStyle = nc._colorsMap[color];
-            context.strokeStyle = nc._colorsMap.cube;
-            context.lineWidth = nc._edgeWidth;
-            NilCube.roundPoly(context, [[x, y, r[0]], [x + size, y, r[1]], [x + size, y + size, r[2]], [x, y + size, r[3]]]);
-            context.stroke();
-            context.fill();
-        });
-
-        nc._walls.u = context;
-        return nc._walls.u;
+        return context;
     }
 
     // context, [[1,2,5],[2,3,6],[x,y,r]]
     // context, [[1,2],[2,3],[x,y]], r
-    // generalized idea based on https://stackoverflow.com/a/7838871
+    // based on https://stackoverflow.com/a/7838871
     static roundPoly(context, points, r) {
         context.beginPath();
         context.moveTo(points[0][0] + (points[0][2] || r), points[0][1]);
@@ -338,214 +391,5 @@ class NilCube {
         fake.drawImage(NilCube.skew(context, -0.1).canvas, width * (1 - edge), 0, width * edge, height, width * (1 - edge), 0, width * edge, height);
 
         return fake;
-    }
-
-    // "YBG"
-    _side2(elements) {
-        const colors = elements.replace(/[^A-Za-z]/g, "");
-
-        const nc = this;
-        const d = nc._cubicleSize / 32;
-        const e = 0.8;
-        const f = 0.85;
-
-        const bBase = nc._cubicleSize * 22 / 64;
-        const rBase = nc._radius * 3 / 4;
-
-        const log = (label, points) =>
-            console.log(label
-                + " (" + points[0][0].toFixed(2) + "," + points[0][1].toFixed(2)
-                + ") (" + points[1][0].toFixed(2) + "," + points[1][1].toFixed(2)
-                + ") (" + points[2][0].toFixed(2) + "," + points[2][1].toFixed(2)
-                + ") (" + points[3][0].toFixed(2) + "," + points[3][1].toFixed(2) + ")");
-
-        let b, r, bTotal;
-
-        const context = NilCube.createContext(nc._cubeSize + nc._cubicleSize, 2 * nc._cubicleSize);
-        context.translate(nc._cubicleSize / 2, nc._cubicleSize / 2);
-        context.strokeStyle = nc._colorsMap.cube;
-
-        // middle
-        b = bBase;
-        r = rBase;
-        bTotal = 0;
-        context.translate(nc._cubicleOuterSize, 0);
-        context.lineWidth = nc._edgeWidth / 3;
-        for (let i = 0; i < colors.length; i++) {
-
-            const col = i % nc._type;
-            const row = Math.floor(i / nc._type);
-            const color = colors[i];
-            context.fillStyle = nc._colorsMap[color];
-
-            const size = nc._cubicleOuterSize - nc._edgeWidth / 8;
-            const x = (col - 1) * nc._cubicleOuterSize;
-            const y = bTotal;
-
-            const points = [[x, y], [x + size, y], [x + size, y + b], [x, y + b]];
-            log("M edge " + row + col + " " + color, points);
-
-            NilCube.roundPoly(context, points, r);
-            context.fill();
-            context.stroke();
-
-            if (col === nc._type - 1) {
-                bTotal += b + d;
-                b *= e;
-                r *= e;
-                context.lineWidth *= f;
-            }
-        }
-        context.translate(-nc._cubicleOuterSize, 0);
-
-        return context;
-    }
-
-    // ["Y","B","G"]
-    _side(colors) {
-        const nc = this;
-        const t = Math.tan(Math.PI * 78 / 180);
-        const d = nc._cubicleSize / 32;
-        const e = 0.8;
-
-        const aBase = nc._cubicleSize;
-        const bBase = aBase * 22 / 64;
-        const rBase = nc._radius * 3 / 4;
-
-        const log = (label, points) =>
-            console.log(label
-                + " (" + points[0][0].toFixed(2) + "," + points[0][1].toFixed(2)
-                + ") (" + points[1][0].toFixed(2) + "," + points[1][1].toFixed(2)
-                + ") (" + points[2][0].toFixed(2) + "," + points[2][1].toFixed(2)
-                + ") (" + points[3][0].toFixed(2) + "," + points[3][1].toFixed(2) + ")");
-
-        let a, b, r, bTotal;
-
-        const context = NilCube.createContext(nc._cubeSize, 2 * nc._cubicleSize);
-        context.translate(0, nc._cubiclePadding);
-        context.strokeStyle = nc._colorsMap.cube;
-
-        // left
-        a = aBase;
-        b = bBase;
-        r = rBase;
-        bTotal = 0;
-        context.translate(nc._cubicleOuterSize - nc._edgeWidth / 8, 0);
-        context.lineWidth = nc._edgeWidth / 3;
-        for (let i = 0; i < Math.floor(colors.length / nc._type); i++) {
-            const color = colors[i * nc._type];
-            context.fillStyle = nc._colorsMap[color];
-
-            const c = (t * a - b) / t;
-            const points = [[-c, bTotal + b], [0, bTotal + b], [0, bTotal], [-a, bTotal]];
-            log("L edge " + color, points);
-
-            NilCube.roundPoly(context, points, r);
-            context.fill();
-            context.stroke();
-
-            bTotal += b + d;
-            a = a - (b + d) / t;
-            b *= e;
-            r *= e;
-            context.lineWidth *= e;
-        }
-        context.translate(-nc._cubicleOuterSize + nc._edgeWidth / 8, 0);
-
-        // middle
-        b = bBase;
-        r = rBase;
-        bTotal = 0;
-        context.translate(nc._cubicleOuterSize, 0);
-        context.lineWidth = nc._edgeWidth / 3;
-        for (let i = 0; i < colors.length; i++) {
-            if (i % nc._type === 0 || (i + 1) % nc._type === 0) {
-                continue;
-            }
-            const col = i % nc._type;
-            const row = Math.floor(i / nc._type);
-            const color = colors[i];
-            context.fillStyle = nc._colorsMap[color];
-
-            const size = nc._cubicleOuterSize - nc._edgeWidth / 8;
-            const x = (col - 1) * nc._cubicleOuterSize;
-            const y = bTotal;
-
-            const points = [[x, y], [x + size, y], [x + size, y + b], [x, y + b]];
-            log("M edge " + row + col + " " + color, points);
-
-            NilCube.roundPoly(context, points, r);
-            context.fill();
-            context.stroke();
-
-            if (col === nc._type - 2) {
-                bTotal += b + d;
-                b *= e;
-                r *= e;
-                context.lineWidth *= e;
-            }
-        }
-        context.translate(-nc._cubicleOuterSize, 0);
-
-        // right
-        a = aBase;
-        b = bBase;
-        r = rBase;
-        bTotal = 0;
-        context.translate((nc._type - 1) * nc._cubicleOuterSize, 0);
-        context.lineWidth = nc._edgeWidth / 3;
-        for (let i = 0; i < Math.floor(colors.length / nc._type); i++) {
-            const color = colors[(i + 1) * (nc._type) - 1];
-            context.fillStyle = nc._colorsMap[color];
-
-            const c = (t * a - b) / t;
-            const points = [[0, bTotal + b], [c, bTotal + b], [a, bTotal], [0, bTotal]];
-            log("R edge " + color, points);
-
-            NilCube.roundPoly(context, points, r);
-            context.fill();
-            context.stroke();
-
-            bTotal += b + d;
-            a = a - (b + d) / t;
-            b *= e;
-            r *= e;
-            context.lineWidth *= e;
-        }
-        context.translate(-(nc._type - 1) * nc._cubicleOuterSize, 0);
-
-        return context;
-    }
-
-    // ["Y","B","G"]
-    f() {
-        console.log("F wall");
-        const context = this._side(Array.prototype.slice.call(arguments));
-        this._walls.f = NilCube.autoCrop(context);
-        return context;
-    }
-
-    // ["Y","B","G"]
-    b() {
-        console.log("B wall");
-        const context = this._side(Array.prototype.slice.call(arguments));
-        this._walls.b = NilCube.rotate(NilCube.autoCrop(context), 1);
-        return context;
-    }
-
-    // ["Y","B","G"]
-    r() {
-        console.log("R wall");
-        const context = this._side(Array.prototype.slice.call(arguments));
-        this._walls.r = NilCube.rotate(NilCube.autoCrop(context), -0.5);
-        return context;
-    }
-
-    // ["Y","B","G"]
-    l() {
-        console.log("L wall");
-        const context = this._side(Array.prototype.slice.call(arguments));
-        this._walls.l = NilCube.rotate(NilCube.autoCrop(context), 0.5);
-        return context;
     }
 }
