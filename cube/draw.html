@@ -22,15 +22,30 @@
         }
 
         function examples() {
-            testCrop();
-            testWall();
-            testRotate();
-            testPerspective();
+            try {
+                testCrop();
+                testWall();
+                testRotate();
+                testPerspective();
+                testAllWalls();
+            } catch (e) {
+                alert(e);
+                throw e;
+            }
         }
 
-        function e2e3() {
-
+        function testAllWalls() {
+            const nc3 = new NilCube(3);
+            add(nc3.u("YYYYYYYYY"));
+            add(nc3.f("GGGGGG"));
+            add(nc3.b("BBB"));
+            add(nc3.l("RRR"));
+            add(nc3.r("OOOOOOOOO"));
+            add(nc3.toImage());
+            add(nc3.toImage(256, "white"));
+            add(nc3.toImage(512, "white"));
         }
+
         function testCrop() {
             const context = NilCube.createContext(400);
             context.fillStyle = "green";
