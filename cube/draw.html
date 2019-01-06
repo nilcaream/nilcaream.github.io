@@ -21,6 +21,16 @@
             $("#ncd").append($("<img/>").attr("src", dataUrl));
         }
 
+        function examples() {
+            testCrop();
+            testWall();
+            testRotate();
+            testPerspective();
+        }
+
+        function e2e3() {
+
+        }
         function testCrop() {
             const context = NilCube.createContext(400);
             context.fillStyle = "green";
@@ -35,72 +45,43 @@
             add(croppedContext);
         }
 
-        function testWall3() {
-            const nc = new NilCube(3);
-            // add(nc.u("Y","Y","Y","Y","Y","Y","Y","Y","Y"));
-            add(nc._wall("RGB"));
-            add(nc._wall("RGB", {height: 1, lineWidth: 1}, false));
-            add(nc._wall("YYYYYY"));
-            add(nc._wall("RYRYDYBYB"));
-            add(nc._wall("RGBYRGBYRGBYRGBYRG", {height: 0.75, lineWidth: 0.8}, false));
-        }
-
         function testWall() {
-            const nc = new NilCube(3);
-            add(nc._cubicle("Y", 1000, 800, 50, 40, {row: 1, col: 2}));
-            // const w = nc._wall("YYYY RBGO WWWW DDDD", false, 0.7);
-            // add(w);
-            // const s = nc._side2("YYYY RBGO WWWW DDDD", false, 0.6);
-            // add(s);
-            // add(NilCube.skew(s, -0.2));
-            // add(NilCube.skew(s, 0.2));
-            // add(NilCube.fakePerspective(s));
-            // add(s);
-            // add(NilCube.fakePerspective(NilCube.autoCrop(s)));
-            // add(NilCube.autoCrop(s));
+            const nc3 = new NilCube(3);
+            add(nc3.u("YYYYYYYYY"));
+            add(nc3._wall("RGB"));
+            add(nc3._wall("RGB", {baseHeight: 1, height: 1, lineWidth: 1}, false));
+            add(nc3._wall("YYYYYY"));
+            add(nc3._wall("RYRYDYBYB"));
+            add(nc3._wall("RGBYRGBYRGBYRGBYRG", {baseHeight: 1, height: 0.75, lineWidth: 0.8}, false));
+            add(nc3._wall("RGBYRGBYRGBYRGBYRG", {baseHeight: 0.9, height: 0.75, lineWidth: 0.8}, false));
+
+            const nc2 = new NilCube(2);
+            add(nc2._wall("WWYY", {baseHeight: 1, height: 0.75, lineWidth: 0.8}, true));
         }
 
-        function init() {
-            testWall3();
-            // standardCases();
+        function testRotate() {
+            const nc3 = new NilCube(3);
+            const rotTest1 = nc3._side("RGBYYYOBW");
+            add(NilCube.rotate(rotTest1, 0));
+            add(NilCube.rotate(rotTest1, 90));
+            add(NilCube.rotate(rotTest1, 180));
+            add(NilCube.rotate(rotTest1, 270));
+            add(NilCube.rotate(rotTest1, 360));
 
-            // const base = new NilCube(3);
-            // const u = base.u(
-            //     "Y", "G", "Y",
-            //     "B", "Y", "R",
-            //     "Y", "O", "Y");
-            // const f = base.f(
-            //     "O", "Y", "D"
-            // );
-            // const b = base.b(
-            //     "R", "G", "B"
-            // );
-            // const r = base.r(
-            //     "D", "Y", "W"
-            // );
-            // const l = base.l(
-            //     "B", "G", "B"
-            // );
-            // const a = base.a(
-            //     "00:22", "01:10", "21:00"
-            // );
-            // add(a);
-            // add(u);
-            // add(f);
-            // add(b);
-            // add(l);
-            // add(r);
-            // add(base.toImage("raw"));
-            // add(base.toImage());
-            // add(base.toImage(512, "white"));
-
-            // initOld();
-            // testCrop();
-
-            // positioning();
+            const rotTest2 = nc3._wall("RGBYYYOBW", {baseHeight: 0.9, height: 0.75, lineWidth: 0.8}, false);
+            add(NilCube.rotate(rotTest2, 90));
+            add(NilCube.rotate(rotTest2, 180));
         }
 
-        function positioning() {
+        function testPerspective() {
+            add(new NilCube(2)._side("RGBY"));
+            add(new NilCube(3)._side("RGBYYYOBW"));
+            add(new NilCube(4)._side("RGBYYYOBWORGBYYY"));
+            add(new NilCube(5)._side("RGBYYYOBWORGBYYYRGBYYYOBW"));
+            add(new NilCube(6)._side("RGBYYYOBWORGBYYYOBWORGBYYYOBWORGBYYY"));
+        }
+
+        function testPositioning() {
             add(NilCube.asImage(0, null, {
                 type: 2,
                 u: ["W", "W", "W", "W"]
@@ -276,5 +257,5 @@
 <div id="vcube" style="zoom:2.9;">
     <!--<img src="images/3x3-plljb.png"/> <img src="images/2x2-oll27.png"/> <img src="images/3x3-cfllb.png"/>-->
 </div>
-<body onload="init()"></body>
+<body onload="examples()"></body>
 </html>

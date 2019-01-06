@@ -260,30 +260,44 @@ class NilCube {
         return context;
     }
 
-    _wall(colors, shrink = {height: 1, lineWidth: 1}, cutCorners = true) {
+    _side(colors) {
+        const nc = this;
+        const context = nc._wall(colors, {baseHeight: 0.8, height: 0.75, lineWidth: 0.8}, false);
+        const m = { // TODO calculate it someday
+            2: {m: 0.5, e: 0.3},
+            3: {m: 0.1, e: 0.5},
+            4: {m: 0.2, e: 0.4},
+            5: {m: 0.06, e: 0.47},
+            6: {m: 0.2, e: 0.43},
+        };
+        return NilCube.fakePerspective(context, m[nc._type].m, m[nc._type].e);
+    }
+
+    _wall(colors, shrink = {baseHeight: 1, height: 1, lineWidth: 1}, cutCorners = true) {
         colors = colors.replace(/[^A-Za-z]/g, "");
         const nc = this;
 
+        console.log("Wall " + colors);
+
         const hFactor = (row) => (1 - Math.pow(shrink.height, row)) / (1 - shrink.height);
         const rowsCount = Math.ceil(colors.length / nc._type);
-        const imageHeight = nc._cubicleSize * (shrink.height === 1 ? rowsCount : hFactor(rowsCount));
+        const imageHeight = shrink.baseHeight * nc._cubicleSize * (shrink.height === 1 ? rowsCount : hFactor(rowsCount));
 
         const context = NilCube.createContext(nc._cubicleSize * nc._type, imageHeight);
 
         // core
         context.fillStyle = nc._colorsMap.core;
-        context.fillRect(nc._cubicleSize / 2, nc._cubicleSize / 2, nc._cubicleSize * (nc._type - 1), imageHeight - nc._cubicleSize / 2 - nc._cubicleSize * Math.pow(shrink.height, rowsCount - 1) / 2);
-
+        context.fillRect(nc._cubicleSize / 2, shrink.baseHeight * nc._cubicleSize / 2, nc._cubicleSize * (nc._type - 1), imageHeight - shrink.baseHeight * nc._cubicleSize / 2 - shrink.baseHeight * nc._cubicleSize * Math.pow(shrink.height, rowsCount - 1) / 2);
 
         colors.split("").forEach(function (color, index) {
             const col = index % nc._type;
             const row = Math.floor(index / nc._type);
 
             const x = col * nc._cubicleSize;
-            const y = shrink.height === 1 ? row * nc._cubicleSize : Math.floor(nc._cubicleSize * (1 - Math.pow(shrink.height, row)) / (1 - shrink.height));
+            const y = Math.floor(shrink.baseHeight * nc._cubicleSize * (shrink.height === 1 ? row : hFactor(row)));
 
             const cornerCut = cutCorners ? {row: row, col: col} : false;
-            const cubicle = nc._cubicle(color, nc._cubicleSize, Math.ceil(nc._cubicleSize * Math.pow(shrink.height, row)), nc._lineWidth * Math.pow(shrink.lineWidth, row), nc._radius, cornerCut);
+            const cubicle = nc._cubicle(color, nc._cubicleSize, Math.ceil(shrink.baseHeight * nc._cubicleSize * Math.pow(shrink.height, row)), nc._lineWidth * Math.pow(shrink.lineWidth, row), nc._radius, cornerCut);
             context.drawImage(cubicle.canvas, x, y);
         });
 
@@ -354,41 +368,55 @@ class NilCube {
         context.closePath();
     }
 
-    static rotate(context, factor) {
+    static rotate(context, angle) {
         const canvas = context.canvas;
-        const size = Math.max(canvas.width, canvas.height) + 32;
-        const halfSize = Math.round(size / 2);
-        const rotateContext = NilCube.createContext(size, size);
+        let x = 0, y = 0, width = canvas.width, height = canvas.height;
 
-        rotateContext.translate(halfSize, halfSize);
-        rotateContext.rotate(Math.PI * factor);
-        rotateContext.translate(-halfSize, -halfSize);
-        rotateContext.drawImage(canvas, 16, 16);
+        if (angle === 90) {
+            width = canvas.height;
+            height = canvas.width;
+            x = width;
+        } else if (angle === 180) {
+            x = width;
+            y = height;
+        } else if (angle === 270) {
+            width = canvas.height;
+            height = canvas.width;
+            y = height;
+        } else if (angle % 360 !== 0) {
+            throw "Unsupported rotation angle";
+        }
 
-        return NilCube.autoCrop(rotateContext);
+        const rotateContext = NilCube.createContext(width, height);
+
+        rotateContext.translate(x, y);
+        rotateContext.rotate(angle * Math.PI / 180);
+        rotateContext.drawImage(canvas, 0, 0);
+
+        return rotateContext;
     }
 
-    static skew(context, t = 0) {
-        const canvas = context.canvas;
-        const skew = NilCube.createContext(canvas.width, canvas.height);
-        skew.transform(1, 0, t, 1, 0, 0);
-        skew.drawImage(canvas, 0, 0);
-        return skew;
-    }
-
-    static fakePerspective(context) {
+    static fakePerspective(context, middle = 0.1, edge = 0.2) {
         const canvas = context.canvas;
         const width = canvas.width;
         const height = canvas.height;
 
-        const mid = 0.2;
-        const edge = (1 - mid) / 2;
-
         const fake = NilCube.createContext(width, height);
 
-        fake.drawImage(NilCube.skew(context, 0.1).canvas, 0, 0, width * edge, height, 0, 0, width * edge, height);
-        fake.drawImage(canvas, width * edge, 0, width * mid, height, width * edge, 0, width * mid, height);
-        fake.drawImage(NilCube.skew(context, -0.1).canvas, width * (1 - edge), 0, width * edge, height, width * (1 - edge), 0, width * edge, height);
+        fake.save();
+        fake.setTransform(1, 0, 0.1, 1, 0, 0);
+        fake.drawImage(canvas, 0, 0, width * edge, height, 0, 0, width * edge, height);
+        fake.restore();
+
+        fake.save();
+        fake.setTransform(1, 0, -0.1, 1, 0, 0);
+        fake.drawImage(canvas, width * (1 - edge), 0, width * edge, height, width * (1 - edge), 0, width * edge, height);
+        fake.restore();
+
+        fake.save();
+        fake.setTransform(1, 0, 0, 1, 0, 0);
+        fake.drawImage(canvas, width * (1 - middle) / 2, 0, width * middle, height, width * (1 - middle) / 2, 0, width * middle, height);
+        fake.restore();
 
         return fake;
     }
