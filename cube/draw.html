@@ -28,10 +28,35 @@
                 testRotate();
                 testPerspective();
                 testAllWalls();
+                testAsImage();
             } catch (e) {
                 alert(e);
                 throw e;
             }
+        }
+
+        function testAsImage() {
+            const sune2 = {
+                type: 2,
+                u: "DDWD",
+                f: "DW",
+                b: "DW",
+                l: "DD",
+                r: "DW",
+            };
+            add(NilCube.asImage(256, "white", sune2));
+
+            const jpermb = {
+                type: 3,
+                u: "YYYYYYYYY",
+                f: "BRR",
+                b: "RGG",
+                l: "OOO",
+                r: "GBB",
+                a: ["1211u2111", "2011u2211"]
+            };
+            add(NilCube.asImage(512, "white", jpermb));
+
         }
 
         function testAllWalls() {
@@ -41,6 +66,8 @@
             add(nc3.b("BBB"));
             add(nc3.l("RRR"));
             add(nc3.r("OOOOOOOOO"));
+            add(nc3.a("2000u2200", "2022d2222"));
+            add(nc3.a("2000x2202", "2020d2222", "0011u0111", "1011d1111", "0211x1211"));
             add(nc3.toImage());
             add(nc3.toImage(256, "white"));
             add(nc3.toImage(512, "white"));

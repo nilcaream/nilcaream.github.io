@@ -7,7 +7,6 @@ class NilCube {
         this._lineWidth = this._cubicleSize / 5;
         this._radius = this._cubicleSize / 12;
         this._cubeSize = this._type * this._cubicleSize;
-        this._worldSize = (this._type + 1) * this._cubicleSize;
 
         this._colorsMap = {
             B: "#0000f2",
@@ -19,8 +18,12 @@ class NilCube {
             D: "#808080",
             cube: "#000000",
             core: "#303030",
-            arrowFront: "#000000",
-            arrowBack: "rgba(255,255,255,0.2)",
+            arrow0u: "rgba(255,255,255,0.2)",
+            arrow1u: "#202020",
+            arrow0d: "rgba(0,0,0,0.2)",
+            arrow1d: "#e0e0e0",
+            arrow0x: "rgba(0,0,0,0.2)",
+            arrow1x: "#808080"
         };
 
         this._walls = {}
@@ -39,27 +42,24 @@ class NilCube {
         if (parameters.core) {
             nc.setColor("core", parameters.core);
         }
-        if (parameters.dark) {
-            nc.setColor("D", parameters.dark);
-        }
 
         if (parameters.a) {
             nc.a.apply(nc, parameters.a)
         }
         if (parameters.u) {
-            nc.u.apply(nc, parameters.u)
+            nc.u(parameters.u)
         }
         if (parameters.f) {
-            nc.f.apply(nc, parameters.f)
+            nc.f(parameters.f)
         }
         if (parameters.b) {
-            nc.b.apply(nc, parameters.b)
+            nc.b(parameters.b)
         }
         if (parameters.l) {
-            nc.l.apply(nc, parameters.l)
+            nc.l(parameters.l)
         }
         if (parameters.r) {
-            nc.r.apply(nc, parameters.r)
+            nc.r(parameters.r)
         }
 
         return nc.toImage(size, backgroundColor);
@@ -129,6 +129,12 @@ class NilCube {
         // U
         context.drawImage(nc._walls.u.canvas, toWidth(nc._walls.l), toHeight(nc._walls.b));
 
+        // Ua
+        wall = nc._walls.ua;
+        if (wall) {
+            context.drawImage(wall.canvas, toWidth(nc._walls.l), toHeight(nc._walls.b));
+        }
+
         if (size) {
             const scale = size / Math.max(width, height);
             const newWidth = Math.round(width * scale);
@@ -137,73 +143,6 @@ class NilCube {
             const resizeContext = NilCube.createContext(newWidth, newHeight);
             resizeContext.imageSmoothingQuality = 'high';
             resizeContext.drawImage(context.canvas, 0, 0, newWidth, newHeight);
-            context = resizeContext;
-        }
-
-        return context.canvas.toDataURL("image/png");
-    }
-
-    toImageOld(size, backgroundColor) {
-        const nc = this;
-        let context = NilCube.createContext(nc._worldSize);
-        context.translate(nc._cubePadding, nc._cubePadding);
-
-        // U
-        context.drawImage(NilCube.autoCrop(nc._walls.u).canvas, 0, 0);
-
-        let wall;
-        // arrows
-        wall = NilCube.toCanvas(nc._walls.ua);
-        if (wall) {
-            context.drawImage(wall, 0, 0);
-        }
-
-        context.translate(nc._cubicleSize / 32, nc._cubicleSize / 32);
-
-        // F
-        wall = NilCube.toCanvas(nc._walls.f);
-        if (wall) {
-            context.drawImage(wall, (nc._cubeSize - wall.width) / 2, nc._cubeSize);
-        }
-        // B
-        wall = NilCube.toCanvas(nc._walls.b);
-        if (wall) {
-            context.drawImage(wall, (nc._cubeSize - wall.width) / 2, -wall.height);
-        }
-        // L
-        wall = NilCube.toCanvas(nc._walls.l);
-        if (wall) {
-            context.drawImage(wall, -wall.width, (nc._cubeSize - wall.height) / 2);
-        }
-        // R
-        wall = NilCube.toCanvas(nc._walls.r);
-        if (wall) {
-            context.drawImage(wall, nc._cubeSize, (nc._cubeSize - wall.height) / 2);
-        }
-
-        if (size !== "raw") {
-            context = NilCube.autoCrop(context);
-        }
-
-        if (backgroundColor) {
-            const backgroundContext = NilCube.createContext(context.canvas.width + 2, context.canvas.height + 2);
-            backgroundContext.fillStyle = backgroundColor;
-            backgroundContext.fillRect(0, 0, backgroundContext.canvas.width, backgroundContext.canvas.height);
-            backgroundContext.drawImage(context.canvas, 1, 1);
-            context = backgroundContext;
-        }
-
-        if (!isNaN(size) && size > 0) {
-            let width = context.canvas.width;
-            let height = context.canvas.height;
-
-            const scale = size / Math.max(width, height);
-            width = Math.ceil(width * scale);
-            height = Math.ceil(height * scale);
-
-            const resizeContext = NilCube.createContext(width, height);
-            resizeContext.imageSmoothingQuality = 'high';
-            resizeContext.drawImage(context.canvas, 0, 0, width, height);
             context = resizeContext;
         }
 
@@ -256,38 +195,42 @@ class NilCube {
         return results;
     }
 
-    // "00:22", "11:03", "xy:XY"
-    a() { // TODO
+    // "2000u2200", "2022d2222", "xyxyuXYXY"
+    a() {
         const nc = this;
         const elements = Array.prototype.slice.call(arguments);
         const context = NilCube.createContext(nc._cubeSize, nc._cubeSize);
 
         context.lineCap = "round";
-        context.translate(nc._cubicleOuterSize / 2 + nc._lineWidth / 6, nc._cubicleOuterSize / 2 + nc._lineWidth / 6);
+        context.translate(nc._cubicleSize / 2, nc._cubicleSize / 2);
 
         const draw = (element) => {
-            const mainSplit = element.split(":");
+            const x0 = (element[0] - (1 - element[2]) / 6) * nc._cubicleSize;
+            const y0 = (element[1] - (1 - element[3]) / 6) * nc._cubicleSize;
+            const x1 = (element[5] - (1 - element[7]) / 6) * nc._cubicleSize;
+            const y1 = (element[6] - (1 - element[8]) / 6) * nc._cubicleSize;
 
-            const x0 = mainSplit[0][0] * nc._cubicleOuterSize;
-            const y0 = mainSplit[0][1] * nc._cubicleOuterSize;
-            const x1 = mainSplit[1][0] * nc._cubicleOuterSize;
-            const y1 = mainSplit[1][1] * nc._cubicleOuterSize;
-
+            context.beginPath();
             context.moveTo(x0, y0);
             context.lineTo(x1, y1);
+            console.log("A " + element + " " + context.lineWidth.toFixed(2) + "px " + context.strokeStyle + " (" + x0.toFixed(2) + "," + y0.toFixed(2) + ") (" + x1.toFixed(2) + "," + y1.toFixed(2) + ")");
             context.stroke();
         };
 
-        context.lineWidth = nc._lineWidth / 2.2;
-        context.strokeStyle = nc._colorsMap.arrowBack;
-        elements.forEach(draw);
+        elements.forEach((element) => {
+            const type = element[4];
+            context.lineWidth = nc._lineWidth / 2;
+            context.strokeStyle = nc._colorsMap["arrow0" + type];
+            draw(element);
+            context.lineWidth = nc._lineWidth / 3;
+            context.strokeStyle = nc._colorsMap["arrow1" + type];
+            draw(element);
+        });
 
-        context.lineWidth = nc._lineWidth / 3;
-        context.strokeStyle = nc._colorsMap.arrowFront;
-        elements.forEach(draw);
-
+        console.log("A " + context.canvas.width + "x" + context.canvas.height);
         nc._walls.ua = context;
-        return nc._walls.ua;
+
+        return context;
     }
 
     // "YYYYBYYYY"
@@ -379,7 +322,7 @@ class NilCube {
         context.fillStyle = nc._colorsMap.core;
         context.fillRect(nc._cubicleSize / 2, shrink.baseHeight * nc._cubicleSize / 2, nc._cubicleSize * (nc._type - 1), imageHeight - shrink.baseHeight * nc._cubicleSize / 2 - shrink.baseHeight * nc._cubicleSize * Math.pow(shrink.height, rowsCount - 1) / 2);
 
-        colors.split("").forEach(function (color, index) {
+        colors.split("").forEach((color, index) => {
             const col = index % nc._type;
             const row = Math.floor(index / nc._type);
 
@@ -474,7 +417,7 @@ class NilCube {
             height = canvas.width;
             y = height;
         } else if (angle % 360 !== 0) {
-            throw "Unsupported rotation angle";
+            throw "Unsupported rotation angle " + angle;
         }
 
         const rotateContext = NilCube.createContext(width, height);
@@ -496,14 +439,10 @@ class NilCube {
         fake.save();
         fake.setTransform(1, 0, 0.1, 1, 0, 0);
         fake.drawImage(canvas, 0, 0, width * edge, height, 0, 0, width * edge, height);
-        fake.restore();
 
-        fake.save();
         fake.setTransform(1, 0, -0.1, 1, 0, 0);
         fake.drawImage(canvas, width * (1 - edge), 0, width * edge, height, width * (1 - edge), 0, width * edge, height);
-        fake.restore();
 
-        fake.save();
         fake.setTransform(1, 0, 0, 1, 0, 0);
         fake.drawImage(canvas, width * (1 - middle) / 2, 0, width * middle, height, width * (1 - middle) / 2, 0, width * middle, height);
         fake.restore();
