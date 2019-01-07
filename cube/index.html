@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <script src="jquery-3.3.1.min.js"></script>
     <script src="algorithms.js"></script>
+    <script src="draw.js"></script>
     <link rel="stylesheet" href="cube.css" type="text/css">
     <script language="JavaScript">
         function init() {
@@ -68,9 +69,10 @@
                 }
 
                 var cube = $("<div></div>").addClass("cube");
-                var img = $("<img/>").attr("src", "images/" + cubeType + "-" + algorithmName + ".png");
+                var src = algorithm.nc ? NilCube.resolve(algorithm.nc) : "images/" + cubeType + "-" + algorithmName + ".png";
+                var img = $("<img/>").attr("src", src);
                 cube.append(img);
-                img.click(function(){
+                img.click(function () {
                     window.location.href = algorithm.vcube || $(this).attr("src");
                 });
 

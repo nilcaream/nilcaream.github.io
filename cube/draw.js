@@ -34,7 +34,7 @@ class NilCube {
         this._colorsMap[key] = color;
     }
 
-    // size:backgroundColor:type:UUUU:FF:BB:LL:RR:aaaaaaaaa,aaaaaaaaa
+    // size:backgroundColor:type:UUUU:FF:RR:BB:LL:aaaaaaaaa,aaaaaaaaa
     static resolve(string) {
         const split = string.split(":");
 
@@ -44,9 +44,9 @@ class NilCube {
             type: split[2],
             u: split[3],
             f: split[4],
-            b: split[5],
-            l: split[6],
-            r: split[7],
+            r: split[5],
+            b: split[6],
+            l: split[7],
             a: (split[8] || "").split(",") || undefined
         };
 
