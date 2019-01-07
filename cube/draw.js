@@ -4,8 +4,8 @@ class NilCube {
         this._type = type;
         this._cubicleSize = cubicleSize;
 
-        this._lineWidth = this._cubicleSize / 5;
-        this._radius = this._cubicleSize / 12;
+        this._lineWidth = this._cubicleSize / 7;
+        this._radius = this._cubicleSize / 7;
         this._cubeSize = this._type * this._cubicleSize;
 
         this._colorsMap = {
@@ -15,22 +15,42 @@ class NilCube {
             W: "#ffffff",
             G: "#00f300",
             R: "#fe0000",
-            D: "#808080",
+            D: "#404040",
             cube: "#000000",
-            core: "#303030",
-            arrow0u: "rgba(255,255,255,0.2)",
+            core: "#202020",
+            arrow0u: "#404040",
             arrow1u: "#202020",
-            arrow0d: "rgba(0,0,0,0.2)",
-            arrow1d: "#e0e0e0",
-            arrow0x: "rgba(0,0,0,0.2)",
+            arrow0d: "#d0d0d0",
+            arrow1d: "#f0f0f0",
+            arrow0x: "#606060",
             arrow1x: "#808080"
         };
 
+        this._side = this._side4;
         this._walls = {}
     }
 
     setColor(key, color) {
         this._colorsMap[key] = color;
+    }
+
+    // size:backgroundColor:type:UUUU:FF:BB:LL:RR:aaaaaaaaa,aaaaaaaaa
+    static resolve(string) {
+        const split = string.split(":");
+
+        const size = split[0];
+        const backgroundColor = split[1];
+        const parameters = {
+            type: split[2],
+            u: split[3],
+            f: split[4],
+            b: split[5],
+            l: split[6],
+            r: split[7],
+            a: (split[8] || "").split(",") || undefined
+        };
+
+        return this.asImage(size, backgroundColor, parameters);
     }
 
     static asImage(size, backgroundColor, parameters) {
@@ -71,11 +91,13 @@ class NilCube {
 
     toImage(size, backgroundColor) {
         const nc = this;
+        const pad = 0.4 * nc._lineWidth;
         const toWidth = (wall) => ((wall || {}).canvas || {}).width || 0;
         const toHeight = (wall) => ((wall || {}).canvas || {}).height || 0;
-        const width = toWidth(nc._walls.l) + toWidth(nc._walls.u) + toWidth(nc._walls.r);
-        const height = toHeight(nc._walls.b) + toHeight(nc._walls.u) + toHeight(nc._walls.f);
+        const toPad = (wall) => wall ? pad : 0;
 
+        let width = toWidth(nc._walls.l) + toWidth(nc._walls.u) + toWidth(nc._walls.r) - toPad(nc._walls.l) - toPad(nc._walls.r);
+        let height = toHeight(nc._walls.b) + toHeight(nc._walls.u) + toHeight(nc._walls.f) - toPad(nc._walls.b) - toPad(nc._walls.f);
         let context = NilCube.createContext(width, height);
 
         if (backgroundColor) {
@@ -84,6 +106,7 @@ class NilCube {
         }
 
         context.fillStyle = nc._colorsMap.core;
+        context.translate(-toPad(nc._walls.l), -toPad(nc._walls.b));
 
         // F
         let wall = nc._walls.f;
@@ -93,7 +116,7 @@ class NilCube {
                 height - toHeight(nc._walls.f) - nc._cubicleSize / 4,
                 nc._cubicleSize * (nc._type - 1),
                 nc._cubicleSize / 2);
-            context.drawImage(wall.canvas, toWidth(nc._walls.l), height - toHeight(wall));
+            context.drawImage(wall.canvas, toWidth(nc._walls.l), height - toHeight(wall) + (nc._walls.b ? pad : 0));
         }
         // B
         wall = nc._walls.b;
@@ -103,7 +126,7 @@ class NilCube {
                 toHeight(nc._walls.b) - nc._cubicleSize / 4,
                 nc._cubicleSize * (nc._type - 1),
                 nc._cubicleSize / 2);
-            context.drawImage(wall.canvas, toWidth(nc._walls.l), 0);
+            context.drawImage(wall.canvas, toWidth(nc._walls.l), pad);
         }
         // L
         wall = nc._walls.l;
@@ -113,7 +136,7 @@ class NilCube {
                 toHeight(nc._walls.b) + nc._cubicleSize / 2,
                 -nc._cubicleSize / 2,
                 nc._cubicleSize * (nc._type - 1));
-            context.drawImage(wall.canvas, 0, toHeight(nc._walls.b));
+            context.drawImage(wall.canvas, pad, toHeight(nc._walls.b));
         }
         // R
         wall = nc._walls.r;
@@ -123,7 +146,7 @@ class NilCube {
                 toHeight(nc._walls.b) + nc._cubicleSize / 2,
                 nc._cubicleSize / 2,
                 nc._cubicleSize * (nc._type - 1));
-            context.drawImage(wall.canvas, width - toWidth(wall), toHeight(nc._walls.b));
+            context.drawImage(wall.canvas, width - toWidth(wall) + (nc._walls.l ? pad : 0), toHeight(nc._walls.b));
         }
 
         // U
@@ -293,9 +316,9 @@ class NilCube {
         return context;
     }
 
-    _side(colors, cutCorners = false) {
+    _side1(colors, cutCorners = false) {
         const nc = this;
-        const context = nc._wall(colors, {baseHeight: 0.8, height: 0.75, lineWidth: 0.8}, cutCorners);
+        const context = nc._wall(colors, {baseHeight: 0.4, height: 0.8, baseLineWidth: 0.8, lineWidth: 0.95}, cutCorners);
         const m = { // TODO calculate it someday
             2: {m: 0.5, e: 0.3},
             3: {m: 0.1, e: 0.5},
@@ -303,10 +326,28 @@ class NilCube {
             5: {m: 0.06, e: 0.47},
             6: {m: 0.2, e: 0.43},
         };
-        return NilCube.fakePerspective(context, m[nc._type].m, m[nc._type].e);
+        return NilCube.fakePerspective1(context, m[nc._type].m, m[nc._type].e);
     }
 
-    _wall(colors, shrink = {baseHeight: 1, height: 1, lineWidth: 1}, cutCorners = true) {
+    _side2(colors, cutCorners = false) {
+        const nc = this;
+        const context = nc._wall(colors, {baseHeight: 0.4, height: 0.8, baseLineWidth: 0.8, lineWidth: 0.95}, cutCorners);
+        return NilCube.fakePerspective2(context, 0.7, 1);
+    }
+
+    _side3(colors, cutCorners = false) {
+        const nc = this;
+        const context = nc._wall(colors, {baseHeight: 0.4, height: 0.8, baseLineWidth: 0.8, lineWidth: 0.95}, cutCorners);
+        return NilCube.fakePerspective3(context);
+    }
+
+    _side4(colors, cutCorners = false) {
+        const nc = this;
+        const context = nc._wall(colors, {baseHeight: 0.5, height: 1, baseLineWidth: 0.8, lineWidth: 1}, cutCorners);
+        return NilCube.fakePerspective4(context, 0.04 * this._cubicleSize);
+    }
+
+    _wall(colors, shrink = {baseHeight: 1, height: 1, baseLineWidth: 1, lineWidth: 1}, cutCorners = true) {
         colors = colors.replace(/[^A-Za-z]/g, "");
         const nc = this;
 
@@ -330,7 +371,7 @@ class NilCube {
             const y = Math.floor(shrink.baseHeight * nc._cubicleSize * (shrink.height === 1 ? row : hFactor(row)));
 
             const cornerCut = cutCorners ? {row: row, col: col} : false;
-            const cubicle = nc._cubicle(color, nc._cubicleSize, Math.ceil(shrink.baseHeight * nc._cubicleSize * Math.pow(shrink.height, row)), nc._lineWidth * Math.pow(shrink.lineWidth, row), nc._radius, cornerCut);
+            const cubicle = nc._cubicle(color, nc._cubicleSize, Math.ceil(shrink.baseHeight * nc._cubicleSize * Math.pow(shrink.height, row)), nc._lineWidth * shrink.baseLineWidth * Math.pow(shrink.lineWidth, row), nc._radius / 4, cornerCut);
             context.drawImage(cubicle.canvas, x, y);
         });
 
@@ -429,7 +470,7 @@ class NilCube {
         return rotateContext;
     }
 
-    static fakePerspective(context, middle = 0.1, edge = 0.2) {
+    static fakePerspective1(context, middle = 0.1, edge = 0.2) {
         const canvas = context.canvas;
         const width = canvas.width;
         const height = canvas.height;
@@ -448,5 +489,76 @@ class NilCube {
         fake.restore();
 
         return fake;
+    }
+
+    static fakePerspective2(context, widthScale = 1, sliceHeight = 1) {
+        const canvas = context.canvas;
+        const width = canvas.width;
+        const height = canvas.height;
+
+        const steps = height / sliceHeight;
+        const heightSlice = height / steps;
+        const pad = 0.5 * width * (1 - widthScale) / steps;
+
+        const perspective = NilCube.createContext(width, height);
+        perspective.imageSmoothingEnabled = true;
+        perspective.imageSmoothingQuality = 'high';
+
+        for (let i = 0; i < steps; i++) {
+            const y = i * heightSlice;
+
+            perspective.drawImage(canvas,
+                0, y, width, heightSlice,
+                pad * i, y, width - 2 * pad * i, heightSlice);
+        }
+
+        return perspective;
+    }
+
+    static fakePerspective3(context) {
+        const canvas = context.canvas;
+        const width = canvas.width;
+        const height = canvas.height;
+
+        const steps = height;
+        const step0 = 0.7 * steps;
+        const heightSlice = height / steps;
+        const pad = 0.2;
+
+        const perspective = NilCube.createContext(width, height);
+        perspective.imageSmoothingEnabled = true;
+        perspective.imageSmoothingQuality = 'high';
+
+        for (let i = 0; i < steps; i++) {
+            const y = i * heightSlice;
+
+            perspective.drawImage(canvas,
+                0, y, width, heightSlice,
+                pad * (i + step0), y, width - 2 * pad * (i + step0), heightSlice);
+        }
+
+        return perspective;
+    }
+
+    static fakePerspective4(context, pad) {
+        const canvas = context.canvas;
+        const width = canvas.width;
+        const height = canvas.height;
+        let destinationHeight = 0;
+
+        const perspective = NilCube.createContext(width, height);
+        perspective.imageSmoothingEnabled = true;
+        perspective.imageSmoothingQuality = 'high';
+
+        for (let i = 0, srcY = 0; srcY < height; i++, destinationHeight++, srcY = i + 0.002 * i * i) {
+            perspective.drawImage(canvas,
+                0, srcY, width, 1,
+                pad + i / 4, i, width - 2 * (pad + i / 4), 1);
+
+        }
+
+        const trimmed = this.createContext(width, destinationHeight);
+        trimmed.drawImage(perspective.canvas, 0, 0);
+        return trimmed;
     }
 }

@@ -29,10 +29,32 @@
                 testPerspective();
                 testAllWalls();
                 testAsImage();
+                testResolve();
+                testSlicedPerspective();
+                testPerformance();
+                testPositioning();
             } catch (e) {
                 alert(e);
                 throw e;
             }
+        }
+
+        function testPerformance() {
+            for (let i = 0; i < 8; i++) {
+                testAsImage();
+            }
+        }
+
+        function testSlicedPerspective() {
+            const nc3 = new NilCube(3);
+            const input = nc3.u("YYYYYYYYY");
+            add(input);
+            add(NilCube.fakePerspective1(input));
+            add(NilCube.fakePerspective1(input, 0.06, 0.4));
+        }
+
+        function testResolve() {
+            add(NilCube.resolve("160:white:3:YYYYYYYYY:BRR:RGG:OOO:GBB:1211u2111,2011u2211"));
         }
 
         function testAsImage() {
@@ -55,8 +77,140 @@
                 r: "GBB",
                 a: ["1211u2111", "2011u2211"]
             };
+            add(NilCube.asImage(256, "white", jpermb));
             add(NilCube.asImage(512, "white", jpermb));
 
+            const cflla = {
+                type: 3,
+                u: "DDDDDDDDD",
+                f: "DDDDDDDWD",
+                l: "WDW",
+                r: "YYY"
+            };
+            add(NilCube.asImage(256, "white", cflla));
+            add(NilCube.asImage(512, "white", cflla));
+
+            const cfllb = {
+                type: 3,
+                u: "DDDDDDDDD",
+                b: "DDDDDDDWD",
+                l: "WDW",
+                r: "YYY"
+            };
+            add(NilCube.asImage(256, "white", cfllb));
+            add(NilCube.asImage(512, "white", cfllb));
+
+            const solved4 = {
+                type: 4,
+                u: "YYYYYYYYYYYYYYYY",
+                f: "GGGG",
+                b: "BBBB",
+                l: "RRRR",
+                r: "OOOO"
+            };
+            add(NilCube.asImage(256, "white", solved4));
+
+            const solved5 = {
+                type: 5,
+                u: "YYYYYYYYYYYYYYYYYYYYYYYYY",
+                f: "GGGGG",
+                b: "BBBBB",
+                l: "RRRRR",
+                r: "OOOOO"
+            };
+            add(NilCube.asImage(256, "white", solved5));
+
+            const solved3 = {
+                type: 3,
+                u: "YYYYYYYYY",
+                f: "GGG",
+                b: "BBB",
+                l: "RRR",
+                r: "OOO"
+            };
+            add(NilCube.asImage(512, "white", solved3));
+
+            const onlyU = {
+                type: 3,
+                u: "YYYYYYYYY"
+            };
+            add(NilCube.asImage(512, "white", onlyU));
+
+            const onlyUF = {
+                type: 3,
+                u: "YYYYYYYYY",
+                f: "GGG",
+            };
+            add(NilCube.asImage(512, "white", onlyUF));
+
+            const onlyUB = {
+                type: 3,
+                u: "YYYYYYYYY",
+                b: "BBB"
+            };
+            add(NilCube.asImage(512, "white", onlyUB));
+
+            const onlyUFB = {
+                type: 3,
+                u: "YYYYYYYYY",
+                f: "GGG",
+                b: "BBB"
+            };
+            add(NilCube.asImage(512, "white", onlyUFB));
+
+            const onlyUR = {
+                type: 3,
+                u: "YYYYYYYYY",
+                r: "OOO"
+            };
+            add(NilCube.asImage(512, "white", onlyUR));
+
+            const onlyUL = {
+                type: 3,
+                u: "YYYYYYYYY",
+                l: "RRR"
+            };
+            add(NilCube.asImage(512, "white", onlyUL));
+
+            const onlyURL = {
+                type: 3,
+                u: "YYYYYYYYY",
+                l: "RRR",
+                r: "OOO"
+            };
+            add(NilCube.asImage(512, "white", onlyURL));
+
+            const onlyUFR = {
+                type: 3,
+                u: "YYYYYYYYY",
+                f: "GGG",
+                r: "OOO"
+            };
+            add(NilCube.asImage(512, "white", onlyUFR));
+
+            const onlyUFL = {
+                type: 3,
+                u: "YYYYYYYYY",
+                f: "GGG",
+                l: "RRR"
+            };
+            add(NilCube.asImage(512, "white", onlyUFL));
+
+            const onlyUBR = {
+                type: 3,
+                u: "YYYYYYYYY",
+                b: "BBB",
+                r: "OOO"
+            };
+            add(NilCube.asImage(512, "white", onlyUBR));
+
+            const onlyUBL = {
+                type: 3,
+                u: "YYYYYYYYY",
+                b: "BBB",
+                l: "RRR"
+            };
+            add(NilCube.asImage(512, "white", onlyUBL));
         }
 
         function testAllWalls() {
@@ -91,14 +245,14 @@
             const nc3 = new NilCube(3);
             add(nc3.u("YYYYYYYYY"));
             add(nc3._wall("RGB"));
-            add(nc3._wall("RGB", {baseHeight: 1, height: 1, lineWidth: 1}, false));
+            add(nc3._wall("RGB", {baseHeight: 1, height: 1, baseLineWidth: 1, lineWidth: 1}, false));
             add(nc3._wall("YYYYYY"));
             add(nc3._wall("RYRYDYBYB"));
-            add(nc3._wall("RGBYRGBYRGBYRGBYRG", {baseHeight: 1, height: 0.75, lineWidth: 0.8}, false));
-            add(nc3._wall("RGBYRGBYRGBYRGBYRG", {baseHeight: 0.9, height: 0.75, lineWidth: 0.8}, false));
+            add(nc3._wall("RGBYRGBYRGBYRGBYRG", {baseHeight: 1, height: 0.75, baseLineWidth: 1, lineWidth: 0.8}, false));
+            add(nc3._wall("RGBYRGBYRGBYRGBYRG", {baseHeight: 0.9, height: 0.75, baseLineWidth: 1, lineWidth: 0.8}, false));
 
             const nc2 = new NilCube(2);
-            add(nc2._wall("WWYY", {baseHeight: 1, height: 0.75, lineWidth: 0.8}, true));
+            add(nc2._wall("WWYY", {baseHeight: 1, height: 0.75, baseLineWidth: 1, lineWidth: 0.8}, true));
         }
 
         function testRotate() {
@@ -110,7 +264,7 @@
             add(NilCube.rotate(rotTest1, 270));
             add(NilCube.rotate(rotTest1, 360));
 
-            const rotTest2 = nc3._wall("RGBYYYOBW", {baseHeight: 0.9, height: 0.75, lineWidth: 0.8}, false);
+            const rotTest2 = nc3._wall("RGBYYYOBW", {baseHeight: 0.9, height: 0.75, baseLineWidth: 1, lineWidth: 0.8}, false);
             add(NilCube.rotate(rotTest2, 90));
             add(NilCube.rotate(rotTest2, 180));
         }
@@ -126,165 +280,104 @@
         function testPositioning() {
             add(NilCube.asImage(0, null, {
                 type: 2,
-                u: ["W", "W", "W", "W"]
+                u: "WWWW"
             }));
 
             add(NilCube.asImage(0, null, {
                 type: 2,
-                u: ["W", "W", "W", "W"],
-                f: ["W", "W"],
-                b: ["W", "W"],
-                r: ["W", "W"],
-                l: ["W", "W"],
+                u: "WWWW",
+                f: "WW",
+                b: "WW",
+                r: "WW",
+                l: "WW",
             }));
 
             add(NilCube.asImage(0, null, {
                 type: 2,
-                u: ["W", "W", "W", "W"],
-                f: ["W", "W", "D", "D"],
-                b: ["W", "W", "D", "D"],
-                r: ["W", "W", "D", "D"],
-                l: ["W", "W", "D", "D"],
+                u: "WWWW",
+                f: "WWDD",
+                b: "WWDD",
+                r: "WWDD",
+                l: "WWDD",
             }));
 
             add(NilCube.asImage(0, null, {
                 type: 3,
-                u: ["W", "W", "W", "W", "W", "W", "W", "W", "W"]
+                u: "WWWWWWWWW"
             }));
 
             add(NilCube.asImage(0, null, {
                 type: 3,
-                u: ["W", "W", "W", "W", "W", "W", "W", "W", "W"],
-                f: ["W", "W", "W"],
-                b: ["W", "W", "W"],
-                r: ["W", "W", "W"],
-                l: ["W", "W", "W"],
+                u: "WWWWWWWWW",
+                f: "WWW",
+                b: "WWW",
+                r: "WWW",
+                l: "WWW",
             }));
 
             add(NilCube.asImage(0, null, {
                 type: 3,
-                u: ["W", "W", "W", "W", "W", "W", "W", "W", "W"],
-                f: ["W", "W", "W", "D", "D", "D"],
-                b: ["W", "W", "W", "D", "D", "D"],
-                r: ["W", "W", "W", "D", "D", "D"],
-                l: ["W", "W", "W", "D", "D", "D"],
+                u: "WWWWWWWWW",
+                f: "WWWDDD",
+                b: "WWWDDD",
+                r: "WWWDDD",
+                l: "WWWDDD",
             }));
 
             add(NilCube.asImage(0, null, {
                 type: 4,
-                u: ["W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W"]
+                u: "WWWWWWWWWWWWWWWW"
             }));
 
             add(NilCube.asImage(0, null, {
                 type: 4,
-                u: ["W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W"],
-                f: ["W", "W", "W", "W"],
-                b: ["W", "W", "W", "W"],
-                r: ["W", "W", "W", "W"],
-                l: ["W", "W", "W", "W"],
+                u: "WWWWWWWWWWWWWWWW",
+                f: "WWWW",
+                b: "WWWW",
+                r: "WWWW",
+                l: "WWWW",
             }));
 
             add(NilCube.asImage(0, null, {
                 type: 4,
-                u: ["W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W"],
-                f: ["W", "W", "W", "W", "D", "D", "D", "D"],
-                b: ["W", "W", "W", "W", "D", "D", "D", "D"],
-                r: ["W", "W", "W", "W", "D", "D", "D", "D"],
-                l: ["W", "W", "W", "W", "D", "D", "D", "D"],
+                u: "WWWWWWWWWWWWWWWW",
+                f: "WWWWDDDD",
+                b: "WWWWDDDD",
+                r: "WWWWDDDD",
+                l: "WWWWDDDD",
             }));
 
             add(NilCube.asImage(0, null, {
                 type: 5,
-                u: ["W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W"]
+                u: "WWWWWWWWWWWWWWWWWWWWWWWWW"
             }));
 
             add(NilCube.asImage(0, null, {
                 type: 5,
-                u: ["W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W"],
-                f: ["W", "W", "W", "W", "W"],
-                b: ["W", "W", "W", "W", "W"],
-                r: ["W", "W", "W", "W", "W"],
-                l: ["W", "W", "W", "W", "W"],
+                u: "WWWWWWWWWWWWWWWWWWWWWWWWW",
+                f: "WWWWW",
+                b: "WWWWW",
+                r: "WWWWW",
+                l: "WWWWW",
             }));
 
             add(NilCube.asImage(0, null, {
                 type: 5,
-                u: ["W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W"],
-                f: ["W", "W", "W", "W", "W", "D", "D", "D", "D", "D"],
-                b: ["W", "W", "W", "W", "W", "D", "D", "D", "D", "D"],
-                r: ["W", "W", "W", "W", "W", "D", "D", "D", "D", "D"],
-                l: ["W", "W", "W", "W", "W", "D", "D", "D", "D", "D"],
+                u: "WWWWWWWWWWWWWWWWWWWWWWWWW",
+                f: "WWWWWDDDDD",
+                b: "WWWWWDDDDD",
+                r: "WWWWWDDDDD",
+                l: "WWWWWDDDDD",
             }));
 
             add(NilCube.asImage(0, null, {
                 type: 5,
-                u: ["W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W"],
-                f: ["W", "W", "W", "W", "W", "D", "D", "D", "D", "D", "Y", "Y", "Y", "Y", "Y", "G", "G", "G", "G", "G", "G"],
-                b: ["W", "W", "W", "W", "W", "D", "D", "D", "D", "D", "Y", "Y", "Y", "Y", "Y", "G", "G", "G", "G", "G", "G"],
-                r: ["W", "W", "W", "W", "W", "D", "D", "D", "D", "D", "Y", "Y", "Y", "Y", "Y", "G", "G", "G", "G", "G", "G"],
-                l: ["W", "W", "W", "W", "W", "D", "D", "D", "D", "D", "Y", "Y", "Y", "Y", "Y", "G", "G", "G", "G", "G", "G"],
+                u: "WWWWWWWWWWWWWWWWWWWWWWWWW",
+                f: "WWWWWDDDDDYYYYYGGGGG",
+                b: "WWWWWDDDDDYYYYYGGGGG",
+                r: "WWWWWDDDDDYYYYYGGGGG",
+                l: "WWWWWDDDDDYYYYYGGGGG",
             }));
-        }
-
-        function standardCases() {
-            const edgeTest = {
-                type: 3,
-                u: ["Y", "Y", "Y", "Y", "Y", "Y", "Y", "Y", "Y"],
-                f: ["G", "G", "G"],
-                b: ["B", "B", "B"],
-                r: ["O", "O", "O"],
-                l: ["R", "R", "R"],
-            };
-            add(NilCube.asImage(256, "white", edgeTest));
-
-            const base4x4 = {
-                type: 4,
-                u: ["W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W"]
-            };
-            add(NilCube.asImage(256, "white", base4x4));
-
-            const jpermb = {
-                type: 3,
-                u: ["Y", "Y", "Y10:026,226,121", "Y", "Y", "Y:10,12,02,015", "Y", "Y02:105,215,201", "Y12:006,206,101"],
-                f: ["B", "R", "R"],
-                b: ["R", "G", "G"],
-                l: ["O", "O", "O"],
-                r: ["G", "B", "B"],
-                a: ["20:22", "12:21"]
-            };
-            add(NilCube.asImage(512, "white", jpermb));
-
-            const sune2 = {
-                type: 2,
-                u: ["D", "D", "W", "D"],
-                f: ["D", "W"],
-                b: ["D", "W"],
-                l: ["D", "D"],
-                r: ["D", "W"],
-            };
-            add(NilCube.asImage(256, "white", sune2));
-
-            sune2.cube = "#eeeeee";
-            sune2.core = "#bbbbbb";
-            sune2.dark = "#dddddd";
-            add(NilCube.asImage(256, "white", sune2));
-
-            // 3x3 CF LLb
-            // ncd.begin(3);
-            // ncd.u(["D", "D", "D", "D", "D", "D", "D", "D", "D"]);
-            // ncd.f(["D", "D", "D"]);
-            // ncd.b(["D", "D", "D", "D", "D", "D", "D", "W", "D"]);
-            // ncd.l(["W", "D", "W"]);
-            // ncd.r(["Y", "Y", "Y"]);
-            // ncd.append($("<img/>").attr("src", ncd.end(512, "white")));
-
-            // poly test
-            // ncd.begin(3);
-            // ncd._roundPoly(ncd._context, [[50, 50, 10], [250, 50, 20], [300, 100, 30], [250, 150, 40], [50, 150, 50]]);
-            // ncd._context.lineWidth = ncd._size / 8;
-            // ncd._context.strokeStyle = "orange";
-            // ncd._context.stroke();
-            // ncd.append($("<img/>").attr("src", ncd.end(512, "white")));
         }
     </script>
     <style>
@@ -297,7 +390,7 @@
 </head>
 <div id="ncd"></div>
 <div id="vcube" style="zoom:2.9;">
-    <!--<img src="images/3x3-plljb.png"/> <img src="images/2x2-oll27.png"/> <img src="images/3x3-cfllb.png"/>-->
+    <img src="images/3x3-plljb.png"/> <img src="images/2x2-oll27.png"/> <img src="images/3x3-cfllb.png"/>
 </div>
 <body onload="examples()"></body>
 </html>
