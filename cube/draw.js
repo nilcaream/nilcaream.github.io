@@ -17,13 +17,11 @@ class NilCube {
             R: "#fe0000",
             D: "#404040",
             cube: "#000000",
-            core: "#202020",
-            arrow0u: "#404040",
-            arrow1u: "#202020",
-            arrow0d: "#d0d0d0",
-            arrow1d: "#f0f0f0",
-            arrow0x: "#606060",
-            arrow1x: "#808080"
+            core: "#101010",
+            arrow0u: "#202020",
+            arrow1u: "#000000",
+            arrow0d: "#e0e0e0",
+            arrow1d: "#ffffff"
         };
 
         this._side = this._side4;
@@ -36,6 +34,7 @@ class NilCube {
 
     // size:backgroundColor:type:UUUU:FF:RR:BB:LL:aaaaaaaaa,aaaaaaaaa
     static resolve(string) {
+        const time = new Date().getTime();
         const split = string.split(":");
 
         const size = split[0];
@@ -47,14 +46,16 @@ class NilCube {
             r: split[5],
             b: split[6],
             l: split[7],
-            a: (split[8] || "").split(",") || undefined
+            a: (split[8] || "").split(",")
         };
 
-        return this.asImage(size, backgroundColor, parameters);
+        const image = this.asImage(size, backgroundColor, parameters);
+        console.log("Resolved " + string + " in " + (new Date().getTime() - time) + "ms");
+        return image;
     }
 
     static asImage(size, backgroundColor, parameters) {
-        const nc = new NilCube(parameters.type);
+        const nc = new NilCube(parameters.type, parameters.cubicleSize);
 
         if (parameters.cube) {
             nc.setColor("cube", parameters.cube);
@@ -63,7 +64,8 @@ class NilCube {
             nc.setColor("core", parameters.core);
         }
 
-        if (parameters.a) {
+        // check 1-element blank-string array
+        if (parameters.a && parameters.a.toString()) {
             nc.a.apply(nc, parameters.a)
         }
         if (parameters.u) {
@@ -227,11 +229,29 @@ class NilCube {
         context.lineCap = "round";
         context.translate(nc._cubicleSize / 2, nc._cubicleSize / 2);
 
-        const draw = (element) => {
+        const draw = (element, type, lineWidth, colorPrefix) => {
             const x0 = (element[0] - (1 - element[2]) / 6) * nc._cubicleSize;
             const y0 = (element[1] - (1 - element[3]) / 6) * nc._cubicleSize;
             const x1 = (element[5] - (1 - element[7]) / 6) * nc._cubicleSize;
             const y1 = (element[6] - (1 - element[8]) / 6) * nc._cubicleSize;
+
+            if (type.toLowerCase() === "x") {
+                const gradient = context.createLinearGradient(x0, y0, x1, y1);
+                gradient.addColorStop(0, nc._colorsMap[colorPrefix + "u"]);
+                gradient.addColorStop(1, nc._colorsMap[colorPrefix + "d"]);
+                context.strokeStyle = gradient;
+            } else {
+                context.strokeStyle = nc._colorsMap[colorPrefix + type.toLowerCase()];
+            }
+
+            context.lineWidth = lineWidth;
+            context.fillStyle = context.strokeStyle;
+
+            if (type.toUpperCase() === type) {
+                context.beginPath();
+                context.arc(x0, y0, 0.8 * lineWidth, 0, 2 * Math.PI);
+                context.fill();
+            }
 
             context.beginPath();
             context.moveTo(x0, y0);
@@ -241,16 +261,12 @@ class NilCube {
         };
 
         elements.forEach((element) => {
-            const type = element[4];
-            context.lineWidth = nc._lineWidth / 2;
-            context.strokeStyle = nc._colorsMap["arrow0" + type];
-            draw(element);
-            context.lineWidth = nc._lineWidth / 3;
-            context.strokeStyle = nc._colorsMap["arrow1" + type];
-            draw(element);
+            let type = element[4];
+            draw(element, type, nc._lineWidth / 2, "arrow0");
+            draw(element, type, nc._lineWidth / 4, "arrow1");
         });
 
-        console.log("A " + context.canvas.width + "x" + context.canvas.height);
+        console.log("A " + elements.toString() + " " + context.canvas.width + "x" + context.canvas.height);
         nc._walls.ua = context;
 
         return context;
@@ -350,8 +366,6 @@ class NilCube {
     _wall(colors, shrink = {baseHeight: 1, height: 1, baseLineWidth: 1, lineWidth: 1}, cutCorners = true) {
         colors = colors.replace(/[^A-Za-z]/g, "");
         const nc = this;
-
-        console.log("Wall " + colors);
 
         const hFactor = (row) => (1 - Math.pow(shrink.height, row)) / (1 - shrink.height);
         const rowsCount = Math.ceil(colors.length / nc._type);

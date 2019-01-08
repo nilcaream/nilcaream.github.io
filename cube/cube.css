@@ -13,6 +13,10 @@ html, body {
     white-space: nowrap;
 }
 
+.p1 {
+    padding: 1rem;
+}
+
 .ma {
     margin: auto;
 }

@@ -9,6 +9,12 @@
     <script src="draw.js"></script>
     <link rel="stylesheet" href="cube.css" type="text/css">
     <script language="JavaScript">
+
+        $(init);
+        const def3 = NilCube.resolve("80:white:3:DDDDDDDDD");
+        const ncParams = "160:white:";
+        const fullScreenParams = "800:white:";
+
         function init() {
             var table = $("#algorithms");
             var hash = window.location.hash.length > 4 ? window.location.hash : buildDefaults();
@@ -69,11 +75,13 @@
                 }
 
                 var cube = $("<div></div>").addClass("cube");
-                var src = algorithm.nc ? NilCube.resolve(algorithm.nc) : "images/" + cubeType + "-" + algorithmName + ".png";
-                var img = $("<img/>").attr("src", src);
+                const img = $("<img/>").attr("src", def3).addClass("p1");
+                setTimeout(() =>
+                        img.attr("src", algorithm.nc ? NilCube.resolve(ncParams + algorithm.nc) : "images/" + cubeType + "-" + algorithmName + ".png")
+                    , 1);
                 cube.append(img);
                 img.click(function () {
-                    window.location.href = algorithm.vcube || $(this).attr("src");
+                    window.location.href = "nc.html#" + fullScreenParams + algorithm.nc;
                 });
 
 
@@ -92,11 +100,13 @@
         }
     </script>
 </head>
-<body onload="init()">
+<body>
 <div id="wrapper" class="ma">
     <!--
-        Cube images generated with VisualCube.
-        href="https://www.speedsolving.com/wiki/extensions/algdb/vcube/visualcube.php
+        Static cube images generated with VisualCube.
+        https://www.speedsolving.com/wiki/extensions/algdb/vcube/visualcube.php
+
+        Dynamic cube images generated with NilCube.
     -->
     <table id="algorithms" class="ma"></table>
 </div>

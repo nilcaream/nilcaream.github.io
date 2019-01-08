@@ -8,6 +8,8 @@
     <script src="draw.js"></script>
     <script language="JavaScript">
 
+        $(examples);
+
         function add(input) {
             let dataUrl;
             const type = input.constructor.name;
@@ -33,9 +35,29 @@
                 testSlicedPerspective();
                 testPerformance();
                 testPositioning();
+                testSizes();
             } catch (e) {
                 alert(e);
                 throw e;
+            }
+        }
+
+        function testSizes() {
+            const jpermb = {
+                type: 3,
+                u: "YYYYYYYYY",
+                f: "BRR",
+                b: "RGG",
+                l: "OOO",
+                r: "GBB",
+                a: ["1211u2111", "2011u2211"]
+            };
+
+            for (let size = 64; size <= 1024; size *= 2) {
+                for (let cubicleSize = 64; cubicleSize <= 1024; cubicleSize *= 2) {
+                    jpermb.cubicleSize = cubicleSize;
+                    add(NilCube.asImage(size, "white", jpermb));
+                }
             }
         }
 
@@ -220,11 +242,22 @@
             add(nc3.b("BBB"));
             add(nc3.l("RRR"));
             add(nc3.r("OOOOOOOOO"));
-            add(nc3.a("2000u2200", "2022d2222"));
-            add(nc3.a("2000x2202", "2020d2222", "0011u0111", "1011d1111", "0211x1211"));
+            add(nc3.a("2000U2200", "2022d2222"));
+            add(nc3.a("2000X2202", "2020d2222", "0011u0111", "1011d1111", "0211x1211"));
             add(nc3.toImage());
             add(nc3.toImage(256, "white"));
             add(nc3.toImage(512, "white"));
+
+            const nc3b = new NilCube(3);
+            nc3b.u("YYYYYYYYY");
+            nc3b.f("GGGGGG");
+            nc3b.b("BBB");
+            nc3b.l("RRR");
+            nc3b.r("OOOOOOOOO");
+            add(nc3b.a("0000x0202", "0220x0022", "1102x2202", "2211x1011"));
+            add(nc3b.toImage());
+            add(nc3b.toImage(256, "white"));
+            add(nc3b.toImage(512, "white"));
         }
 
         function testCrop() {
@@ -388,9 +421,10 @@
         }
     </style>
 </head>
+<body>
 <div id="ncd"></div>
 <div id="vcube" style="zoom:2.9;">
     <img src="images/3x3-plljb.png"/> <img src="images/2x2-oll27.png"/> <img src="images/3x3-cfllb.png"/>
 </div>
-<body onload="examples()"></body>
+</body>
 </html>
