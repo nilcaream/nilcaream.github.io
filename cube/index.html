@@ -11,7 +11,7 @@
     <script language="JavaScript">
 
         $(init);
-        const def3 = NilCube.resolve("80:white:3:DDDDDDDDD");
+        const busyIndicator = NilCube.resolve("40:white:3:RYBYYYOYG");
         const ncParams = "160:white:";
         const fullScreenParams = "800:white:";
 
@@ -75,7 +75,7 @@
                 }
 
                 var cube = $("<div></div>").addClass("cube");
-                const img = $("<img/>").attr("src", def3).addClass("p1");
+                const img = $("<img/>").attr("src", busyIndicator).addClass("p1");
                 setTimeout(() =>
                         img.attr("src", algorithm.nc ? NilCube.resolve(ncParams + algorithm.nc) : "images/" + cubeType + "-" + algorithmName + ".png")
                     , 1);

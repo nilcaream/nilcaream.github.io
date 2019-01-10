@@ -168,6 +168,13 @@ var algorithms = {
             nc: "3:YYYYYYYYY:GGO:BRG:OBB:ROR:0111u2111,2011u2211",
             source: "https://www.speedsolving.com/wiki/index.php/PLL"
         },
+        pllja: {
+            id: "PLL Ja",
+            name: "J permutation a",
+            sequence: "R'L'U2 LUL'U2 RU'LU",
+            nc: "3:YYYYYYYYY:RRG:OOO:BBR:GGB:0111u1211,0011u0211",
+            source: "https://www.speedsolving.com/wiki/index.php/PLL"
+        },
         plljb: {
             id: "PLL Jb",
             name: "J permutation b",
