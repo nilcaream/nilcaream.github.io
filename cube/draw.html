@@ -25,42 +25,91 @@
 
         function examples() {
             try {
+                testSq1U();
+                testSq1M();
+                testSq1A();
                 testSq1();
-                // testCrop();
-                // testWall();
-                // testRotate();
-                // testPerspective();
-                // testAllWalls();
-                // testAsImage();
-                // testResolve();
-                // testSlicedPerspective();
-                // testPerformance();
-                // testPositioning();
-                // testSizes();
+                testCrop();
+                testWall();
+                testRotate();
+                testPerspective();
+                testAllWalls();
+                testAsImage();
+                testResolve();
+                testSlicedPerspective();
+                testPerformance();
+                testPositioning();
+                testSizes();
             } catch (e) {
                 alert(e);
                 throw e;
             }
         }
 
-        function testSq1() {
+        function testSq1U() {
+            add(NilCube.asImage(0, 0, {
+                type: 2,
+                u: "YYYY",
+                f: "GG",
+                b: "BB",
+                l: "RR",
+                r: "OO"
+            }));
+
             const sq1 = new NilCube(1);
-            add(sq1.u1("0YWWWWW"));
-            add(sq1.u1("0WyYyYyYy"));
-            add(sq1.u1("1WyyyyyyyyY"));
-            add(sq1.u1("1YyYyYyYy"));
-            add(sq1.u1("2YyYyYyYy"));
-            add(sq1.u1("3YyYyYyYy"));
-            add(sq1.u1("4YyYyYyYy"));
-            add(sq1.u1("5YyYyYyYy"));
-            add(sq1.u1("6WyWwYwYy"));
-            add(sq1.u1("0YYYYYYY"));
-            add(sq1.u1("0YYyyyyyyyy"));
-            add(sq1.u1("0YyYyyyyyyy"));
-            add(sq1.u1("0YyyYyyyyyy"));
-            add(sq1.u1("0YyyYyyYyy"));
-            add(sq1.u1("0yYyYyYyY"));
-            add(sq1.u1("0yY"));
+            add(sq1.u("0yYyYyYyY"));
+            add(sq1.toImage(256, "white"));
+
+            add(sq1.u("0YWWWWW"));
+            add(sq1.u("0WyYyYyYy"));
+            add(sq1.u("1WyyyyyyyyY"));
+            add(sq1.u("1YyYyYyYy"));
+            add(sq1.u("2YyYyYyYy"));
+            add(sq1.u("3YyYyYyYy"));
+            add(sq1.u("4YyYyYyYy"));
+            add(sq1.u("5YyYyYyYy"));
+            add(sq1.u("6WyWwYwYy"));
+            add(sq1.u("0YYYYYYY"));
+            add(sq1.u("0YYyyyyyyyy"));
+            add(sq1.u("0YyYyyyyyyy"));
+            add(sq1.u("0YyyYyyyyyy"));
+            add(sq1.u("0YyyYyyYyy"));
+            add(sq1.u("0yY"));
+        }
+
+        function testSq1M() {
+            const sq1 = new NilCube(1);
+            add(sq1.m("0DY"));
+            add(sq1.m("1WW"));
+            add(sq1.toImage(256, "white"));
+            add(sq1.m("0DY"));
+            add(sq1.m());
+            add(sq1.toImage(256, "white"));
+            add(sq1.m("0WD"));
+            add(sq1.toImage(256, "white"));
+        }
+
+        function testSq1A() {
+            const sq1 = new NilCube(1);
+            sq1.u("0yYyYyYyY");
+            add(sq1.a("002u124"));
+            add(sq1.toImage(512, "white"));
+
+            add(sq1.a("235u015", "225u025", "215u035", "205u045", "195u055", "185u065"));
+            add(sq1.a("004u064", "184d124", "084d104", "212x216"));
+            add(sq1.toImage(512, "white"));
+
+            sq1.u("0YYYYYY");
+            add(sq1.a("002u123", "044d165", "086x207"));
+            add(sq1.toImage(512, "white"));
+            add(sq1.a("002U123", "044D165", "086X207"));
+            add(sq1.toImage(512, "white"));
+            add(sq1.toImage(160, "white"));
+        }
+
+        function testSq1() {
+            add(NilCube.resolve("160:white:1:00yYyYyYyY:1DD:212X216"));
+            add(NilCube.resolve("160:white:1:03YYYYYY:1WD"));
         }
 
         function testSizes() {

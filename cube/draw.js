@@ -6,7 +6,7 @@ class NilCube {
 
         this._lineWidth = this._cubicleSize / 7;
         this._radius = this._cubicleSize / 7;
-        this._cubeSize = this._type * this._cubicleSize; // TODO change for sq1
+        this._cubeSize = this._type * this._cubicleSize; // ignored for Square-1
 
         this._colorsMap = {
             B: "#0000f2",
@@ -33,6 +33,7 @@ class NilCube {
     }
 
     // size:backgroundColor:type:UUUU:FF:RR:BB:LL:aaaaaaaaa,aaaaaaaaa
+    // size:backgroundColor:1:UUUUUUUU:0MM:aaaaaaa,aaaaaaa
     static resolve(string) {
         const time = new Date().getTime();
         const split = string.split(":");
@@ -40,17 +41,23 @@ class NilCube {
         const size = split[0];
         const backgroundColor = split[1];
         const parameters = {
-            type: split[2],
-            u: split[3],
-            f: split[4],
-            r: split[5],
-            b: split[6],
-            l: split[7],
-            a: (split[8] || "").split(",")
+            type: parseInt(split[2]),
+            u: split[3]
         };
 
+        if (parameters.type === 1) {
+            parameters.m = split[4];
+            parameters.a = (split[5] || "").split(",");
+        } else {
+            parameters.f = split[4];
+            parameters.r = split[5];
+            parameters.b = split[6];
+            parameters.l = split[7];
+            parameters.a = (split[8] || "").split(",");
+        }
+
         const image = this.asImage(size, backgroundColor, parameters);
-        console.log("Resolved " + string + " in " + (new Date().getTime() - time) + "ms");
+        console.log("Resolved " + string + " as " + JSON.stringify(parameters) + " in " + (new Date().getTime() - time) + "ms");
         return image;
     }
 
@@ -83,6 +90,9 @@ class NilCube {
         if (parameters.r) {
             nc.r(parameters.r)
         }
+        if (parameters.m) {
+            nc.m(parameters.m)
+        }
 
         return nc.toImage(size, backgroundColor);
     }
@@ -92,6 +102,58 @@ class NilCube {
     }
 
     toImage(size, backgroundColor) {
+        if (this._type === 1) {
+            return this._toImageSq1(size, backgroundColor);
+        } else {
+            return this._toImageStandard(size, backgroundColor);
+        }
+    }
+
+    _toImageSq1(size, backgroundColor) {
+        const nc = this;
+        const u = nc._walls.u;
+        const uCanvas = (u || {}).canvas || {};
+        const m = nc._walls.m;
+        const mCanvas = (m || {}).canvas || {};
+
+        const width = uCanvas.width || mCanvas.width;
+        const height = uCanvas.height || mCanvas.width;
+
+        let context = NilCube.createContext(width, height);
+
+        if (backgroundColor) {
+            context.fillStyle = backgroundColor;
+            context.fillRect(0, 0, width, height);
+        }
+
+        // M
+        if (m) {
+            context.drawImage(mCanvas, 0, 0);
+        }
+        // U
+        if (u) {
+            context.drawImage(uCanvas, 0, 0);
+        }
+        // Ua
+        if (nc._walls.ua) {
+            context.drawImage(nc._walls.ua.canvas, 0, 0);
+        }
+
+        if (size) {
+            const scale = size / Math.max(width, height);
+            const newWidth = Math.round(width * scale);
+            const newHeight = Math.round(height * scale);
+
+            const resizeContext = NilCube.createContext(newWidth, newHeight);
+            resizeContext.imageSmoothingQuality = 'high';
+            resizeContext.drawImage(context.canvas, 0, 0, newWidth, newHeight);
+            context = resizeContext;
+        }
+
+        return context.canvas.toDataURL("image/png");
+    }
+
+    _toImageStandard(size, backgroundColor) {
         const nc = this;
         const pad = 0.4 * nc._lineWidth;
         const toWidth = (wall) => ((wall || {}).canvas || {}).width || 0;
@@ -221,9 +283,86 @@ class NilCube {
     }
 
     // "2000u2200", "2022d2222", "xyxyuXYXY"
+    // "001u061", "111d011", "anRxanR"
     a() {
-        const nc = this;
         const elements = Array.prototype.slice.call(arguments);
+        if (this._type === 1) {
+            return this._aSq1(elements);
+        } else {
+            return this._aStandard(elements)
+        }
+    }
+
+    // ["001u061", "111d011", "anRxanR"]
+    _aSq1(elements) {
+        const nc = this;
+
+        const a15 = Math.PI * 15 / 180;
+        const a = nc._cubicleSize;
+        const x = a * Math.tan(a15);
+        const r = a / Math.cos(a15);
+        const R = Math.sqrt(2) * a;
+
+        const initAngle = 0;
+        const context = NilCube.createContext(2 * R + nc._lineWidth / 2, 2 * R + nc._lineWidth / 2);
+
+        context.lineWidth = nc._lineWidth / 2;
+        context.translate(R + nc._lineWidth / 4, R + nc._lineWidth / 4);
+        context.strokeStyle = nc._colorsMap.cube;
+        context.lineCap = "round";
+        context.rotate(Math.PI * (180 + initAngle) / 180);
+
+        const draw = (element, type, lineWidth, colorPrefix) => {
+            const angle0 = -parseInt(element.substring(0, 2)) * Math.PI * 15 / 180;
+            const r0 = R * parseInt(element[2]) / 8;
+            const angle1 = -parseInt(element.substring(4, 6)) * Math.PI * 15 / 180;
+            const r1 = R * parseInt(element[6]) / 8;
+
+            const x0 = r0 * Math.sin(angle0);
+            const y0 = r0 * Math.cos(angle0);
+            const x1 = r1 * Math.sin(angle1);
+            const y1 = r1 * Math.cos(angle1);
+
+            if (type.toLowerCase() === "x") {
+                const gradient = context.createLinearGradient(x0, y0, x1, y1);
+                gradient.addColorStop(0, nc._colorsMap[colorPrefix + "u"]);
+                gradient.addColorStop(1, nc._colorsMap[colorPrefix + "d"]);
+                context.strokeStyle = gradient;
+            } else {
+                context.strokeStyle = nc._colorsMap[colorPrefix + type.toLowerCase()];
+            }
+
+            context.lineWidth = lineWidth;
+            context.fillStyle = context.strokeStyle;
+
+            if (type.toUpperCase() === type) {
+                context.beginPath();
+                context.arc(x0, y0, 0.8 * lineWidth, 0, 2 * Math.PI);
+                context.fill();
+            }
+
+            context.beginPath();
+            context.moveTo(x0, y0);
+            context.lineTo(x1, y1);
+            console.log("A1 " + element + " " + context.lineWidth.toFixed(2) + "px " + context.strokeStyle + " (" + x0.toFixed(2) + "," + y0.toFixed(2) + ") (" + x1.toFixed(2) + "," + y1.toFixed(2) + ")");
+            context.stroke();
+        };
+
+        elements.forEach((element) => {
+            let type = element[3];
+            draw(element, type, nc._lineWidth / 2, "arrow0");
+            draw(element, type, nc._lineWidth / 4, "arrow1");
+        });
+
+        console.log("A1 " + elements.toString() + " " + context.canvas.width + "x" + context.canvas.height);
+        nc._walls.ua = context;
+
+        return context;
+    }
+
+    // ["2000u2200", "2022d2222", "xyxyuXYXY"]
+    _aStandard(elements) {
+        const nc = this;
         const context = NilCube.createContext(nc._cubeSize, nc._cubeSize);
 
         context.lineCap = "round";
@@ -272,9 +411,9 @@ class NilCube {
         return context;
     }
 
-    // "0YyYyYyYy"
-    u1(colors) {
-        colors = colors.trim()[0] + colors.replace(/[^A-Za-z]/g, "");
+    // "00YyYyYyYy"
+    _uSq1(colors) {
+        colors = colors.trim().substring(0, 2) + colors.replace(/[^A-Za-z]/g, "");
         const nc = this;
 
         const a15 = Math.PI * 15 / 180;
@@ -283,7 +422,7 @@ class NilCube {
         const r = a / Math.cos(a15);
         const R = Math.sqrt(2) * a;
 
-        const initAngle = colors[1] === colors[1].toUpperCase() ? 45 : 60;
+        const initAngle = colors[2] === colors[2].toUpperCase() ? 45 : 60;
         const context = NilCube.createContext(2 * R + nc._lineWidth / 2, 2 * R + nc._lineWidth / 2);
         const canvas = context.canvas;
 
@@ -299,8 +438,9 @@ class NilCube {
         context.strokeStyle = nc._colorsMap.cube;
 
         let angle = 0;
-        context.rotate(Math.PI * (180 + colors[0] * 30 + initAngle) / 180);
-        colors.substring(1).split("").forEach((color, index) => {
+        context.rotate(Math.PI * (180 + parseInt(colors.substring(0, 2)) * 15 + initAngle) / 180);
+
+        colors.substring(2).split("").forEach((color, index) => {
             context.rotate(angle);
             if (color.toUpperCase() === color) {
                 NilCube.roundPoly(context, [[x, a], [a, a], [a, x], [0, 0]], nc._radius / 2);
@@ -316,17 +456,71 @@ class NilCube {
             context.fill();
             context.stroke();
 
-            console.log("U1 " + index + " " + color + " " + angle.toFixed(2) + "rad");
+            console.log("U1 " + index + " " + color + " " + (angle * 180 / Math.PI).toFixed(0) + "deg");
         });
 
         console.log("U1 " + colors + " " + canvas.width + "x" + canvas.height);
-        nc._walls.u1 = context;
+        nc._walls.u = context;
+
+        return context;
+    }
+
+    // "1WD"
+    m(colors = "0WW") {
+        const nc = this;
+
+        const a15 = Math.PI * 15 / 180;
+        const a = nc._cubicleSize;
+        const x = a * Math.tan(a15);
+        const R = Math.sqrt(2) * a;
+
+        const context = NilCube.createContext(2 * R + nc._lineWidth / 2, 2 * R + nc._lineWidth / 2);
+        const canvas = context.canvas;
+
+        context.lineWidth = nc._lineWidth / 2;
+        context.translate(R + nc._lineWidth / 4, R + nc._lineWidth / 4);
+        context.strokeStyle = nc._colorsMap.cube;
+
+        if (colors[0]) {
+            NilCube.roundPoly(context, [[-a, -a], [x, -a], [-x, a], [-a, a]], nc._radius / 2);
+            context.rotate((180 + 30) * Math.PI / 180);
+            context.fillStyle = nc._colorsMap[colors[1]];
+            context.fill();
+            context.stroke();
+            NilCube.roundPoly(context, [[-a, -a], [-x, -a], [x, a], [-a, a]], nc._radius / 2);
+            context.fillStyle = nc._colorsMap[colors[2]];
+            context.fill();
+            context.stroke();
+        } else {
+            NilCube.roundPoly(context, [[-a, -a], [x, -a], [-x, a], [-a, a]], nc._radius / 2);
+            context.rotate(Math.PI);
+            context.fillStyle = nc._colorsMap[colors[1]];
+            context.fill();
+            context.stroke();
+            NilCube.roundPoly(context, [[-a, -a], [x, -a], [-x, a], [-a, a]], nc._radius / 2);
+            context.fillStyle = nc._colorsMap[colors[2]];
+            context.fill();
+            context.stroke();
+        }
+
+        console.log("M1 " + colors + " " + canvas.width + "x" + canvas.height);
+        nc._walls.m = context;
 
         return context;
     }
 
     // "YYYYBYYYY"
+    // "00YyYyYyYy"
     u(colors) {
+        if (this._type === 1) {
+            return this._uSq1(colors);
+        } else {
+            return this._uStandard(colors);
+        }
+    }
+
+    // "YYYYBYYYY"
+    _uStandard(colors) {
         const nc = this;
         const context = nc._wall(colors);
         const canvas = context.canvas;
