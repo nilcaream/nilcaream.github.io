@@ -236,7 +236,29 @@ var algorithms = {
             vcube: "https://www.speedsolving.com/wiki/extensions/algdb/vcube/visualcube.php?fmt=png&bg=w&sch=yrbwog&size=160&pzl=3&stage=pll&view=plan&case=M%27UM%27UM%27U%20U%20MUMUMU%20Uxz%27",
             nc: "3:RBRRRRRGR:GRG:YYY:BRB:WWW:1011u1211",
             source: "http://rubikscube.info/beginner.php"
+        }
+    },
+    sq1: {
+        flip: {
+            id: "Flip M",
+            name: "Flip middle",
+            sequence: "/(6,0)/(6,0)/(6,0)",
+            nc: "1:00yYyYyYyY:1WW",
+            source: "http://www.cubezone.be/square1step6.html"
         },
-
+        swap: {
+            id: "Swap UD",
+            name: "Swap UD",
+            sequence: "(1,0)/(6,6)/(-1,0)",
+            nc: "1:00wWwWwWwW::005x003,035x033,065x063,095x093,125x123,155x153,185x183,215x213",
+            source: "http://www.cubezone.be/square1step6.html"
+        },
+        sf: {
+            id: "Swap UD + Flip M",
+            name: "Swap and flip",
+            sequence: "/(6,0)/(0,6)/(-1,-5)",
+            nc: "1:00wWwWwWwW:1WW:005x003,035x033,065x063,095x093,125x123,155x153,185x183,215x213",
+            source: "http://www.cubezone.be/square1step6.html"
+        }
     }
 };

@@ -4,6 +4,9 @@
 }
 
 @media print {
+    tr {
+        page-break-inside: avoid;
+    }
 }
 
 html, body {
@@ -11,6 +14,26 @@ html, body {
     margin: 0.2rem;
     font-family: monospace;
     white-space: nowrap;
+}
+
+.busy {
+    padding: 60px;
+    animation-name: spin;
+    animation-duration: 5s;
+    animation-iteration-count: infinite;
+    animation-timing-function: ease-in-out;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    50% {
+        transform: rotate(360deg);
+    }
+    100% {
+        transform: rotate(0deg);
+    }
 }
 
 .p1 {

@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <script src="jquery-3.3.1.min.js"></script>
     <script src="algorithms.js"></script>
-    <script src="draw.js"></script>
+    <script src="nilcube.js"></script>
     <link rel="stylesheet" href="cube.css" type="text/css">
     <script language="JavaScript">
 
@@ -18,6 +18,7 @@
         function init() {
             var table = $("#algorithms");
             var hash = window.location.hash.length > 4 ? window.location.hash : buildDefaults();
+            console.log("Processing " + hash);
             hash.substring(3).split("+")
                 .forEach(function (row) {
                     var cellRefs = [];
@@ -75,15 +76,13 @@
                 }
 
                 var cube = $("<div></div>").addClass("cube");
-                const img = $("<img/>").attr("src", busyIndicator).addClass("p1");
-                setTimeout(() =>
-                        img.attr("src", algorithm.nc ? NilCube.resolve(ncParams + algorithm.nc) : "images/" + cubeType + "-" + algorithmName + ".png")
-                    , 1);
+                const img = $("<img/>").attr("src", busyIndicator).addClass("busy").addClass("p1");
+                setTimeout(() => img.removeClass("busy").attr("src", NilCube.resolve(ncParams + algorithm.nc)), 1);
+
                 cube.append(img);
                 img.click(function () {
-                    window.location.href = "nc.html#" + fullScreenParams + algorithm.nc;
+                    window.location.href = "nilcube-resolve.html#" + fullScreenParams + algorithm.nc;
                 });
-
 
                 td.append(title);
                 td.append(sequence);
