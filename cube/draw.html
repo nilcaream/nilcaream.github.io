@@ -25,21 +25,42 @@
 
         function examples() {
             try {
-                testCrop();
-                testWall();
-                testRotate();
-                testPerspective();
-                testAllWalls();
-                testAsImage();
-                testResolve();
-                testSlicedPerspective();
-                testPerformance();
-                testPositioning();
-                testSizes();
+                testSq1();
+                // testCrop();
+                // testWall();
+                // testRotate();
+                // testPerspective();
+                // testAllWalls();
+                // testAsImage();
+                // testResolve();
+                // testSlicedPerspective();
+                // testPerformance();
+                // testPositioning();
+                // testSizes();
             } catch (e) {
                 alert(e);
                 throw e;
             }
+        }
+
+        function testSq1() {
+            const sq1 = new NilCube(1);
+            add(sq1.u1("0YWWWWW"));
+            add(sq1.u1("0WyYyYyYy"));
+            add(sq1.u1("1WyyyyyyyyY"));
+            add(sq1.u1("1YyYyYyYy"));
+            add(sq1.u1("2YyYyYyYy"));
+            add(sq1.u1("3YyYyYyYy"));
+            add(sq1.u1("4YyYyYyYy"));
+            add(sq1.u1("5YyYyYyYy"));
+            add(sq1.u1("6WyWwYwYy"));
+            add(sq1.u1("0YYYYYYY"));
+            add(sq1.u1("0YYyyyyyyyy"));
+            add(sq1.u1("0YyYyyyyyyy"));
+            add(sq1.u1("0YyyYyyyyyy"));
+            add(sq1.u1("0YyyYyyYyy"));
+            add(sq1.u1("0yYyYyYyY"));
+            add(sq1.u1("0yY"));
         }
 
         function testSizes() {

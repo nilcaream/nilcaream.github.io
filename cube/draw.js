@@ -6,7 +6,7 @@ class NilCube {
 
         this._lineWidth = this._cubicleSize / 7;
         this._radius = this._cubicleSize / 7;
-        this._cubeSize = this._type * this._cubicleSize;
+        this._cubeSize = this._type * this._cubicleSize; // TODO change for sq1
 
         this._colorsMap = {
             B: "#0000f2",
@@ -268,6 +268,59 @@ class NilCube {
 
         console.log("A " + elements.toString() + " " + context.canvas.width + "x" + context.canvas.height);
         nc._walls.ua = context;
+
+        return context;
+    }
+
+    // "0YyYyYyYy"
+    u1(colors) {
+        colors = colors.trim()[0] + colors.replace(/[^A-Za-z]/g, "");
+        const nc = this;
+
+        const a15 = Math.PI * 15 / 180;
+        const a = nc._cubicleSize;
+        const x = a * Math.tan(a15);
+        const r = a / Math.cos(a15);
+        const R = Math.sqrt(2) * a;
+
+        const initAngle = colors[1] === colors[1].toUpperCase() ? 45 : 60;
+        const context = NilCube.createContext(2 * R + nc._lineWidth / 2, 2 * R + nc._lineWidth / 2);
+        const canvas = context.canvas;
+
+        context.lineWidth = nc._lineWidth / 2;
+        context.translate(R + nc._lineWidth / 4, R + nc._lineWidth / 4);
+
+        // core
+        context.beginPath();
+        context.arc(0, 0, a / 4, 0, 2 * Math.PI);
+        context.fillStyle = nc._colorsMap.core;
+        context.fill();
+
+        context.strokeStyle = nc._colorsMap.cube;
+
+        let angle = 0;
+        context.rotate(Math.PI * (180 + colors[0] * 30 + initAngle) / 180);
+        colors.substring(1).split("").forEach((color, index) => {
+            context.rotate(angle);
+            if (color.toUpperCase() === color) {
+                NilCube.roundPoly(context, [[x, a], [a, a], [a, x], [0, 0]], nc._radius / 2);
+                angle = 4 * a15;
+            } else {
+                context.rotate(-4 * a15);
+                NilCube.roundPoly(context, [[0, a], [x, a], [0, 0], [-x, a]], nc._radius / 2);
+                context.rotate(4 * a15);
+                angle = 2 * a15;
+            }
+
+            context.fillStyle = nc._colorsMap[color.toUpperCase()];
+            context.fill();
+            context.stroke();
+
+            console.log("U1 " + index + " " + color + " " + angle.toFixed(2) + "rad");
+        });
+
+        console.log("U1 " + colors + " " + canvas.width + "x" + canvas.height);
+        nc._walls.u1 = context;
 
         return context;
     }
