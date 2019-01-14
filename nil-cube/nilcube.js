@@ -15,7 +15,7 @@ class NilCube {
             W: "#ffffff",
             G: "#00f300",
             R: "#fe0000",
-            D: "#404040",
+            D: "#505050",
             cube: "#000000",
             core: "#101010",
             arrow0u: "#202020",
@@ -324,10 +324,7 @@ class NilCube {
             const y1 = r1 * Math.cos(angle1);
 
             if (type.toLowerCase() === "x") {
-                const gradient = context.createLinearGradient(x0, y0, x1, y1);
-                gradient.addColorStop(0, nc._colorsMap[colorPrefix + "u"]);
-                gradient.addColorStop(1, nc._colorsMap[colorPrefix + "d"]);
-                context.strokeStyle = gradient;
+                context.strokeStyle = nc._createGradientX(context, colorPrefix, x0, y0, x1, y1);
             } else {
                 context.strokeStyle = nc._colorsMap[colorPrefix + type.toLowerCase()];
             }
@@ -360,6 +357,15 @@ class NilCube {
         return context;
     }
 
+    _createGradientX(context, colorPrefix, x0, y0, x1, y1) {
+        const gradient = context.createLinearGradient(x0, y0, x1, y1);
+        gradient.addColorStop(0, this._colorsMap[colorPrefix + "u"]);
+        gradient.addColorStop(0.3, this._colorsMap[colorPrefix + "u"]);
+        gradient.addColorStop(0.7, this._colorsMap[colorPrefix + "d"]);
+        gradient.addColorStop(1, this._colorsMap[colorPrefix + "d"]);
+        return gradient;
+    }
+
     // ["2000u2200", "2022d2222", "xyxyuXYXY"]
     _aStandard(elements) {
         const nc = this;
@@ -375,10 +381,7 @@ class NilCube {
             const y1 = (element[6] - (1 - element[8]) / 6) * nc._cubicleSize;
 
             if (type.toLowerCase() === "x") {
-                const gradient = context.createLinearGradient(x0, y0, x1, y1);
-                gradient.addColorStop(0, nc._colorsMap[colorPrefix + "u"]);
-                gradient.addColorStop(1, nc._colorsMap[colorPrefix + "d"]);
-                context.strokeStyle = gradient;
+                context.strokeStyle = nc._createGradientX(context, colorPrefix, x0, y0, x1, y1);
             } else {
                 context.strokeStyle = nc._colorsMap[colorPrefix + type.toLowerCase()];
             }

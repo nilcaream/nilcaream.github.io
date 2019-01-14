@@ -242,23 +242,47 @@ var algorithms = {
         flip: {
             id: "Flip M",
             name: "Flip middle",
-            sequence: "/(6,0)/(6,0)/(6,0)",
+            sequence: "/(6,0)/(6,0)/",
             nc: "1:00yYyYyYyY:1WW",
             source: "http://www.cubezone.be/square1step6.html"
         },
         swap: {
             id: "Swap UD",
             name: "Swap UD",
-            sequence: "(1,0)/(6,6)/(-1,0)",
+            sequence: "(1,0)/(6,6)/",
             nc: "1:00wWwWwWwW::005x003,035x033,065x063,095x093,125x123,155x153,185x183,215x213",
             source: "http://www.cubezone.be/square1step6.html"
         },
         sf: {
-            id: "Swap UD + Flip M",
-            name: "Swap and flip",
-            sequence: "/(6,0)/(0,6)/(-1,-5)",
+            id: "Swap + Flip",
+            name: "Swap UD + Flip M",
+            sequence: "/(6,0)/(0,6)/",
             nc: "1:00wWwWwWwW:1WW:005x003,035x033,065x063,095x093,125x123,155x153,185x183,215x213",
             source: "http://www.cubezone.be/square1step6.html"
+        },
+        esubdf: {
+            id: "Edge swap UBDF",
+            name: "UB+DF",
+            sequence: "0-1/-30/41/-4-1/30/",
+            nc: "1:00yDdDdDdD::004x124"
+        },
+        csuf: {
+            id: "Corner swap UF",
+            name: "URF+ULF",
+            sequence: "/3-3/30/-30/03/-30/",
+            nc: "1:00dDdYyYyD::096u156,123u183"
+        },
+        csdf: {
+            id: "Corner swap DF",
+            name: "DRF+DLF",
+            sequence: "/3-3/03/-30/30/-30/",
+            nc: "1:00dDdDdDdD::096d156,123d183"
+        },
+        esrb: {
+            id: "Edge swap RB",
+            name: "UR-UB + DR-DB",
+            sequence: "02/0-3/11/-12/",
+            nc: "1:00yDyDdDdD::005u065,003d063"
         }
     }
 };

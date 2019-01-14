@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Cube</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <script src="jquery-3.3.1.min.js"></script>
+    <script src="algorithms.js"></script>
+    <script src="nilcube.js"></script>
+    <link rel="stylesheet" href="cube.css" type="text/css">
+    <script language="JavaScript">
+
+        $(init);
+
+        const busyIndicator = NilCube.resolve("40:white:3:RYBYYYOYG");
+        const ncParams = "160:white:";
+        const fullScreenParams = "800:white:";
+
+        function init() {
+            const table = $("#algorithms");
+            const hash = window.location.hash.length > 4 ? window.location.hash : buildDefaults();
+            console.log("Processing " + hash);
+
+            hash.substring(3).split("+").forEach(row => {
+                const cellRefs = [];
+                row.split(":")
+                    .filter(cellRef => /^[a-z0-9.]+$/.test(cellRef))
+                    .forEach(cellRef => cellRefs.push(cellRef));
+                addRow(table, cellRefs);
+            });
+
+            $("#algorithms td").addClass("w" + hash.charAt(1));
+            $("td.space").attr("colspan", hash.charAt(1));
+            //window.location.hash = hash;
+        }
+
+        function buildDefaults() {
+            let result = "#4:";
+            let counter = 0;
+            Object.keys(algorithms).forEach(cubeType => {
+                Object.keys(algorithms[cubeType]).forEach(algorithmName => {
+                    counter++;
+                    result += cubeType + "." + algorithmName + (counter % 4 === 0 ? "+" : ":");
+                });
+                result = result.replace(/[:+]+$/, "") + "++";
+                counter = 0;
+            });
+            return result.replace(/[:+]+$/, "");
+        }
+
+        function addRow(table, cellRefs) {
+            const tr = $("<tr></tr>");
+            if (cellRefs.length === 0) {
+                tr.append($("<td class='space'></td>"));
+            }
+            cellRefs.forEach(cellRef => {
+                const split = cellRef.split(".");
+                const cubeType = split[0];
+                const algorithmName = split[1];
+                const algorithm = algorithms[cubeType][algorithmName];
+
+                const td = $("<td></td>");
+
+                const id = $("<span></span>").addClass("id").text(algorithm.id);
+                const link = algorithm.source ? $("<a></a>").attr("href", algorithm.source).addClass("id").text(algorithm.id) : undefined;
+                const name = $("<span></span>").addClass("name").text(algorithm.name);
+                const title = $("<div></div>").addClass("title").append(link || id).append(name);
+
+                const sequence = $("<div></div>").html(algorithm.sequence.replace("_", "<br/>")).addClass("sequence");
+                const alternatives = (algorithm.alternatives || []).map(alternative => $("<div></div>").text(alternative).addClass("alternative"));
+
+                const cube = $("<div></div>").addClass("cube");
+                const img = $("<img/>").attr("src", busyIndicator).addClass("busy").addClass("p1");
+                setTimeout(() => img.removeClass("busy").attr("src", NilCube.resolve(ncParams + algorithm.nc)), 1000);
+
+                cube.append(img);
+                img.click(() => window.location.href = "nilcube-resolve.html#" + fullScreenParams + algorithm.nc);
+
+                td.append(title);
+                td.append(sequence);
+                if (alternatives.length) {
+                    td.append(alternatives.reduce((previousValue, currentValue) => previousValue + " " + currentValue));
+                }
+                td.append(cube);
+
+                tr.append(td);
+            });
+            table.append(tr);
+        }
+    </script>
+</head>
+<body>
+<div id="wrapper" class="ma">
+    <!--
+        Static cube images generated with VisualCube.
+        https://www.speedsolving.com/wiki/extensions/algdb/vcube/visualcube.php
+
+        Dynamic cube images generated with NilCube.
+    -->
+    <table id="algorithms" class="ma"></table>
+</div>
+</body>
+</html>
