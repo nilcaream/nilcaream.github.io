@@ -8,10 +8,9 @@
     <script src="nilcube.js"></script>
     <script language="JavaScript">
         $(() => {
-            const hash = window.location.hash;
-            if (hash.length > 10) {
-                $("body").append($("<img/>").attr("src", NilCube.resolve(hash.substring(1))));
-            }
+            const reload = () => window.location.hash.length > 10 ? $("img").attr("src", NilCube.resolve(window.location.hash.substring(1))) : false;
+            document.onkeydown = (event) => event.key === " " ? reload() : true;
+            reload();
         });
     </script>
     <style>
@@ -20,5 +19,7 @@
         }
     </style>
 </head>
-<body></body>
+<body>
+<img src=""/>
+</body>
 </html>

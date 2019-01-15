@@ -283,6 +283,35 @@ var algorithms = {
             name: "UR-UB + DR-DB",
             sequence: "02/0-3/11/-12/",
             nc: "1:00yDyDdDdD::005u065,003d063"
+        },
+        jaapce: {
+            id: "Jaap PCE",
+            name: "Create CE pair",
+            sequence: "10 -40 /0-3/03/0-3/03/",
+            nc2: "1:00dDdBgDbG::124u184,096u156",
+            nc: "1:00dDdYyDyY::124u184,096u156",
+            source: "https://www.jaapsch.net/puzzles/square1.htm"
+        },
+        jaappf: {
+            id: "Jaap PF",
+            name: "Parity fix",
+            sequence: "10 30/03/0-1/33/0-5/_ -24/2-4/0-1/33/",
+            nc: "1:00dDdDyYyY::124u184",
+            source: "https://www.jaapsch.net/puzzles/square1.htm"
+        },
+        jaapadj: {
+            id: "Jaap ADJ",
+            name: "Adjacent CE swap",
+            sequence: "10 /0-3/03/0-3/03/_ 30 /0-3/03/0-3/03/",
+            nc: "1:00dDyYyYdD::064u124,096u156",
+            source: "https://www.jaapsch.net/puzzles/square1.htm"
+        },
+        jaapdiag: {
+            id: "Jaap DIAG",
+            name: "Diagonal CE swap",
+            sequence: "10 /0-3/03/0-3/03/_ 60 /0-3/03/0-3/03/",
+            nc: "1:00yYdDyYdD::004u124,035u155",
+            source: "https://www.jaapsch.net/puzzles/square1.htm"
         }
     }
 };
