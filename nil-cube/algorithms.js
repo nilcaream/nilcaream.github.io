@@ -163,7 +163,7 @@ var algorithms = {
         pllt: {
             id: "PLL T",
             name: "T permutation",
-            sequence: "RUR'U' R'FR2U' _ R'U'RU R'F'",
+            sequence: "RUR'U' R'FR2U'_R'U'RU R'F'",
             vcube: "https://www.speedsolving.com/wiki/extensions/algdb/vcube/visualcube.php?fmt=png&bg=w&sch=yrbwog&size=160&pzl=3&stage=pll&view=plan&case=R%20U%20R%27%20U%27%20R%27%20F%20R2%20U%27%20R%27%20U%27%20R%20U%20R%27%20F%27",
             nc: "3:YYYYYYYYY:GGO:BRG:OBB:ROR:0111u2111,2011u2211",
             source: "https://www.speedsolving.com/wiki/index.php/PLL"
@@ -239,77 +239,77 @@ var algorithms = {
         }
     },
     sq1: {
-        flip: {
-            id: "Flip M",
+        fm: {
+            id: "FM",
             name: "Flip middle",
-            sequence: "/(6,0)/(6,0)/",
+            sequence: "/60/60/",
             nc: "1:00yYyYyYyY:1WW",
             source: "http://www.cubezone.be/square1step6.html"
         },
-        swap: {
-            id: "Swap UD",
+        sud: {
+            id: "SUD",
             name: "Swap UD",
-            sequence: "(1,0)/(6,6)/",
+            sequence: "10/66/",
             nc: "1:00wWwWwWwW::005x003,035x033,065x063,095x093,125x123,155x153,185x183,215x213",
             source: "http://www.cubezone.be/square1step6.html"
         },
         sf: {
-            id: "Swap + Flip",
+            id: "SF",
             name: "Swap UD + Flip M",
-            sequence: "/(6,0)/(0,6)/",
+            sequence: "/60/06/",
             nc: "1:00wWwWwWwW:1WW:005x003,035x033,065x063,095x093,125x123,155x153,185x183,215x213",
             source: "http://www.cubezone.be/square1step6.html"
         },
         esubdf: {
-            id: "Edge swap UBDF",
-            name: "UB+DF",
+            id: "ES UBDF",
+            name: "Edge swap UB-DF",
             sequence: "0-1/-30/41/-4-1/30/",
             nc: "1:00yDdDdDdD::004x124"
         },
         csuf: {
-            id: "Corner swap UF",
-            name: "URF+ULF",
+            id: "CS UF",
+            name: "Corner swap URF-ULF",
             sequence: "/3-3/30/-30/03/-30/",
             nc: "1:00dDdYyYyD::096u156,123u183"
         },
         csdf: {
-            id: "Corner swap DF",
-            name: "DRF+DLF",
+            id: "CS DF",
+            name: "Corner swap DRF-DLF",
             sequence: "/3-3/03/-30/30/-30/",
             nc: "1:00dDdDdDdD::096d156,123d183"
         },
         esrb: {
-            id: "Edge swap RB",
-            name: "UR-UB + DR-DB",
+            id: "ES RB",
+            name: "Edge swap UR-UB + DR-DB",
             sequence: "02/0-3/11/-12/",
             nc: "1:00yDyDdDdD::005u065,003d063"
         },
+
         jaapce: {
             id: "Jaap PCE",
             name: "Create CE pair",
             sequence: "10 -40 /0-3/03/0-3/03/",
-            nc2: "1:00dDdBgDbG::124u184,096u156",
-            nc: "1:00dDdYyDyY::124u184,096u156",
+            nc: "1:00dDdYyDyY::123u183,096U156",
             source: "https://www.jaapsch.net/puzzles/square1.htm"
         },
         jaappf: {
             id: "Jaap PF",
             name: "Parity fix",
-            sequence: "10 30/03/0-1/33/0-5/_ -24/2-4/0-1/33/",
+            sequence: "10 30/03/ 0-1/33/ 0-5/_ -24/2-4/ 0-1/33/",
             nc: "1:00dDdDyYyY::124u184",
             source: "https://www.jaapsch.net/puzzles/square1.htm"
         },
         jaapadj: {
             id: "Jaap ADJ",
             name: "Adjacent CE swap",
-            sequence: "10 /0-3/03/0-3/03/_ 30 /0-3/03/0-3/03/",
-            nc: "1:00dDyYyYdD::064u124,096u156",
+            sequence: "10 /0-3/03/0-3/03/_30 /0-3/03/0-3/03/",
+            nc: "1:00dDyYyYdD::063u123,096u156",
             source: "https://www.jaapsch.net/puzzles/square1.htm"
         },
         jaapdiag: {
             id: "Jaap DIAG",
             name: "Diagonal CE swap",
-            sequence: "10 /0-3/03/0-3/03/_ 60 /0-3/03/0-3/03/",
+            sequence: "10 /0-3/03/0-3/03/_60 /0-3/03/0-3/03/",
             nc: "1:00yYdDyYdD::004u124,035u155",
             source: "https://www.jaapsch.net/puzzles/square1.htm"
         }

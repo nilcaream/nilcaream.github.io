@@ -17,7 +17,7 @@ html, body {
 }
 
 .busy {
-    padding: 60px;
+    margin: 60px;
     animation-name: spin;
     animation-duration: 2s;
     animation-iteration-count: infinite;
@@ -72,6 +72,7 @@ html, body {
 
 #algorithms .sequence {
     font-size: 1.4rem;
+    white-space: pre;
 }
 
 #algorithms .cube {
