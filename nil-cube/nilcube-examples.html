@@ -28,6 +28,7 @@
                 testSq1U();
                 testSq1M();
                 testSq1A();
+                testSq1Walls();
                 testSq1();
                 testCrop();
                 testWall();
@@ -37,9 +38,10 @@
                 testAsImage();
                 testResolve();
                 testSlicedPerspective();
-                testPerformance();
                 testPositioning();
                 testSizes();
+
+                // testPerformance();
             } catch (e) {
                 alert(e);
                 throw e;
@@ -110,6 +112,17 @@
         function testSq1() {
             add(NilCube.resolve("160:white:1:00yYyYyYyY:1DD:212X216"));
             add(NilCube.resolve("160:white:1:03YYYYYY:1WD"));
+        }
+
+        function testSq1Walls() {
+            const sq1 = new NilCube(1, 512);
+            add(sq1.u("0yYyYyYyY"));
+            add(sq1.f("RGB"));
+            add(sq1.r("RGB"));
+            add(sq1.b("RGB"));
+            add(sq1.l("RGB"));
+            add(sq1.toImage());
+            add(sq1.toImage(512, "white"));
         }
 
         function testSizes() {
@@ -494,7 +507,7 @@
 <body>
 <div id="ncd"></div>
 <div id="vcube" style="zoom:2.9;">
-    <img src="images/3x3-plljb.png"/> <img src="images/2x2-oll27.png"/> <img src="images/3x3-cfllb.png"/>
+    <!--<img src="images/3x3-plljb.png"/> <img src="images/2x2-oll27.png"/> <img src="images/3x3-cfllb.png"/>-->
 </div>
 </body>
 </html>

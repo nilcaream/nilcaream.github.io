@@ -71,7 +71,7 @@
 
                 const cube = $("<div></div>").addClass("cube");
                 const img = $("<img/>").attr("src", busyIndicator).addClass("busy").addClass("p1");
-                setTimeout(() => img.removeClass("busy").attr("src", NilCube.resolve(ncParams + algorithm.nc)), 1000);
+                setTimeout(() => img.removeClass("busy").attr("src", NilCube.resolve(ncParams + algorithm.nc)), 1);
 
                 cube.append(img);
                 img.click(() => window.location.href = "nilcube-resolve.html#" + fullScreenParams + algorithm.nc);

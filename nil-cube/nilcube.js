@@ -4,9 +4,9 @@ class NilCube {
         this._type = type;
         this._cubicleSize = cubicleSize;
 
-        this._lineWidth = this._cubicleSize / 7;
+        this._lineWidth = this._cubicleSize / (8 + type);
         this._radius = this._cubicleSize / 7;
-        this._cubeSize = this._type * this._cubicleSize; // ignored for Square-1
+        this._cubeSize = this._cubicleSize * (this._type === 1 ? 2 + Math.tan(Math.PI * 15 / 180) : this._type);
 
         this._colorsMap = {
             B: "#0000f2",
@@ -116,6 +116,8 @@ class NilCube {
         const m = nc._walls.m;
         const mCanvas = (m || {}).canvas || {};
 
+        const pad = 0.8 * nc._lineWidth;
+
         const width = uCanvas.width || mCanvas.width;
         const height = uCanvas.height || mCanvas.width;
 
@@ -126,17 +128,41 @@ class NilCube {
             context.fillRect(0, 0, width, height);
         }
 
+        context.fillStyle = nc._colorsMap.core;
+
         // M
         if (m) {
             context.drawImage(mCanvas, 0, 0);
         }
-        // U
+
         if (u) {
+            // F
+            if (nc._walls.f) {
+                context.fillRect(width / 4, height - height / 16, width / 2, -height / 8);
+                context.drawImage(nc._walls.f.canvas, 0, height - nc._walls.f.canvas.height - pad);
+            }
+            // R
+            if (nc._walls.r) {
+                context.fillRect(width - width / 16, height / 4, -width / 8, height / 2);
+                context.drawImage(nc._walls.r.canvas, width - nc._walls.r.canvas.width - pad, 0);
+            }
+            // B
+            if (nc._walls.b) {
+                context.fillRect(width / 4, height / 16, width / 2, height / 8);
+                context.drawImage(nc._walls.b.canvas, 0, pad);
+            }
+            // L
+            if (nc._walls.l) {
+                context.fillRect(width / 16, height / 4, width / 8, height / 2);
+                context.drawImage(nc._walls.l.canvas, pad, 0);
+            }
+
+            // U
             context.drawImage(uCanvas, 0, 0);
-        }
-        // Ua
-        if (nc._walls.ua) {
-            context.drawImage(nc._walls.ua.canvas, 0, 0);
+            // Ua
+            if (nc._walls.ua) {
+                context.drawImage(nc._walls.ua.canvas, 0, 0);
+            }
         }
 
         if (size) {
@@ -422,7 +448,6 @@ class NilCube {
         const a15 = Math.PI * 15 / 180;
         const a = nc._cubicleSize;
         const x = a * Math.tan(a15);
-        const r = a / Math.cos(a15);
         const R = Math.sqrt(2) * a;
 
         const initAngle = colors[2] === colors[2].toUpperCase() ? 45 : 60;
@@ -430,7 +455,7 @@ class NilCube {
         const canvas = context.canvas;
 
         context.lineWidth = nc._lineWidth / 2;
-        context.translate(R + nc._lineWidth / 4, R + nc._lineWidth / 4);
+        context.translate(canvas.width / 2, canvas.height / 2);
 
         // core
         context.beginPath();
@@ -617,25 +642,55 @@ class NilCube {
         colors = colors.replace(/[^A-Za-z]/g, "");
         const nc = this;
 
-        const hFactor = (row) => (1 - Math.pow(shrink.height, row)) / (1 - shrink.height);
-        const rowsCount = Math.ceil(colors.length / nc._type);
-        const imageHeight = shrink.baseHeight * nc._cubicleSize * (shrink.height === 1 ? rowsCount : hFactor(rowsCount));
+        const sq1x = Math.ceil(nc._cubicleSize * Math.tan(Math.PI * 15 / 180));
+        const R = Math.sqrt(2) * nc._cubicleSize;
 
-        const context = NilCube.createContext(nc._cubicleSize * nc._type, imageHeight);
+        const hFactor = row => (1 - Math.pow(shrink.height, row)) / (1 - shrink.height);
+
+        const rowsCount = nc._type === 1 ? 1 : Math.ceil(colors.length / nc._type);
+        const imageHeight = shrink.baseHeight * nc._cubicleSize * (shrink.height === 1 ? rowsCount : hFactor(rowsCount));
+        const imageWidth = nc._type === 1 ? 2 * R + nc._lineWidth / 2 : nc._cubicleSize * nc._type;
+
+        const context = NilCube.createContext(imageWidth, imageHeight);
+
+        let getCol;
+        let getRow;
+        let getX;
+        let getY;
+        let getWidth;
+
+        if (nc._type === 1) {
+            getCol = index => index;
+            getRow = () => 0;
+            getX = col => [0, nc._cubicleSize - sq1x, nc._cubicleSize + sq1x][col]; // TODO rewrite to something more generic just for fun
+            getY = () => 0;
+            getWidth = col => [nc._cubicleSize - sq1x, 2 * sq1x][col % 2];
+
+            context.translate(R + nc._lineWidth / 4 - nc._cubicleSize, 0);
+        } else {
+            getCol = index => index % nc._type;
+            getRow = index => Math.floor(index / nc._type);
+            getX = col => col * nc._cubicleSize;
+            getY = row => Math.floor(shrink.baseHeight * nc._cubicleSize * (shrink.height === 1 ? row : hFactor(row)));
+            getWidth = () => nc._cubicleSize;
+        }
 
         // core
         context.fillStyle = nc._colorsMap.core;
         context.fillRect(nc._cubicleSize / 2, shrink.baseHeight * nc._cubicleSize / 2, nc._cubicleSize * (nc._type - 1), imageHeight - shrink.baseHeight * nc._cubicleSize / 2 - shrink.baseHeight * nc._cubicleSize * Math.pow(shrink.height, rowsCount - 1) / 2);
 
         colors.split("").forEach((color, index) => {
-            const col = index % nc._type;
-            const row = Math.floor(index / nc._type);
+            const col = getCol(index);
+            const row = getRow(index);
 
-            const x = col * nc._cubicleSize;
-            const y = Math.floor(shrink.baseHeight * nc._cubicleSize * (shrink.height === 1 ? row : hFactor(row)));
+            const x = getX(col);
+            const y = getY(row);
+            const width = getWidth(col);
+
+            console.log("W" + index + " " + color + " (" + x.toFixed(2) + "," + y.toFixed(2) + ") " + width.toFixed(2) + "px");
 
             const cornerCut = cutCorners ? {row: row, col: col} : false;
-            const cubicle = nc._cubicle(color, nc._cubicleSize, Math.ceil(shrink.baseHeight * nc._cubicleSize * Math.pow(shrink.height, row)), nc._lineWidth * shrink.baseLineWidth * Math.pow(shrink.lineWidth, row), nc._radius / 4, cornerCut);
+            const cubicle = nc._cubicle(color, width, Math.ceil(shrink.baseHeight * nc._cubicleSize * Math.pow(shrink.height, row)), nc._lineWidth * shrink.baseLineWidth * Math.pow(shrink.lineWidth, row), nc._radius / 4, cornerCut);
             context.drawImage(cubicle.canvas, x, y);
         });
 
