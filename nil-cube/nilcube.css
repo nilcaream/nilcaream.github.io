@@ -64,6 +64,10 @@ html, body {
     width: 16.66%;
 }
 
+.pointer {
+    cursor: pointer;
+}
+
 #algorithms td.space {
     background-color: lightsteelblue;
     padding: 0.1rem;

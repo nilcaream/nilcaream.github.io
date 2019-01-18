@@ -228,14 +228,14 @@ var algorithms = {
             id: "CF LLb",
             name: "Last ledge DB",
             sequence: "UM' U2 M'U",
-            nc: "t:3 u:RDRDDRRDR f:GDG r:YYY b:BDBBDBBWB l:WDW",
+            nc: "t:3 u:GDGDDGGDG f:ODO r:YYY b:RDRRDRRWR l:WDW",
             source: "http://rubikscube.info/beginner.php"
         },
         cfllf: {
             id: "CF LLf",
             name: "Last ledge DF",
             sequence: "U'M U2 MU'",
-            nc: "t:3 u:RDRDDRRDR f:GDGGDGGWG r:YYY b:BDB l:WDW",
+            nc: "t:3 u:GDGDDGGDG f:ODOODOOWO r:YYY b:RDR l:WDW",
             source: "http://rubikscube.info/beginner.php"
         },
         cffm: {
@@ -243,7 +243,7 @@ var algorithms = {
             name: "Flip Midges",
             sequence: "(M'U)3 U (MU)3 U",
             vcube: "https://www.speedsolving.com/wiki/extensions/algdb/vcube/visualcube.php?fmt=png&bg=w&sch=yrbwog&size=160&pzl=3&stage=pll&view=plan&case=M%27UM%27UM%27U%20U%20MUMUMU%20Uxz%27",
-            nc: "t:3 u:RBRRRRRGR f:GRG r:YYY b:BRB l:WWW a:1011u1211",
+            nc: "t:3 u:GRGGGGGOG f:OGO r:YYY b:RGR l:WWW a:1011u1211",
             source: "http://rubikscube.info/beginner.php"
         }
     },
@@ -296,7 +296,7 @@ var algorithms = {
         jaapce: {
             id: "Jaap PCE",
             name: "Create CE pair",
-            sequence: "10 -40 /0-3/03/0-3/03/",
+            sequence: "-30 /0-3/03/0-3/03/",
             nc: "t:1 u:00dDdWyDwY a:123u183,096U156 f:DBD r:ODD b:DDD l:BOD",
             source: "https://www.jaapsch.net/puzzles/square1.htm"
         },

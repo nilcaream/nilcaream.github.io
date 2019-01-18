@@ -74,15 +74,17 @@
                 const name = $("<span></span>").addClass("name").text(algorithm.name);
                 const title = $("<div></div>").addClass("title").append(link || id).append(name);
 
-                const sequence = $("<div></div>").html(algorithm.sequence.replace("_", "<br/>")).addClass("sequence");
+                const sequence = $("<div></div>").html(algorithm.sequence.replace("_", "<br/>")).addClass("sequence pointer")
+                    .click(() => window.location.href = "?i=x" + "#3:" + cellRef);
                 const alternatives = (algorithm.alternatives || []).map(alternative => $("<div></div>").text(alternative).addClass("alternative"));
 
                 const cube = $("<div></div>").addClass("cube");
-                const img = $("<img/>").attr("src", busyIndicator).attr("alt", title).attr("title", "Click to enlarge").addClass("busy").addClass("p1");
+                const img = $("<img/>").attr("src", busyIndicator).attr("alt", title).attr("title", "Click to enlarge").addClass("busy p1 pointer")
+                    .click(() => window.location.href = "nilcube-resolve.html#" + fullScreenParams + algorithm.nc.replace(/ /g, "+"));
+
                 setTimeout(() => img.attr("src", NilCube.resolve(ncParams + algorithm.nc)).removeClass("busy"), 1);
 
                 cube.append(img);
-                img.click(() => window.location.href = "nilcube-resolve.html#" + fullScreenParams + algorithm.nc.replace(/ /g, "+"));
 
                 td.append(title);
                 td.append(sequence);
