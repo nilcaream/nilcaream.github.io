@@ -4,7 +4,7 @@ class NilCube {
         this._type = type;
         this._cubicleSize = cubicleSize;
 
-        this._lineWidth = this._cubicleSize / (8 + type);
+        this._lineWidth = this._cubicleSize / (10 - type / 3);
         this._radius = this._cubicleSize / 7;
         this._cubeSize = this._cubicleSize * (this._type === 1 ? 2 + Math.tan(Math.PI * 15 / 180) : this._type);
 
@@ -18,13 +18,12 @@ class NilCube {
             D: "#505050",
             cube: "#000000",
             core: "#101010",
-            arrow0u: "#202020",
-            arrow1u: "#000000",
-            arrow0d: "#e0e0e0",
-            arrow1d: "#ffffff"
+            arrow0u: "#888",
+            arrow1u: "#000",
+            arrow0d: "#888",
+            arrow1d: "#fff"
         };
 
-        this._side = this._side4;
         this._walls = {}
     }
 
@@ -32,38 +31,42 @@ class NilCube {
         this._colorsMap[key] = color;
     }
 
-    // size:backgroundColor:type:UUUU:FF:RR:BB:LL:aaaaaaaaa,aaaaaaaaa
-    // size:backgroundColor:1:UUUUUUUU:0MM:aaaaaaa,aaaaaaa
+    // s:256+c:white+t:3+u:UUUU+f:FF+r:RR+b:BB+l:LL+m:0MM+a:aaaaaaaaa,aaaaaaaaa
+    // size:256+color:white+type:3+u:UUUU+f:FF+r:RR+b:BB+l:LL+m:0MM+a:aaaaaaaaa,aaaaaaaaa
+    // size:256 color:white type:3 u:UUUU f:FF r:RR b:BB l:LL m:0MM a:aaaaaaaaa,aaaaaaaaa
     static resolve(string) {
         const time = new Date().getTime();
-        const split = string.split(":");
+        const parameters = {};
+        const formatted = string.replace(/%20/g, " ").replace(/[^A-Za-z0-9:+ ,]/g, "").trim().replace(/[ +]+/g, "+");
 
-        const size = split[0];
-        const backgroundColor = split[1];
-        const parameters = {
-            type: parseInt(split[2]),
-            u: split[3]
-        };
+        formatted.split("+").forEach(entry => {
+            const entrySplit = entry.split(":");
+            parameters[entrySplit[0]] = entrySplit[1];
+        });
 
-        if (parameters.type === 1) {
-            parameters.m = split[4];
-            parameters.a = (split[5] || "").split(",");
-        } else {
-            parameters.f = split[4];
-            parameters.r = split[5];
-            parameters.b = split[6];
-            parameters.l = split[7];
-            parameters.a = (split[8] || "").split(",");
+        parameters.type = parseInt(parameters.type || parameters.t);
+        parameters.size = parameters.size || parameters.s;
+        parameters.cubicle = parseInt(parameters.cubicle || parameters.cs) || 256;
+        parameters.color = parameters.color || parameters.c;
+        parameters.a = (parameters.a || "").split(",");
+
+        parameters.t = undefined;
+        parameters.s = undefined;
+        parameters.c = undefined;
+        parameters.cs = undefined;
+
+        // check 1-element blank-string array
+        if (!parameters.a || !parameters.a.toString()) {
+            parameters.a = undefined;
         }
 
-        const image = this.asImage(size, backgroundColor, parameters);
-        console.log("Resolved " + string + " as " + JSON.stringify(parameters) + " in " + (new Date().getTime() - time) + "ms");
+        const image = this.asImage(parameters.size, parameters.color, parameters);
+        NilCube.info("Resolved '" + formatted + "' as " + JSON.stringify(parameters) + " in " + (new Date().getTime() - time) + "ms");
         return image;
     }
 
     static asImage(size, backgroundColor, parameters) {
-        const nc = new NilCube(parameters.type, parameters.cubicleSize);
-
+        const nc = new NilCube(parameters.type, parameters.cubicle);
         if (parameters.cube) {
             nc.setColor("cube", parameters.cube);
         }
@@ -71,27 +74,28 @@ class NilCube {
             nc.setColor("core", parameters.core);
         }
 
-        // check 1-element blank-string array
-        if (parameters.a && parameters.a.toString()) {
-            nc.a.apply(nc, parameters.a)
-        }
         if (parameters.u) {
-            nc.u(parameters.u)
+            nc.u(parameters.u);
         }
         if (parameters.f) {
-            nc.f(parameters.f)
+            nc.f(parameters.f);
         }
         if (parameters.b) {
-            nc.b(parameters.b)
+            nc.b(parameters.b);
         }
         if (parameters.l) {
-            nc.l(parameters.l)
+            nc.l(parameters.l);
         }
         if (parameters.r) {
-            nc.r(parameters.r)
+            nc.r(parameters.r);
         }
         if (parameters.m) {
-            nc.m(parameters.m)
+            nc.m(parameters.m);
+        }
+
+        // check 1-element blank-string array
+        if (parameters.a && parameters.a.toString()) {
+            nc.a(parameters.a);
         }
 
         return nc.toImage(size, backgroundColor);
@@ -267,7 +271,7 @@ class NilCube {
         const cropContext = NilCube.createContext(boundaries.width, boundaries.height);
         cropContext.imageSmoothingQuality = 'low';
         cropContext.drawImage(canvas, -boundaries.xMin, -boundaries.yMin);
-        console.log("Crop (" + canvas.width.toFixed(2) + "," + canvas.height.toFixed(2) + ") (" + boundaries.width.toFixed(2) + "," + boundaries.height.toFixed(2) + ")");
+        NilCube.debug("Crop (" + canvas.width.toFixed(2) + "," + canvas.height.toFixed(2) + ") (" + boundaries.width.toFixed(2) + "," + boundaries.height.toFixed(2) + ")");
         return cropContext;
     }
 
@@ -304,92 +308,18 @@ class NilCube {
         }
 
         const results = {xMin: xMin, xMax: xMax + 1, yMin: yMin, yMax: yMax + 1, width: xMax - xMin + 1, height: yMax - yMin + 1};
-        console.log("Boundaries x:" + results.xMin + ":" + results.xMax + " y:" + results.yMin + ":" + results.yMax + " w:" + results.width + " h:" + results.height);
+        NilCube.debug("Boundaries x:" + results.xMin + ":" + results.xMax + " y:" + results.yMin + ":" + results.yMax + " w:" + results.width + " h:" + results.height);
         return results;
     }
 
-    // "2000u2200", "2022d2222", "xyxyuXYXY"
-    // "001u061", "111d011", "anRxanR"
-    a() {
-        const elements = Array.prototype.slice.call(arguments);
+    // ["2000u2200", "2022d2222", "xyxyuXYXY"]
+    // ["001u061", "111d011", "anRxanR"]
+    a(elements) {
         if (this._type === 1) {
             return this._aSq1(elements);
         } else {
             return this._aStandard(elements)
         }
-    }
-
-    // ["001u061", "111d011", "anRxanR"]
-    _aSq1(elements) {
-        const nc = this;
-
-        const a15 = Math.PI * 15 / 180;
-        const a = nc._cubicleSize;
-        const x = a * Math.tan(a15);
-        const r = a / Math.cos(a15);
-        const R = Math.sqrt(2) * a;
-
-        const initAngle = 0;
-        const context = NilCube.createContext(2 * R + nc._lineWidth / 2, 2 * R + nc._lineWidth / 2);
-
-        context.lineWidth = nc._lineWidth / 2;
-        context.translate(R + nc._lineWidth / 4, R + nc._lineWidth / 4);
-        context.strokeStyle = nc._colorsMap.cube;
-        context.lineCap = "round";
-        context.rotate(Math.PI * (180 + initAngle) / 180);
-
-        const draw = (element, type, lineWidth, colorPrefix) => {
-            const angle0 = -parseInt(element.substring(0, 2)) * Math.PI * 15 / 180;
-            const r0 = R * parseInt(element[2]) / 8;
-            const angle1 = -parseInt(element.substring(4, 6)) * Math.PI * 15 / 180;
-            const r1 = R * parseInt(element[6]) / 8;
-
-            const x0 = r0 * Math.sin(angle0);
-            const y0 = r0 * Math.cos(angle0);
-            const x1 = r1 * Math.sin(angle1);
-            const y1 = r1 * Math.cos(angle1);
-
-            if (type.toLowerCase() === "x") {
-                context.strokeStyle = nc._createGradientX(context, colorPrefix, x0, y0, x1, y1);
-            } else {
-                context.strokeStyle = nc._colorsMap[colorPrefix + type.toLowerCase()];
-            }
-
-            context.lineWidth = lineWidth;
-            context.fillStyle = context.strokeStyle;
-
-            if (type.toUpperCase() === type) {
-                context.beginPath();
-                context.arc(x0, y0, 0.8 * lineWidth, 0, 2 * Math.PI);
-                context.fill();
-            }
-
-            context.beginPath();
-            context.moveTo(x0, y0);
-            context.lineTo(x1, y1);
-            console.log("A1 " + element + " " + context.lineWidth.toFixed(2) + "px " + context.strokeStyle + " (" + x0.toFixed(2) + "," + y0.toFixed(2) + ") (" + x1.toFixed(2) + "," + y1.toFixed(2) + ")");
-            context.stroke();
-        };
-
-        elements.forEach((element) => {
-            let type = element[3];
-            draw(element, type, nc._lineWidth / 2, "arrow0");
-            draw(element, type, nc._lineWidth / 4, "arrow1");
-        });
-
-        console.log("A1 " + elements.toString() + " " + context.canvas.width + "x" + context.canvas.height);
-        nc._walls.ua = context;
-
-        return context;
-    }
-
-    _createGradientX(context, colorPrefix, x0, y0, x1, y1) {
-        const gradient = context.createLinearGradient(x0, y0, x1, y1);
-        gradient.addColorStop(0, this._colorsMap[colorPrefix + "u"]);
-        gradient.addColorStop(0.3, this._colorsMap[colorPrefix + "u"]);
-        gradient.addColorStop(0.7, this._colorsMap[colorPrefix + "d"]);
-        gradient.addColorStop(1, this._colorsMap[colorPrefix + "d"]);
-        return gradient;
     }
 
     // ["2000u2200", "2022d2222", "xyxyuXYXY"]
@@ -417,25 +347,119 @@ class NilCube {
 
             if (type.toUpperCase() === type) {
                 context.beginPath();
-                context.arc(x0, y0, 0.8 * lineWidth, 0, 2 * Math.PI);
+                context.arc(x0, y0, lineWidth, 0, 2 * Math.PI);
                 context.fill();
             }
 
             context.beginPath();
             context.moveTo(x0, y0);
             context.lineTo(x1, y1);
-            console.log("A " + element + " " + context.lineWidth.toFixed(2) + "px " + context.strokeStyle + " (" + x0.toFixed(2) + "," + y0.toFixed(2) + ") (" + x1.toFixed(2) + "," + y1.toFixed(2) + ")");
+            NilCube.debug("A " + element + " " + context.lineWidth.toFixed(2) + "px " + context.strokeStyle + " (" + x0.toFixed(2) + "," + y0.toFixed(2) + ") (" + x1.toFixed(2) + "," + y1.toFixed(2) + ")");
             context.stroke();
         };
 
         elements.forEach((element) => {
             let type = element[4];
             draw(element, type, nc._lineWidth / 2, "arrow0");
-            draw(element, type, nc._lineWidth / 4, "arrow1");
+            draw(element, type, nc._lineWidth / 2.5, "arrow1");
         });
 
-        console.log("A " + elements.toString() + " " + context.canvas.width + "x" + context.canvas.height);
+        NilCube.debug("A " + elements.toString() + " " + context.canvas.width + "x" + context.canvas.height);
         nc._walls.ua = context;
+
+        return context;
+    }
+
+    // ["001u061", "111d011", "anRxanR"]
+    _aSq1(elements) {
+        const nc = this;
+
+        const a15 = Math.PI * 15 / 180;
+        const a = nc._cubicleSize;
+        const x = a * Math.tan(a15);
+        const r = a / Math.cos(a15);
+        const R = Math.sqrt(2) * a;
+
+        const initAngle = 0;
+        const context = NilCube.createContext(2 * R + nc._lineWidth / 2, 2 * R + nc._lineWidth / 2);
+
+        context.translate(R + nc._lineWidth / 4, R + nc._lineWidth / 4);
+        context.strokeStyle = nc._colorsMap.cube;
+        context.lineCap = "round";
+        context.rotate(Math.PI * (180 + initAngle) / 180);
+
+        const draw = (element, type, lineWidth, colorPrefix) => {
+            const angle0 = -parseInt(element.substring(0, 2)) * Math.PI * 15 / 180;
+            const r0 = R * parseInt(element[2]) / 8;
+            const angle1 = -parseInt(element.substring(4, 6)) * Math.PI * 15 / 180;
+            const r1 = R * parseInt(element[6]) / 8;
+
+            const x0 = r0 * Math.sin(angle0);
+            const y0 = r0 * Math.cos(angle0);
+            const x1 = r1 * Math.sin(angle1);
+            const y1 = r1 * Math.cos(angle1);
+
+            if (type.toLowerCase() === "x") {
+                context.strokeStyle = nc._createGradientX(context, colorPrefix, x0, y0, x1, y1);
+            } else {
+                context.strokeStyle = nc._colorsMap[colorPrefix + type.toLowerCase()];
+            }
+
+            context.lineWidth = lineWidth;
+            context.fillStyle = context.strokeStyle;
+
+            if (type.toUpperCase() === type) {
+                context.beginPath();
+                context.arc(x0, y0, lineWidth, 0, 2 * Math.PI);
+                context.fill();
+            }
+
+            context.beginPath();
+            context.moveTo(x0, y0);
+            context.lineTo(x1, y1);
+            NilCube.debug("A1 " + element + " " + context.lineWidth.toFixed(2) + "px " + context.strokeStyle + " (" + x0.toFixed(2) + "," + y0.toFixed(2) + ") (" + x1.toFixed(2) + "," + y1.toFixed(2) + ")");
+            context.stroke();
+        };
+
+        elements.forEach((element) => {
+            let type = element[3];
+            draw(element, type, nc._lineWidth / 2, "arrow0");
+            draw(element, type, nc._lineWidth / 2.5, "arrow1");
+        });
+
+        NilCube.debug("A1 " + elements.toString() + " " + context.canvas.width + "x" + context.canvas.height);
+        nc._walls.ua = context;
+
+        return context;
+    }
+
+    _createGradientX(context, colorPrefix, x0, y0, x1, y1) {
+        const gradient = context.createLinearGradient(x0, y0, x1, y1);
+        gradient.addColorStop(0, this._colorsMap[colorPrefix + "u"]);
+        gradient.addColorStop(0.3, this._colorsMap[colorPrefix + "u"]);
+        gradient.addColorStop(0.7, this._colorsMap[colorPrefix + "d"]);
+        gradient.addColorStop(1, this._colorsMap[colorPrefix + "d"]);
+        return gradient;
+    }
+
+    // "YYYYBYYYY"
+    // "00YyYyYyYy"
+    u(colors) {
+        if (this._type === 1) {
+            return this._uSq1(colors);
+        } else {
+            return this._uStandard(colors);
+        }
+    }
+
+    // "YYYYBYYYY"
+    _uStandard(colors) {
+        const nc = this;
+        const context = nc._wall(colors);
+        const canvas = context.canvas;
+
+        NilCube.debug("U " + colors + " " + canvas.width + "x" + canvas.height);
+        nc._walls.u = context;
 
         return context;
     }
@@ -484,10 +508,10 @@ class NilCube {
             context.fill();
             context.stroke();
 
-            console.log("U1 " + index + " " + color + " " + (angle * 180 / Math.PI).toFixed(0) + "deg");
+            NilCube.debug("U1 " + index + " " + color + " " + (angle * 180 / Math.PI).toFixed(0) + "deg");
         });
 
-        console.log("U1 " + colors + " " + canvas.width + "x" + canvas.height);
+        NilCube.debug("U1 " + colors + " " + canvas.width + "x" + canvas.height);
         nc._walls.u = context;
 
         return context;
@@ -509,7 +533,7 @@ class NilCube {
         context.translate(R + nc._lineWidth / 4, R + nc._lineWidth / 4);
         context.strokeStyle = nc._colorsMap.cube;
 
-        if (colors[0]) {
+        if (colors[0] === "1") {
             NilCube.roundPoly(context, [[-a, -a], [x, -a], [-x, a], [-a, a]], nc._radius / 2);
             context.rotate((180 + 30) * Math.PI / 180);
             context.fillStyle = nc._colorsMap[colors[1]];
@@ -531,30 +555,8 @@ class NilCube {
             context.stroke();
         }
 
-        console.log("M1 " + colors + " " + canvas.width + "x" + canvas.height);
+        NilCube.debug("M1 " + colors + " " + canvas.width + "x" + canvas.height);
         nc._walls.m = context;
-
-        return context;
-    }
-
-    // "YYYYBYYYY"
-    // "00YyYyYyYy"
-    u(colors) {
-        if (this._type === 1) {
-            return this._uSq1(colors);
-        } else {
-            return this._uStandard(colors);
-        }
-    }
-
-    // "YYYYBYYYY"
-    _uStandard(colors) {
-        const nc = this;
-        const context = nc._wall(colors);
-        const canvas = context.canvas;
-
-        console.log("U " + colors + " " + canvas.width + "x" + canvas.height);
-        nc._walls.u = context;
 
         return context;
     }
@@ -565,7 +567,7 @@ class NilCube {
         const context = nc._side(colors);
         const canvas = context.canvas;
 
-        console.log("F " + colors + " " + canvas.width + "x" + canvas.height);
+        NilCube.debug("F " + colors + " " + canvas.width + "x" + canvas.height);
         nc._walls.f = context;
 
         return context;
@@ -577,7 +579,7 @@ class NilCube {
         const context = NilCube.rotate(nc._side(colors), 180);
         const canvas = context.canvas;
 
-        console.log("B " + colors + " " + canvas.width + "x" + canvas.height);
+        NilCube.debug("B " + colors + " " + canvas.width + "x" + canvas.height);
         nc._walls.b = context;
 
         return context;
@@ -589,7 +591,7 @@ class NilCube {
         const context = NilCube.rotate(nc._side(colors), 90);
         const canvas = context.canvas;
 
-        console.log("L " + colors + " " + canvas.width + "x" + canvas.height);
+        NilCube.debug("L " + colors + " " + canvas.width + "x" + canvas.height);
         nc._walls.l = context;
 
         return context;
@@ -601,41 +603,16 @@ class NilCube {
         const context = NilCube.rotate(nc._side(colors), 270);
         const canvas = context.canvas;
 
-        console.log("R " + colors + " " + canvas.width + "x" + canvas.height);
+        NilCube.debug("R " + colors + " " + canvas.width + "x" + canvas.height);
         nc._walls.r = context;
 
         return context;
     }
 
-    _side1(colors, cutCorners = false) {
-        const nc = this;
-        const context = nc._wall(colors, {baseHeight: 0.4, height: 0.8, baseLineWidth: 0.8, lineWidth: 0.95}, cutCorners);
-        const m = { // TODO calculate it someday
-            2: {m: 0.5, e: 0.3},
-            3: {m: 0.1, e: 0.5},
-            4: {m: 0.2, e: 0.4},
-            5: {m: 0.06, e: 0.47},
-            6: {m: 0.2, e: 0.43},
-        };
-        return NilCube.fakePerspective1(context, m[nc._type].m, m[nc._type].e);
-    }
-
-    _side2(colors, cutCorners = false) {
-        const nc = this;
-        const context = nc._wall(colors, {baseHeight: 0.4, height: 0.8, baseLineWidth: 0.8, lineWidth: 0.95}, cutCorners);
-        return NilCube.fakePerspective2(context, 0.7, 1);
-    }
-
-    _side3(colors, cutCorners = false) {
-        const nc = this;
-        const context = nc._wall(colors, {baseHeight: 0.4, height: 0.8, baseLineWidth: 0.8, lineWidth: 0.95}, cutCorners);
-        return NilCube.fakePerspective3(context);
-    }
-
-    _side4(colors, cutCorners = false) {
+    _side(colors, cutCorners = false) {
         const nc = this;
         const context = nc._wall(colors, {baseHeight: 0.5, height: 1, baseLineWidth: 0.8, lineWidth: 1}, cutCorners);
-        return NilCube.fakePerspective4(context, 0.04 * this._cubicleSize);
+        return NilCube.fakePerspective(context, 0.04 * this._cubicleSize);
     }
 
     _wall(colors, shrink = {baseHeight: 1, height: 1, baseLineWidth: 1, lineWidth: 1}, cutCorners = true) {
@@ -662,7 +639,7 @@ class NilCube {
         if (nc._type === 1) {
             getCol = index => index;
             getRow = () => 0;
-            getX = col => [0, nc._cubicleSize - sq1x, nc._cubicleSize + sq1x][col]; // TODO rewrite to something more generic just for fun
+            getX = col => [0, nc._cubicleSize - sq1x, nc._cubicleSize + sq1x][col];
             getY = () => 0;
             getWidth = col => [nc._cubicleSize - sq1x, 2 * sq1x][col % 2];
 
@@ -687,7 +664,7 @@ class NilCube {
             const y = getY(row);
             const width = getWidth(col);
 
-            console.log("W" + index + " " + color + " (" + x.toFixed(2) + "," + y.toFixed(2) + ") " + width.toFixed(2) + "px");
+            NilCube.debug("W" + index + " " + color + " (" + x.toFixed(2) + "," + y.toFixed(2) + ") " + width.toFixed(2) + "px");
 
             const cornerCut = cutCorners ? {row: row, col: col} : false;
             const cubicle = nc._cubicle(color, width, Math.ceil(shrink.baseHeight * nc._cubicleSize * Math.pow(shrink.height, row)), nc._lineWidth * shrink.baseLineWidth * Math.pow(shrink.lineWidth, row), nc._radius / 4, cornerCut);
@@ -789,77 +766,7 @@ class NilCube {
         return rotateContext;
     }
 
-    static fakePerspective1(context, middle = 0.1, edge = 0.2) {
-        const canvas = context.canvas;
-        const width = canvas.width;
-        const height = canvas.height;
-
-        const fake = NilCube.createContext(width, height);
-
-        fake.save();
-        fake.setTransform(1, 0, 0.1, 1, 0, 0);
-        fake.drawImage(canvas, 0, 0, width * edge, height, 0, 0, width * edge, height);
-
-        fake.setTransform(1, 0, -0.1, 1, 0, 0);
-        fake.drawImage(canvas, width * (1 - edge), 0, width * edge, height, width * (1 - edge), 0, width * edge, height);
-
-        fake.setTransform(1, 0, 0, 1, 0, 0);
-        fake.drawImage(canvas, width * (1 - middle) / 2, 0, width * middle, height, width * (1 - middle) / 2, 0, width * middle, height);
-        fake.restore();
-
-        return fake;
-    }
-
-    static fakePerspective2(context, widthScale = 1, sliceHeight = 1) {
-        const canvas = context.canvas;
-        const width = canvas.width;
-        const height = canvas.height;
-
-        const steps = height / sliceHeight;
-        const heightSlice = height / steps;
-        const pad = 0.5 * width * (1 - widthScale) / steps;
-
-        const perspective = NilCube.createContext(width, height);
-        perspective.imageSmoothingEnabled = true;
-        perspective.imageSmoothingQuality = 'high';
-
-        for (let i = 0; i < steps; i++) {
-            const y = i * heightSlice;
-
-            perspective.drawImage(canvas,
-                0, y, width, heightSlice,
-                pad * i, y, width - 2 * pad * i, heightSlice);
-        }
-
-        return perspective;
-    }
-
-    static fakePerspective3(context) {
-        const canvas = context.canvas;
-        const width = canvas.width;
-        const height = canvas.height;
-
-        const steps = height;
-        const step0 = 0.7 * steps;
-        const heightSlice = height / steps;
-        const pad = 0.2;
-
-        const perspective = NilCube.createContext(width, height);
-        perspective.imageSmoothingEnabled = true;
-        perspective.imageSmoothingQuality = 'high';
-
-        for (let i = 0; i < steps; i++) {
-            const y = i * heightSlice;
-
-            perspective.drawImage(canvas,
-                0, y, width, heightSlice,
-                pad * (i + step0), y, width - 2 * pad * (i + step0), heightSlice);
-        }
-
-        return perspective;
-    }
-
-    static fakePerspective4(context, pad) {
+    static fakePerspective(context, pad) {
         const canvas = context.canvas;
         const width = canvas.width;
         const height = canvas.height;
@@ -869,7 +776,7 @@ class NilCube {
         perspective.imageSmoothingEnabled = true;
         perspective.imageSmoothingQuality = 'high';
 
-        for (let i = 0, srcY = 0; srcY < height; i++, destinationHeight++, srcY = i + 0.002 * i * i) {
+        for (let i = 0, srcY = 0; srcY < height; i++, destinationHeight++, srcY = i + 0.03 * i * i / pad) {
             perspective.drawImage(canvas,
                 0, srcY, width, 1,
                 pad + i / 4, i, width - 2 * (pad + i / 4), 1);
@@ -880,4 +787,16 @@ class NilCube {
         trimmed.drawImage(perspective.canvas, 0, 0);
         return trimmed;
     }
+
+    static debug(message) {
+        if (NilCube.debugEnabled === true) {
+            console.log("NilCube.DEBUG " + message);
+        }
+    }
+
+    static info(message) {
+        console.log("NilCube.INFO  " + message);
+    }
 }
+
+// NilCube.debugEnabled = true;

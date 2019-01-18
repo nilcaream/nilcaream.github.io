@@ -49,11 +49,19 @@ html, body {
 }
 
 .w3 {
-    width: 33%;
+    width: 33.33%;
 }
 
 .w4 {
     width: 25%;
+}
+
+.w5 {
+    width: 20%;
+}
+
+.w6 {
+    width: 16.66%;
 }
 
 #algorithms td.space {
@@ -73,6 +81,7 @@ html, body {
 #algorithms .sequence {
     font-size: 1.4rem;
     white-space: pre;
+    padding-right: 1rem;
 }
 
 #algorithms .cube {

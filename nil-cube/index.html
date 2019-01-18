@@ -7,21 +7,29 @@
     <script src="jquery-3.3.1.min.js"></script>
     <script src="algorithms.js"></script>
     <script src="nilcube.js"></script>
-    <link rel="stylesheet" href="cube.css" type="text/css">
+    <link rel="stylesheet" href="nilcube.css" type="text/css">
     <script language="JavaScript">
 
         $(init);
 
-        const busyIndicator = NilCube.resolve("40:white:3:RYBYYYOYG");
-        const ncParams = "160:white:";
-        const fullScreenParams = "800:white:";
+        const busyIndicator = NilCube.resolve("s:40 cs:128 c:white t:3 u:RYBYYYOYG");
+        const ncParams = "s:160 c:white cs:256 ";
+        const fullScreenParams = "s:800+c:white+cs:512+";
+        const preSelected = {
+            "2x2": "4: 2x2.oll27:2x2.oll26:2x2.oll25 + 2x2.oll22:2x2.oll21 : 2x2.oll23:2x2.oll24 + 2x2.cpllaa:2x2.cll40:2x2.cll41 + 2x2.pbl5:2x2.pbl2:2x2.pbl1",
+            "3x3": "4: 3x3.oll27:3x3.oll26:3x3.oll25 + 3x3.oll22:3x3.oll21 : 3x3.oll23:3x3.oll24 + 3x3.cpllaa:3x3.cplle + 3x3.epllua:3x3.epllub:3x3.epllh:3x3.epllz",
+            "sq1": "4: sq1.jaapce:sq1.jaappf : sq1.jaapadj:sq1.jaapdiag"
+        };
+
+        preSelected.set1 = preSelected["2x2"] + "++" + preSelected["3x3"].substring(2) + "++" + preSelected["sq1"].substring(2);
 
         function init() {
             const table = $("#algorithms");
-            const hash = window.location.hash.length > 4 ? window.location.hash : buildDefaults();
+            const hash = preSelected[window.location.hash.substring(1)] || (window.location.hash.length > 4 ? window.location.hash.substring(1) : buildDefaults());
+
             console.log("Processing " + hash);
 
-            hash.substring(3).split("+").forEach(row => {
+            hash.substring(2).replace(/%20/g, "").replace(/ /g, "").split("+").forEach(row => {
                 const cellRefs = [];
                 row.split(":")
                     .filter(cellRef => /^[a-z0-9.]+$/.test(cellRef))
@@ -29,13 +37,13 @@
                 addRow(table, cellRefs);
             });
 
-            $("#algorithms td").addClass("w" + hash.charAt(1));
-            $("td.space").attr("colspan", hash.charAt(1));
+            $("#algorithms td").addClass("w" + hash.charAt(0));
+            $("td.space").attr("colspan", hash.charAt(0));
             //window.location.hash = hash;
         }
 
         function buildDefaults() {
-            let result = "#4:";
+            let result = "4:";
             let counter = 0;
             Object.keys(algorithms).forEach(cubeType => {
                 Object.keys(algorithms[cubeType]).forEach(algorithmName => {
@@ -70,11 +78,11 @@
                 const alternatives = (algorithm.alternatives || []).map(alternative => $("<div></div>").text(alternative).addClass("alternative"));
 
                 const cube = $("<div></div>").addClass("cube");
-                const img = $("<img/>").attr("src", busyIndicator).addClass("busy").addClass("p1");
-                setTimeout(() => img.removeClass("busy").attr("src", NilCube.resolve(ncParams + algorithm.nc)), 1);
+                const img = $("<img/>").attr("src", busyIndicator).attr("alt", title).attr("title", "Click to enlarge").addClass("busy").addClass("p1");
+                setTimeout(() => img.attr("src", NilCube.resolve(ncParams + algorithm.nc)).removeClass("busy"), 1);
 
                 cube.append(img);
-                img.click(() => window.location.href = "nilcube-resolve.html#" + fullScreenParams + algorithm.nc);
+                img.click(() => window.location.href = "nilcube-resolve.html#" + fullScreenParams + algorithm.nc.replace(/ /g, "+"));
 
                 td.append(title);
                 td.append(sequence);

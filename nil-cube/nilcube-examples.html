@@ -4,6 +4,13 @@
     <meta charset="UTF-8">
     <title>Draw</title>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <style>
+        .caller {
+            font-size: 3rem;
+            font-family: monospace;
+            padding: 1rem;
+        }
+    </style>
     <script src="jquery-3.3.1.min.js"></script>
     <script src="nilcube.js"></script>
     <script language="JavaScript">
@@ -23,8 +30,15 @@
             $("#ncd").append($("<img/>").attr("src", dataUrl));
         }
 
+        function info(caller) {
+            $("#ncd").append($("<hr/>")).append($("<div></div>").text(caller.name).addClass("caller"));
+        }
+
         function examples() {
+            NilCube.debugEnabled = false;
+
             try {
+                testResolveAll();
                 testSq1U();
                 testSq1M();
                 testSq1A();
@@ -37,9 +51,9 @@
                 testAllWalls();
                 testAsImage();
                 testResolve();
-                testSlicedPerspective();
                 testPositioning();
                 testSizes();
+                testCubiclePerspective();
 
                 // testPerformance();
             } catch (e) {
@@ -48,7 +62,35 @@
             }
         }
 
+        function testCubiclePerspective() {
+            info(testCubiclePerspective);
+
+            add(NilCube.resolve("s:512 cs:64 c:white t:3 u:YYYYYYYYY f:RGB r:WWW b:WDB l:OOO"));
+            add(NilCube.resolve("s:512 cs:128 c:white t:3 u:YYYYYYYYY f:RGB r:WWW b:WDB l:OOO"));
+            add(NilCube.resolve("s:512 cs:256 c:white t:3 u:YYYYYYYYY f:RGB r:WWW b:WDB l:OOO"));
+            add(NilCube.resolve("s:512 cs:512 c:white t:3 u:YYYYYYYYY f:RGB r:WWW b:WDB l:OOO"));
+            add(NilCube.resolve("s:512 cs:1024 c:white t:3 u:YYYYYYYYY f:RGB r:WWW b:WDB l:OOO"));
+        }
+
+        function testResolveAll() {
+            info(testResolveAll);
+
+            add(NilCube.resolve("size:320 color:white type:1 u:00yYyYyYyY f:RGB r:WWW b:WDB l:OOO a:215U155"));
+            add(NilCube.resolve("s:320 c:white t:2 u:YYYY f:RG r:WW b:WD l:OO a:0011U0111"));
+            add(NilCube.resolve("s:320 c:white t:3 u:YYYYYYYYY f:RGB r:WWW b:WDB l:OOO a:0011U0211"));
+            add(NilCube.resolve("s:320 c:white t:4 u:YYYYYYYYYYYYYYYY f:RGBR r:WWWW b:WDBW l:OOOO a:0011U0311"));
+            add(NilCube.resolve("s:320 c:white t:5 u:YYYYYYYYYYYYYYYYYYYYYYYYY f:RGBRG r:WWWWW b:WDBWD l:OOOOO a:0011U0411"));
+            add(NilCube.resolve("s:320 c:white t:6 u:YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY f:RGBRGB r:WWWWWW b:WDBWDB l:OOOOOO a:0011U0511"));
+
+            add(NilCube.resolve("size:320 color:white type:1 u:00yYyYyYyY m:1DD a:212X216,004u124"));
+            add(NilCube.resolve("size:320 color:white type:1 m:0WD"));
+            add(NilCube.resolve("size:320 color:white type:1 m:1DW"));
+            add(NilCube.resolve("size:320 color:white type:1 u:00YYYYYY"));
+            add(NilCube.resolve("size:320 color:white type:1 u:04WWyyyddyyy"));
+        }
+
         function testSq1U() {
+            info(testSq1U);
             add(NilCube.asImage(0, 0, {
                 type: 2,
                 u: "YYYY",
@@ -80,6 +122,7 @@
         }
 
         function testSq1M() {
+            info(testSq1M);
             const sq1 = new NilCube(1);
             add(sq1.m("0DY"));
             add(sq1.m("1WW"));
@@ -92,29 +135,32 @@
         }
 
         function testSq1A() {
+            info(testSq1A);
             const sq1 = new NilCube(1);
             sq1.u("0yYyYyYyY");
-            add(sq1.a("002u124"));
+            add(sq1.a(["002u124"]));
             add(sq1.toImage(512, "white"));
 
-            add(sq1.a("235u015", "225u025", "215u035", "205u045", "195u055", "185u065"));
-            add(sq1.a("004u064", "184d124", "084d104", "212x216"));
+            add(sq1.a(["235u015", "225u025", "215u035", "205u045", "195u055", "185u065"]));
+            add(sq1.a(["004u064", "184d124", "084d104", "212x216"]));
             add(sq1.toImage(512, "white"));
 
             sq1.u("0YYYYYY");
-            add(sq1.a("002u123", "044d165", "086x207"));
+            add(sq1.a(["002u123", "044d165", "086x207"]));
             add(sq1.toImage(512, "white"));
-            add(sq1.a("002U123", "044D165", "086X207"));
+            add(sq1.a(["002U123", "044D165", "086X207"]));
             add(sq1.toImage(512, "white"));
             add(sq1.toImage(160, "white"));
         }
 
         function testSq1() {
-            add(NilCube.resolve("160:white:1:00yYyYyYyY:1DD:212X216"));
-            add(NilCube.resolve("160:white:1:03YYYYYY:1WD"));
+            info(testSq1);
+            add(NilCube.resolve("size:160 color:white type:1 u:00yYyYyYyY m:1DD a:212X216"));
+            add(NilCube.resolve("s:160 c:white t:1 u:03YYYYYY+m:1WD"));
         }
 
         function testSq1Walls() {
+            info(testSq1Walls);
             const sq1 = new NilCube(1, 512);
             add(sq1.u("0yYyYyYyY"));
             add(sq1.f("RGB"));
@@ -126,6 +172,7 @@
         }
 
         function testSizes() {
+            info(testSizes);
             const jpermb = {
                 type: 3,
                 u: "YYYYYYYYY",
@@ -137,32 +184,27 @@
             };
 
             for (let size = 64; size <= 1024; size *= 2) {
-                for (let cubicleSize = 64; cubicleSize <= 1024; cubicleSize *= 2) {
-                    jpermb.cubicleSize = cubicleSize;
+                for (let cubicle = 64; cubicle <= 1024; cubicle *= 2) {
+                    jpermb.cubicle = cubicle;
                     add(NilCube.asImage(size, "white", jpermb));
                 }
             }
         }
 
         function testPerformance() {
+            info(testPerformance);
             for (let i = 0; i < 8; i++) {
                 testAsImage();
             }
         }
 
-        function testSlicedPerspective() {
-            const nc3 = new NilCube(3);
-            const input = nc3.u("YYYYYYYYY");
-            add(input);
-            add(NilCube.fakePerspective1(input));
-            add(NilCube.fakePerspective1(input, 0.06, 0.4));
-        }
-
         function testResolve() {
-            add(NilCube.resolve("160:white:3:YYYYYYYYY:BRR:RGG:OOO:GBB:1211u2111,2011u2211"));
+            info(testResolve);
+            add(NilCube.resolve("s:160 c:white t:3 u:YYYYYYYYY f:BRR r:RGG b:OOO l:GBB a:1211u2111,2011u2211"));
         }
 
         function testAsImage() {
+            info(testAsImage);
             const sune2 = {
                 type: 2,
                 u: "DDWD",
@@ -319,14 +361,15 @@
         }
 
         function testAllWalls() {
+            info(testAllWalls);
             const nc3 = new NilCube(3);
             add(nc3.u("YYYYYYYYY"));
             add(nc3.f("GGGGGG"));
             add(nc3.b("BBB"));
             add(nc3.l("RRR"));
             add(nc3.r("OOOOOOOOO"));
-            add(nc3.a("2000U2200", "2022d2222"));
-            add(nc3.a("2000X2202", "2020d2222", "0011u0111", "1011d1111", "0211x1211"));
+            add(nc3.a(["2000U2200", "2022d2222"]));
+            add(nc3.a(["2000X2202", "2020d2222", "0011u0111", "1011d1111", "0211x1211"]));
             add(nc3.toImage());
             add(nc3.toImage(256, "white"));
             add(nc3.toImage(512, "white"));
@@ -337,13 +380,14 @@
             nc3b.b("BBB");
             nc3b.l("RRR");
             nc3b.r("OOOOOOOOO");
-            add(nc3b.a("0000x0202", "0220x0022", "1102x2202", "2211x1011"));
+            add(nc3b.a(["0000x0202", "0220x0022", "1102x2202", "2211x1011"]));
             add(nc3b.toImage());
             add(nc3b.toImage(256, "white"));
             add(nc3b.toImage(512, "white"));
         }
 
         function testCrop() {
+            info(testCrop);
             const context = NilCube.createContext(400);
             context.fillStyle = "green";
             context.fillRect(50, 50, 150, 150);
@@ -358,6 +402,7 @@
         }
 
         function testWall() {
+            info(testWall);
             const nc3 = new NilCube(3);
             add(nc3.u("YYYYYYYYY"));
             add(nc3._wall("RGB"));
@@ -372,6 +417,7 @@
         }
 
         function testRotate() {
+            info(testRotate);
             const nc3 = new NilCube(3);
             const rotTest1 = nc3._side("RGBYYYOBW");
             add(NilCube.rotate(rotTest1, 0));
@@ -386,6 +432,7 @@
         }
 
         function testPerspective() {
+            info(testPerspective);
             add(new NilCube(2)._side("RGBY"));
             add(new NilCube(3)._side("RGBYYYOBW"));
             add(new NilCube(4)._side("RGBYYYOBWORGBYYY"));
@@ -394,6 +441,7 @@
         }
 
         function testPositioning() {
+            info(testPositioning);
             add(NilCube.asImage(0, null, {
                 type: 2,
                 u: "WWWW"
