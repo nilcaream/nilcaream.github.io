@@ -75,7 +75,7 @@
                 const title = $("<div></div>").addClass("title").append(link || id).append(name);
 
                 const sequence = $("<div></div>").html(algorithm.sequence.replace("_", "<br/>")).addClass("sequence pointer")
-                    .click(() => window.location.href = "?i=x" + "#3:" + cellRef);
+                    .click(() => window.location.href = "?i=x" + "#1:" + cellRef);
                 const alternatives = (algorithm.alternatives || []).map(alternative => $("<div></div>").text(alternative).addClass("alternative"));
 
                 const cube = $("<div></div>").addClass("cube");
