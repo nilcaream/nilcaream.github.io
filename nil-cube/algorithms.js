@@ -195,7 +195,7 @@ var algorithms = {
         epllh: {
             id: "EPLL H",
             name: "H permutation",
-            sequence: "M2 U (M2 U2 M2) U M2",
+            sequence: "M2U M2 U2 M2 UM2",
             vcube: "https://www.speedsolving.com/wiki/extensions/algdb/vcube/visualcube.php?fmt=png&bg=w&sch=yrbwog&size=160&pzl=3&stage=pll&view=plan&case=M2%20U%20(M2%20U2%20M2)%20U%20M2",
             nc: "t:3 u:YYYYYYYYY f:GBG r:ORO b:BGB l:ROR a:1011u1211,0111u2111",
             source: "https://www.speedsolving.com/wiki/index.php/PLL"
@@ -203,7 +203,7 @@ var algorithms = {
         epllua: {
             id: "EPLL Ua",
             name: "U permutation a",
-            sequence: "M2 U (M'U2M) U M2",
+            sequence: "M2U M' U2 M UM2",
             vcube: "https://www.speedsolving.com/wiki/extensions/algdb/vcube/visualcube.php?fmt=png&bg=w&sch=yrbwog&size=160&pzl=3&stage=pll&view=plan&case=M2%20U%20(M%27%20U2%20M)%20U%20M2",
             nc: "t:3 u:YYYYYYYYY f:GGG r:OBO b:BRB l:ROR a:0111U2111,2111u1011,1011u0120",
             source: "https://www.speedsolving.com/wiki/index.php/PLL"
@@ -211,7 +211,7 @@ var algorithms = {
         epllub: {
             id: "EPLL Ub",
             name: "U permutation b",
-            sequence: "M2 U' (M'U2M) U' M2",
+            sequence: "M2U' M' U2 M U'M2",
             vcube: "https://www.speedsolving.com/wiki/extensions/algdb/vcube/visualcube.php?fmt=png&bg=w&sch=yrbwog&size=160&pzl=3&stage=pll&view=plan&case=M2%20U%27%20(M%27%20U2%20M)%20U%27%20M2",
             nc: "t:3 u:YYYYYYYYY f:GGG r:ORO b:BOB l:RBR a:2111U0111,0111u1011,1011u2100",
             source: "https://www.speedsolving.com/wiki/index.php/PLL"
@@ -219,7 +219,7 @@ var algorithms = {
         epllz: {
             id: "EPLL Z",
             name: "Z permutation",
-            sequence: "M2 U (M' U2M2U2 M') U' M2",
+            sequence: "M2U M' U2M2U2 M' U'M2",
             vcube: "https://www.speedsolving.com/wiki/extensions/algdb/vcube/visualcube.php?fmt=png&bg=w&sch=yrbwog&size=160&pzl=3&stage=pll&view=plan&case=M2%20U%20(M%27%20U2%20M2%20U2%20M%27)%20U%27%20M2",
             nc: "t:3 u:YYYYYYYYY f:GRG r:OBO b:BOB l:RGR a:0111u1211,1011u2111",
             source: "https://www.speedsolving.com/wiki/index.php/PLL"
@@ -303,7 +303,7 @@ var algorithms = {
         jaappf: {
             id: "Jaap PF",
             name: "Parity fix",
-            sequence: "10 30/03/ 0-1/33/ 0-5/_ -24/2-4/ 0-1/33/",
+            sequence: " 40/03/  0-1/33/ 0-5/_-24/2-4/ 0-1/33/",
             nc: "t:1 u:00dDdDyWwY a:124u184 f:OBD r:DDD b:DDD l:BOD",
             source: "https://www.jaapsch.net/puzzles/square1.htm"
         },
