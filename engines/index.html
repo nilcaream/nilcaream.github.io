@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Engines</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <script src="jquery-3.3.1.min.js"></script>
+    <script src="engines.js"></script>
+    <script src="graphics.js"></script>
+    <link rel="stylesheet" href="engines.css" type="text/css">
+    <script language="JavaScript">
+
+        const engines = new Engines();
+        const graphics = new Graphics();
+
+        $(() => {
+            graphics.showBusy();
+            engines.init().then(() => {
+                graphics.hideBusy();
+                graphics.init($("#gfx"));
+                graphics.engine = engines.current;
+                graphics.start();
+            });
+        });
+
+    </script>
+</head>
+<body>
+<div id="selector"></div>
+<canvas id="gfx" width="800" height="400"></canvas>
+</body>
+</html>

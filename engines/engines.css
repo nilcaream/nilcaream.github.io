@@ -1,0 +1,10 @@
+html, body {
+    font-size: 13px;
+    margin: 0.2rem;
+    font-family: monospace;
+    white-space: nowrap;
+}
+
+#gfx {
+    border: 2px solid black;
+}
