@@ -152,10 +152,11 @@ class Graphics {
         const cylindersPerPin = engine.banks.length / engine.crankpins;
         const rodLength = unit * 1.2;
         const crankshaftRadius = unit / 2;
+        const gap = unit / 5;
         const colors = this._colors;
 
         ctx.save();
-        ctx.translate(unit, unit);
+        ctx.translate(-crankshaftRadius, rodLength + gap);
         ctx.font = "20px Arial";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
@@ -164,27 +165,38 @@ class Graphics {
 
         const crankshaftAngles = engine.getCrankshaftAngles(timestamp);
         for (let i = 0; i < crankshaftAngles.length; i += cylindersPerPin) {
+            // move by left cylinder
+            let minBankAngle = 0;
+            for (let j = 0; j < cylindersPerPin; j++) {
+                minBankAngle = Math.min(minBankAngle, banks[i + j]);
+            }
+            ctx.translate(gap + crankshaftRadius + rodLength * Math.abs(Math.sin(Math.PI * minBankAngle / 180)), 0);
+
+            // draw crankshaft at (0,0)
             ctx.strokeStyle = "#ccc";
             ctx.lineWidth = unit / 4;
             ctx.beginPath();
             ctx.arc(crankshaftRadius, crankshaftRadius, crankshaftRadius, 0, 2 * Math.PI);
             ctx.stroke();
 
+            // draw cylinders
             for (let j = 0; j < cylindersPerPin; j++) {
-                const crankshaftAngle = crankshaftAngles[i + j];
-                const crankshaftScreenAngle = (crankshaftAngle + 90) % 360;
-                const bankAngle = banks[i + j];
+                const rad = -Math.PI / 2 + Math.PI * banks[i + j] / 180;
 
-                const crankshaftAngleRad = Math.PI * crankshaftAngle / 180;
+                const cylinderX0 = (crankshaftRadius) * Math.cos(rad);
+                const cylinderY0 = (crankshaftRadius) * Math.sin(rad);
+                const cylinderX1 = (rodLength + crankshaftRadius) * Math.cos(rad);
+                const cylinderY1 = (rodLength + crankshaftRadius) * Math.sin(rad);
 
-                const cylinderX0 = (crankshaftRadius) * Math.cos(-Math.PI / 2 + Math.PI * bankAngle / 180);
-                const cylinderY0 = (crankshaftRadius) * Math.sin(-Math.PI / 2 + Math.PI * bankAngle / 180);
-                const cylinderX1 = (rodLength + crankshaftRadius) * Math.cos(-Math.PI / 2 + Math.PI * bankAngle / 180);
-                const cylinderY1 = (rodLength + crankshaftRadius) * Math.sin(-Math.PI / 2 + Math.PI * bankAngle / 180);
+                ctx.save();
 
-                const bankRotation = Math.PI * (bankAngle) / 180;
                 ctx.translate(crankshaftRadius, crankshaftRadius);
 
+                // crankshaft angle
+                ctx.fillStyle = "#44a";
+                ctx.fillText(Math.round((crankshaftAngles[i] + 90) % 720), 0, 0);
+
+                // cylinders
                 ctx.strokeStyle = "#ccc";
                 ctx.lineWidth = unit / 4;
                 ctx.beginPath();
@@ -192,6 +204,24 @@ class Graphics {
                 ctx.lineTo(cylinderX1, cylinderY1);
                 ctx.stroke();
 
+                // cylinder numbers
+                ctx.fillStyle = "#44a";
+                ctx.fillText(engine.numbering[i + j], cylinderX1, cylinderY1);
+
+                ctx.restore();
+            }
+
+
+            // draw moving parts
+            for (let j = 0; j < cylindersPerPin; j++) {
+                const crankshaftAngle = crankshaftAngles[i + j];
+                const crankshaftScreenAngle = (crankshaftAngle + 90) % 720;
+                const bankAngle = banks[i + j];
+                const bankRotation = Math.PI * (bankAngle) / 180;
+
+                ctx.save();
+
+                ctx.translate(crankshaftRadius, crankshaftRadius);
                 ctx.rotate(bankRotation);
 
                 ctx.strokeStyle = colors.rods[j];
@@ -221,6 +251,8 @@ class Graphics {
                     ctx.stroke();
                 }
 
+                // rod
+                ctx.strokeStyle = colors.rods[j];
                 ctx.lineWidth = unit / 10;
                 ctx.beginPath();
                 ctx.moveTo(pistonX, pistonY);
@@ -234,11 +266,37 @@ class Graphics {
                 ctx.lineTo(pistonX, pistonY);
                 ctx.stroke();
 
+                // ignition
+                const angleX = Math.round((crankshaftAngles[i + j] - bankAngle + 90) % 720);
+                const shot = Math.floor((crankshaftAngles[0]) / 90);
+
+
+                const current = i + j;
+                if ((angleX % 360 < 10)) {//&& Math.round(angleX / 90) === engine.firingOrder[i + j]) {
+                    ctx.strokeStyle = "#ff0";
+                    ctx.lineWidth = unit / 4;
+                    ctx.beginPath();
+                    ctx.moveTo(0, -pistonPosition);
+                    ctx.lineTo(0, -pistonPosition);
+                    ctx.stroke();
+                    console.log("IGN " + (current) + " | " + shot + " : " + engine.firingOrder[shot]);
+                }
                 ctx.rotate(-bankRotation);
-                ctx.translate(-crankshaftRadius, -crankshaftRadius);
+                // ctx.fillStyle = "#444";
+                // ctx.fillText(engine.firingOrder[shot], 0, crankshaftRadius);
+                //
+                // ctx.fillStyle = "#444";
+                // ctx.fillText(angleX, 0, crankshaftRadius + unit / 2);
+
+                ctx.restore();
             }
 
-            ctx.translate(2 * (crankshaftRadius + rodLength) + unit, 0);
+            // move by right cylinder
+            let maxBankAngle = 0;
+            for (let j = 0; j < cylindersPerPin; j++) {
+                maxBankAngle = Math.max(maxBankAngle, banks[i + j]);
+            }
+            ctx.translate(gap + crankshaftRadius + rodLength * Math.abs(Math.sin(Math.PI * minBankAngle / 180)), 0);
         }
 
         ctx.restore();
