@@ -163,7 +163,7 @@ class Graphics {
         ctx.lineWidth = unit / 5;
         ctx.lineCap = "round";
 
-        const crankshaftAngles = engine.getCrankshaftAngles(timestamp);
+        const crankshaftAngles = engine.getCrankshaftAngles(timestamp, true);
         for (let i = 0; i < crankshaftAngles.length; i += cylindersPerPin) {
             // move by left cylinder
             let minBankAngle = 0;
@@ -279,7 +279,8 @@ class Graphics {
                     ctx.moveTo(0, -pistonPosition);
                     ctx.lineTo(0, -pistonPosition);
                     ctx.stroke();
-                    console.log("IGN " + (current) + " | " + shot + " : " + engine.firingOrder[shot]);
+                    // number engine.numbering[i + j]
+                    // console.log("IGN " + (current) + " | " + shot + " : " + engine.firingOrder[shot]);
                 }
                 ctx.rotate(-bankRotation);
                 // ctx.fillStyle = "#444";
