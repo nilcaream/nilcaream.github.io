@@ -10,25 +10,29 @@
     <link rel="stylesheet" href="engines.css" type="text/css">
     <script language="JavaScript">
 
-        const engines = new Engines();
-        const graphics = new Graphics();
+        const enginesProvider = new EnginesProvider();
 
         $(() => {
-            graphics.showBusy();
-            engines.init().then(() => {
-                graphics.hideBusy();
-                graphics.init($("#gfx"));
-                graphics.engine = engines.current;
-                graphics.start();
-                engines.current.getCharacteristics();
+            enginesProvider.init().then(() => {
+                enginesProvider.getAll().forEach(engine => {
+                    const graphics = new Graphics(engine);
+                    graphics.drawBlock();
+                    $("body").append(graphics.canvas).append($("<br/>"));
+                });
+
+                // graphics.hideBusy();
+                // graphics.init($("#gfx"));
+                // graphics.engine = engines.current;
+                // graphics.start();
+                // engines.current.getCharacteristics2();
             });
             $("body").keydown(function (event) {
                 if (event.key === "ArrowRight") {
-                    engines.current.increaseOffset(1);
+                    graphics.increaseOffset(1);
                 } else if (event.key === "ArrowLeft") {
-                    engines.current.increaseOffset(-1);
+                    graphics.increaseOffset(-1);
                 } else if (event.key === " ") {
-                    engines.current.pause();
+                    graphics.pause();
                 }
             });
         });
@@ -39,7 +43,5 @@
     </script>
 </head>
 <body>
-<div id="selector"></div>
-<canvas id="gfx" width="1800" height="400"></canvas>
 </body>
 </html>

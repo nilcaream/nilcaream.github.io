@@ -1,7 +1,8 @@
 'use strict';
 
-class Engines {
+class EnginesProvider {
     constructor() {
+        this.engines = {};
     }
 
     init() {
@@ -11,24 +12,69 @@ class Engines {
                 return response.json();
             }).then((json) => {
                 dis.settings = json;
-                dis.current = new Configuration(dis.settings.configurations[3]);
-                console.log(dis.current.name);
+                dis.settings.engines.forEach(engines => {
+                    const engine = new Engine(engines);
+                    dis.engines[engine.name] = engine;
+                });
+                console.log(dis.engines);
             });
     }
+
+    get(name) {
+        return this.engines[name];
+    }
+
+    getAll() {
+        return Object.keys(this.engines).map(name => this.engines[name]);
+    }
+
 }
 
-class Configuration {
+class Engine {
     constructor(source) {
         this.name = source.name;
-        this.banks = source.banks;
-        this.crankshaft = source.crankshaft;
-        this.crankpins = source.crankpins;
-        this.firingOrder = source.firingOrder;
         this.numbering = source.numbering;
-        this.rpm = 5;
-        this.spark = 0;
-        this.offset = 0;
-        this.started = 1;
+        this.cylinders = source.numbering.length;
+        this.crankpins = source.crankshaft.length;
+        this.crankpinsPerRod = this.cylinders / this.crankpins;
+        this.banks = Engine._loop(source.banks || [0], this.cylinders);
+        this.splitPins = Engine._loop(source.splitPins || [0], this.cylinders);
+        this.crankshaft = source.crankshaft;
+        this.crankshaftZero = this.createCrankshaftZero();
+    }
+
+    static _duplicate(array, count) {
+        const result = [];
+        array.forEach(element => {
+            for (let i = 0; i < count; i++) {
+                result.push(element);
+            }
+        });
+        return result;
+    }
+
+    static _loop(array, length) {
+        const result = [];
+        for (let i = 0; i < length; i++) {
+            result.push(array[i % array.length]);
+        }
+        return result;
+    }
+
+    createCrankshaftZero() {
+        const results = [];
+        Engine._duplicate(this.crankshaft, this.cylinders / this.crankshaft.length).forEach((angle, index) => {
+            results.push((360 + angle + this.banks[index] + this.splitPins[index]) % 360);
+        });
+        return results;
+    }
+
+    calculateAngle(offset = 0) {
+        const results = [];
+        this.crankshaftZero.forEach((angle, index) => {
+            results.push((360 + offset + angle + this.banks[index] + this.splitPins[index]) % 360);
+        });
+        return results;
     }
 
     getCrankshaftAngles(timestamp, zeroOnTop = false) {
@@ -45,6 +91,21 @@ class Configuration {
 
     pause() {
         this.started = (this.started + 1) % 2;
+    }
+
+    getCharacteristics2() {
+        const rodsPerPin = this.banks.length / this.crankpins;
+        const topDeadCenters = [];
+        const bottomDeadCenters = [];
+
+        for (let i = 0; i < this.crankshaft.length; i += rodsPerPin) {
+            for (let j = 0; j < rodsPerPin; j++) {
+                topDeadCenters.push((720 + this.crankshaft[i + j] + this.banks[i + j]) % 360);
+                bottomDeadCenters.push((topDeadCenters[i + j] + 180) % 360);
+            }
+        }
+
+        console.log(topDeadCenters);
     }
 
     getCharacteristics() {
@@ -176,15 +237,25 @@ class Configuration {
             }
         };
 
-        permute([1, 2, 3, 4, 5, 6, 7], array => {
+        const range = (from, to) => {
+            const result = [];
+            for (let i = from; i <= to; i++) {
+                result.push(i);
+            }
+            return result;
+        };
+
+        console.log("======================================== firing orders");
+        permute(range(1, this.crankshaft.length - 1), array => {
             let ok = true;
             let tdc = results.topDeadCenters[0];
 
             const diffs = [];
 
             for (let i = 0; i < array.length && ok; i++) {
-                const next = results.topDeadCenters[array[this.numbering[i] - 1]];
-                const diff = (720 + tdc - next) % 360;
+                const next = results.topDeadCenters[array[i]];
+                let diff = (720 + tdc - next) % 360;
+
                 ok = ok && diff > 0;
                 if (diffs.indexOf(diff) === -1) {
                     diffs.push(diff);
@@ -196,6 +267,42 @@ class Configuration {
                 console.log("ok: " + ok + " diffs.len: " + diffs.length + " diffs: " + diffs + " array: 1," + array.map(a => a + 1));
             }
         });
+
+        console.log("======================================== firing intervals");
+
+        const tdcs = [];
+        for (let r = 0; r < 2; r++) {
+            for (let i = 0; i < this.crankshaft.length; i += cylindersPerPin) {
+                for (let j = 0; j < cylindersPerPin; j++) {
+                    tdcs.push((360 + this.crankshaft[i + j] + this.banks[i + j] + r * 360) % 720);
+                }
+            }
+        }
+        tdcs.sort();
+        console.log(tdcs);
+
+        const cylindersNumber = tdcs.length / 2;
+
+        permute(tdcs.splice(1), array => {
+            let ok = true;
+            let tdc = tdcs[0];
+
+            const deltas = [];
+            for (let i = 0; i < array.length && ok; i++) {
+                let delta = array[i] - tdc;
+
+                ok = ok && delta > 0;
+                if (deltas.indexOf(delta) === -1) {
+                    deltas.push(delta);
+                }
+                tdc = array[i];
+            }
+
+            if (ok) {
+                console.log(tdcs[0] + "," + array);
+            }
+        });
+
         console.log(results);
     }
 

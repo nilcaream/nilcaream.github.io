@@ -1,41 +1,58 @@
 'use strict';
 
 class Graphics {
-    init(canvas) {
-        this._canvas = canvas[0];
-        this._context = this._canvas.getContext("2d");
-        this._timestamp = 0;
-        this._frame = 0;
+
+    constructor(engine, width = 1000, height = 400) {
+        this.engine = engine;
+        this.started = false;
+
         this._unit = 100;
-        this._offset = {
-            cylinderWidth: 60,
-            cylinderWidthGap: 4,
-            cylinderHeight: 50,
-            pistonHeight: 10,
-        };
+        this._rodLength = this._unit * 1.2;
+        this._crankshaftRadius = this._unit / 2;
+        this._gap = this._unit / 6;
+
+        const hor = Math.max(...this.engine.banks.map(a => Math.sin(Math.PI * Math.abs(a) / 180)));
+        const ver = Math.max(...this.engine.banks.map(a => Math.cos(Math.PI * a / 180)));
+
+        this._horizontalPad = Math.max(this._crankshaftRadius, (this._crankshaftRadius + this._rodLength) * hor) + this._gap;
+        this._verticalPad = Math.max(this._crankshaftRadius, (this._crankshaftRadius + this._rodLength) * ver) + this._gap;
+
         this._colors = {
             rods: ["#080", "#0a0", "#0c0", "#0d0"],
-        }
+        };
+
+        this.canvas = $("<canvas></canvas>")
+            .attr("width", 2 * this._horizontalPad * this.engine.crankpins)
+            // TODO implement height properly for radial engine
+            .attr("height", this._verticalPad + this._crankshaftRadius + this._gap);
+        this.context = this.canvas[0].getContext("2d");
+        this.context.textAlign = "center";
+        this.context.textBaseline = "middle";
+        this.context.lineWidth = this._unit / 5;
+        this.context.lineCap = "round"
     }
 
     start() {
+        this.started = true;
         requestAnimationFrame(this.draw.bind(this));
+    }
+
+    stop() {
+        this.started = false;
     }
 
     draw(timestamp) {
         this._storeFrameData(timestamp);
 
-        const ctx = this._context;
+        const ctx = this.context;
         ctx.save();
-        ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
-        // this._drawCrankshaft(timestamp);
-        // this._drawCrankshaft2(timestamp);
-        // this._drawCrankshaft4(timestamp);
-        this._drawCrankshaft5(timestamp);
-        // ctx.translate(this._offset.cylinderWidth, this._offset.cylinderHeight);
-        // this._drawCrankshaft3(timestamp);
+        ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.drawBlock();
         ctx.restore();
-        requestAnimationFrame(this.draw.bind(this));
+
+        if (this.started) {
+            requestAnimationFrame(this.draw.bind(this));
+        }
     }
 
     _storeFrameData(timestamp) {
@@ -44,110 +61,76 @@ class Graphics {
         this._timestamp = timestamp;
     }
 
-    _drawCrankshaft(timestamp) {
-        const ctx = this._context;
-        const engine = this.engine;
-        const offset = this._offset;
+    drawBlock() {
+        const ctx = this.context;
 
         ctx.save();
-        ctx.translate(0, offset.cylinderHeight);
-        const positions = engine.getCrankshaftAngles(timestamp);
-        positions.forEach((angle) => {
-            const y = offset.cylinderHeight * Math.sin((angle - 90) * Math.PI / 180);
+        ctx.translate(0, this._verticalPad);
 
-            ctx.fillStyle = "#ccc";
-            ctx.fillRect(offset.cylinderWidthGap * 2, 0, offset.cylinderWidth - 3 * offset.cylinderWidthGap, y);
+        for (let crankPin = 0; crankPin < this.engine.crankpins; crankPin++) {
+            ctx.translate(this._horizontalPad, 0);
 
-            ctx.fillStyle = "#333";
-            ctx.fillRect(offset.cylinderWidthGap, y, offset.cylinderWidth - offset.cylinderWidthGap, offset.pistonHeight);
-
-            ctx.translate(offset.cylinderWidth, 0);
-        });
-        // console.log(timestamp + " " + positions);
-        ctx.restore();
-    }
-
-    _drawCrankshaft2(timestamp) {
-        const ctx = this._context;
-        const engine = this.engine;
-        const offset = this._offset;
-
-        ctx.save();
-        ctx.translate(0, offset.cylinderWidthGap);
-        const positions = engine.getCrankshaftAngles(timestamp);
-        ctx.lineWidth = 2;
-        positions.forEach((angle, index) => {
-            ctx.strokeStyle = "#bbb";
+            // draw crankshaft at (0,0)
+            ctx.strokeStyle = "#ccc";
+            ctx.lineWidth = this._unit / 4;
             ctx.beginPath();
-            ctx.arc(offset.cylinderWidth / 2, offset.cylinderHeight / 2, offset.cylinderWidth / 2 - offset.cylinderWidthGap, 0, 2 * Math.PI);
+            ctx.arc(0, 0, this._crankshaftRadius, 0, 2 * Math.PI);
             ctx.stroke();
 
-            ctx.strokeStyle = "#822";
-            ctx.beginPath();
-            const start = -Math.PI / 2 + Math.PI * engine.banks[index % engine.banks.length] / 180;
-            const end = Math.PI * (angle - 90) / 180;
-            ctx.arc(offset.cylinderWidth / 2, offset.cylinderHeight / 2, offset.cylinderWidth / 2 - offset.cylinderWidthGap, start, start + end);
-            ctx.stroke();
+            // draw cylinders
+            for (let crankPinRod = 0; crankPinRod < this.engine.crankpinsPerRod; crankPinRod++) {
+                const cylinder = crankPin * this.engine.crankpinsPerRod + crankPinRod;
+                const rad = -Math.PI / 2 + Math.PI * this.engine.banks[cylinder] / 180;
 
-            // ctx.fillRect(offset.cylinderWidthGap, offset.cylinderHeight * Math.sin(angle * Math.PI / 180), offset.cylinderWidth - offset.cylinderWidthGap, offset.pistonHeight);
-            ctx.translate(offset.cylinderWidth, 0);
-        });
-        // console.log(timestamp + " " + positions);
-        ctx.restore();
-    }
+                ctx.save();
 
-    _drawCrankshaft3(timestamp) {
-        const ctx = this._context;
-        const engine = this.engine;
-        const offset = this._offset;
+                const cylinderX0 = (this._crankshaftRadius) * Math.cos(rad);
+                const cylinderY0 = (this._crankshaftRadius) * Math.sin(rad);
+                const cylinderX1 = (this._rodLength + this._crankshaftRadius) * Math.cos(rad);
+                const cylinderY1 = (this._rodLength + this._crankshaftRadius) * Math.sin(rad);
 
-        ctx.save();
-        ctx.translate(offset.cylinderWidth / 2, offset.cylinderHeight / 2);
-        const positions = engine.getCrankshaftAngles(timestamp);
-        ctx.font = "20px Arial";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        positions.forEach((angle, index) => {
-            ctx.fillStyle = "#44a";
-            ctx.fillText(Math.round((angle + 90) % 360), 0, 0);
-            ctx.translate(offset.cylinderWidth, 0);
-        });
-        // console.log(timestamp + " " + positions);
-        ctx.restore();
-    }
+                ctx.strokeStyle = "#ccc";
+                ctx.lineWidth = this._unit / 4;
+                ctx.beginPath();
+                ctx.moveTo(cylinderX0, cylinderY0);
+                ctx.lineTo(cylinderX1, cylinderY1);
+                ctx.stroke();
 
-    _drawCrankshaft4(timestamp) {
-        const ctx = this._context;
-        const engine = this.engine;
-        const offset = this._offset;
-        const banksCount = this.engine.banks.length;
-
-        ctx.save();
-        ctx.translate(0, offset.cylinderHeight);
-        const positions = engine.getCrankshaftAngles(timestamp);
-        positions.forEach((angle, index) => {
-            const y = Math.sin((angle - 90) * Math.PI / 180);
-
-            ctx.fillStyle = "#ccc";
-            ctx.beginPath();
-            const radius = (offset.cylinderWidth / 2 - offset.cylinderWidthGap) * Math.abs(y);
-            ctx.arc(offset.cylinderWidth / 2, offset.cylinderHeight / 2, radius, 0, 2 * Math.PI);
-            ctx.stroke();
-
-            if (index % banksCount === banksCount - 1) {
-                ctx.translate(offset.cylinderWidth, 0);
-            } else {
-                ctx.translate(0, offset.cylinderHeight);
+                ctx.restore();
             }
-        });
-        // console.log(timestamp + " " + positions);
+            ctx.translate(this._horizontalPad, 0);
+        }
+
+        ctx.restore();
+    }
+
+    drawRods() {
+        const ctx = this.context;
+
+        ctx.save();
+        ctx.translate(-this._horizontalPad, this._verticalPad);
+
+        for (let crankPin = 0; crankPin > this.engine.crankpins; crankPin++) {
+            for (let crankPinRod = 0; crankPinRod > this.engine.crankpinsPerRod; crankPinRod++) {
+                const cylinder = crankPin * this.engine.crankpinsPerRod + crankPinRod;
+                // draw crankshaft at (0,0)
+                ctx.strokeStyle = "#ccc";
+                ctx.lineWidth = this._unit / 4;
+                ctx.beginPath();
+                ctx.arc(0, 0, this._crankshaftRadius, 0, 2 * Math.PI);
+                ctx.stroke();
+            }
+            ctx.translate(2 * this._horizontalPad, 0);
+        }
+
         ctx.restore();
     }
 
     _drawCrankshaft5(timestamp) {
-        const ctx = this._context;
+        const ctx = this.context;
         const engine = this.engine;
         const unit = this._unit;
+
         const banks = engine.banks;
         const cylindersPerPin = engine.banks.length / engine.crankpins;
         const rodLength = unit * 1.2;
