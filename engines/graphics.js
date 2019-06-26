@@ -34,7 +34,9 @@ class Graphics {
     }
 
     increaseOffset(delta) {
-        this.baseOffset += delta;
+        this.baseOffset = Math.round(this.baseOffset + delta);
+        // smooth and align to zero
+        this.baseOffset = this.baseOffset - this.baseOffset % delta;
     }
 
     start() {
