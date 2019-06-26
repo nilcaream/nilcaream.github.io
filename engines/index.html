@@ -11,13 +11,15 @@
     <script language="JavaScript">
 
         const enginesProvider = new EnginesProvider();
+        const allGraphics = [];
 
         $(() => {
             enginesProvider.init().then(() => {
                 enginesProvider.getAll().forEach(engine => {
                     const graphics = new Graphics(engine);
-                    graphics.drawBlock();
+                    graphics.start();
                     $("body").append(graphics.canvas).append($("<br/>"));
+                    allGraphics.push(graphics);
                 });
 
                 // graphics.hideBusy();
@@ -28,11 +30,11 @@
             });
             $("body").keydown(function (event) {
                 if (event.key === "ArrowRight") {
-                    graphics.increaseOffset(1);
+                    allGraphics.forEach(graphics => graphics.increaseOffset(4));
                 } else if (event.key === "ArrowLeft") {
-                    graphics.increaseOffset(-1);
+                    allGraphics.forEach(graphics => graphics.increaseOffset(-4));
                 } else if (event.key === " ") {
-                    graphics.pause();
+                    allGraphics.forEach(graphics => graphics.pause());
                 }
             });
         });

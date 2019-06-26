@@ -64,7 +64,7 @@ class Engine {
     createCrankshaftZero() {
         const results = [];
         Engine._duplicate(this.crankshaft, this.cylinders / this.crankshaft.length).forEach((angle, index) => {
-            results.push((360 + angle + this.banks[index] + this.splitPins[index]) % 360);
+            results.push((360 + angle + this.splitPins[index]) % 360);
         });
         return results;
     }
