@@ -41,6 +41,12 @@ class Engine {
         this.splitPins = Engine._loop(source.splitPins || [0], this.cylinders);
         this.crankshaft = source.crankshaft;
         this.crankshaftZero = this.createCrankshaftZero();
+        this.tdcs = this.createTdcs();
+        this.tdcsZero = this.createTdcsZero();
+        this.bdcs = this.createBdcs();
+        if (this.name === "V6 60") {
+            this.ignitionsEven = this.createIgnitionsEven();
+        }
     }
 
     static _duplicate(array, count) {
@@ -59,6 +65,53 @@ class Engine {
             result.push(array[i % array.length]);
         }
         return result;
+    }
+
+    createTdcs() {
+        return this.crankshaftZero.map((angle, index) => {
+            const tdc = (360 - angle + this.banks[index]) % 360;
+            return tdc < 0 ? 360 + tdc : tdc;
+        });
+    }
+
+    createTdcsZero() {
+        const result = this.tdcs.map(angle => {
+            const tdcsZero = angle - this.tdcs[0];
+            return tdcsZero < 0 ? 360 + tdcsZero : tdcsZero;
+        });
+        // const length = result.length;
+        // for (let i = 0; i < length; i++) {
+        //     result.push(result[i] + 360);
+        // }
+        return result;
+    }
+
+    createBdcs() {
+        return this.tdcs.map(angle => {
+            return (180 + angle) % 360;
+        });
+    }
+
+    createIgnitionsEven() {
+        const results = [];
+        const gap = 360 / this.tdcs.length;
+        console.log(gap);
+        Engine.permute(Engine.range(1, this.tdcs.length - 1), array => {
+            let ok = true;
+            array.map(i => this.tdcsZero[i]).forEach((angle, index) => {
+                ok = ok && (angle === (gap * (index + 1)) % 360);
+                console.log("1," + array.map(a => a + 1) + " " + angle + " " + (gap * index) + " " + ok + " " + index);
+            });
+            // for (let angle = gap, i = 1; angle < 720 && ok; angle += gap, i++) {
+            //     ok = ok && ((angle % 360) === this.tdcsZero[i]);
+            //     console.log("0," + array + " " + (angle % 360) + " " + this.tdcsZero[i] + " " + ok + " " + i);
+            // }
+            if (ok) {
+                results.push([1, ...array.map(a => a + 1)]);
+            }
+            console.log("------");
+        });
+        return results;
     }
 
     createCrankshaftZero() {
@@ -92,6 +145,37 @@ class Engine {
     pause() {
         this.started = (this.started + 1) % 2;
     }
+
+    // https://stackoverflow.com/a/37580979
+    static permute(input, callback) {
+        callback(input);
+        let length = input.length,
+            c = new Array(length).fill(0),
+            i = 1, k, p;
+
+        while (i < length) {
+            if (c[i] < i) {
+                k = i % 2 && c[i];
+                p = input[i];
+                input[i] = input[k];
+                input[k] = p;
+                ++c[i];
+                i = 1;
+                callback(input);
+            } else {
+                c[i] = 0;
+                ++i;
+            }
+        }
+    };
+
+    static range(from, to) {
+        const result = [];
+        for (let i = from; i <= to; i++) {
+            result.push(i);
+        }
+        return result;
+    };
 
     getCharacteristics2() {
         const rodsPerPin = this.banks.length / this.crankpins;
@@ -305,5 +389,4 @@ class Engine {
 
         console.log(results);
     }
-
 }

@@ -4,14 +4,15 @@ class Graphics {
 
     constructor(engine, unit = 80) {
         this.engine = engine;
-        this.started = true;
+        this.started = false;
         this.baseOffset = 0;
         this.timestamp = 0;
 
         this.unit = unit;
-        this.rodLength = this.unit * 1.2;
+        this.rodLength = this.unit;
         this.crankshaftRadius = this.unit / 2;
         this.gap = this.unit / 6;
+        this.pistonHeight = this.unit / 4;
 
         this.positions = this.calculatePositions();
 
@@ -93,19 +94,21 @@ class Graphics {
                 maxLeft: 0,
                 maxRight: 0,
                 maxTop: 0,
-                maxBottom: 0
+                maxBottom: 0,
+                start: 0
             };
 
             for (let crankPinRod = 0; crankPinRod < this.engine.crankpinsPerRod; crankPinRod++) {
                 const cylinder = crankPin * this.engine.crankpinsPerRod + crankPinRod;
                 const cylinderRad = -Math.PI / 2 + Math.PI * this.engine.banks[cylinder] / 180;
+                // crankPinsElement.start += (this.engine.banks[cylinder] / this.engine.crankpinsPerRod);
 
                 const element = {
                     cylinder: {
                         x0: this.crankshaftRadius * Math.cos(cylinderRad),
                         y0: this.crankshaftRadius * Math.sin(cylinderRad),
-                        x1: (this.rodLength + this.crankshaftRadius) * Math.cos(cylinderRad),
-                        y1: (this.rodLength + this.crankshaftRadius) * Math.sin(cylinderRad)
+                        x1: (this.rodLength + this.pistonHeight + this.crankshaftRadius) * Math.cos(cylinderRad),
+                        y1: (this.rodLength + this.pistonHeight + this.crankshaftRadius) * Math.sin(cylinderRad)
                     }
                 };
                 element.cylinder.width = element.cylinder.x1 - element.cylinder.x0;
@@ -135,6 +138,7 @@ class Graphics {
                 crankPinsElement.maxTop = Math.max(crankPinsElement.maxTop, element.top);
                 crankPinsElement.maxBottom = Math.max(crankPinsElement.maxBottom, element.bottom);
             });
+            //crankPinsElement.start = Math.abs(crankPinsElement.start);
             positions.crankPins.push(crankPinsElement);
         }
         positions.crankPins.forEach(element => {
@@ -202,7 +206,7 @@ class Graphics {
 
             // base angle
             const baseAngle = Math.round(offset + this.baseOffset) % 720;
-            const baseRad = (offset + this.baseOffset - 90) * Math.PI / 180;
+            const baseRad = (offset + this.baseOffset - 90 + crankPinsElement.start) * Math.PI / 180;
             const baseX = this.crankshaftRadius * Math.cos(baseRad);
             const baseY = this.crankshaftRadius * Math.sin(baseRad);
             ctx.strokeStyle = "#eee";
@@ -221,7 +225,7 @@ class Graphics {
                 const crankPinRodsElement = crankPinsElement.crankPinRods[crankPinRod];
                 const pistonNumber = crankPinRod + crankPin * this.engine.crankpinsPerRod;
                 // -90 to start at the top
-                const crankshaftAngle = crankshaftAngles[pistonNumber] + offset + this.baseOffset - 90 - this.engine.banks[pistonNumber];
+                const crankshaftAngle = crankshaftAngles[pistonNumber] + offset + crankPinsElement.start + this.baseOffset - 90 - this.engine.banks[pistonNumber];
 
                 const pistonX = this.crankshaftRadius * Math.cos(Math.PI * (crankshaftAngle) / 180);
                 const pistonY = this.crankshaftRadius * Math.sin(Math.PI * (crankshaftAngle) / 180);
@@ -231,6 +235,14 @@ class Graphics {
 
                 ctx.save();
                 ctx.rotate(this.engine.banks[pistonNumber] * Math.PI / 180);
+
+                // piston
+                ctx.strokeStyle = "#222";
+                ctx.lineWidth = this.unit / 4;
+                ctx.beginPath();
+                ctx.moveTo(0, -pistonPosition);
+                ctx.lineTo(0, -pistonPosition - this.pistonHeight);
+                ctx.stroke();
 
                 // rod
                 ctx.strokeStyle = "#282";
@@ -254,21 +266,19 @@ class Graphics {
                 if (pistonPosition - minPistonPosition < this.unit / 64) {
                     // BDC
                     ctx.strokeStyle = "#2f2";
-                    ctx.lineWidth = this.unit / 4;
-                    ctx.beginPath();
-                    ctx.moveTo(0, -pistonPosition);
-                    ctx.lineTo(0, -pistonPosition);
-                    ctx.stroke();
-
                 } else if (maxPistonPosition - pistonPosition < this.unit / 32) {
                     // TDC
                     ctx.strokeStyle = "#22f";
-                    ctx.lineWidth = this.unit / 4;
-                    ctx.beginPath();
-                    ctx.moveTo(0, -pistonPosition);
-                    ctx.lineTo(0, -pistonPosition);
-                    ctx.stroke();
+                } else {
+                    ctx.strokeStyle = "#ddd";
                 }
+                ctx.lineWidth = this.unit / 4;
+                ctx.beginPath();
+                ctx.moveTo(0, -pistonPosition);
+                ctx.lineTo(0, -pistonPosition);
+                ctx.stroke();
+
+                ctx.fillText(this.engine.numbering[pistonNumber], 0, -pistonPosition);
 
                 ctx.restore();
             }
