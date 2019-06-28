@@ -87,6 +87,7 @@ class Graphics {
             maxBottom: 0,
             width: 0,
             height: 0,
+            start: this.engine.tdcs[0]
         };
         for (let crankPin = 0; crankPin < this.engine.crankpins; crankPin++) {
             const crankPinsElement = {
@@ -94,14 +95,12 @@ class Graphics {
                 maxLeft: 0,
                 maxRight: 0,
                 maxTop: 0,
-                maxBottom: 0,
-                start: 0
+                maxBottom: 0
             };
 
             for (let crankPinRod = 0; crankPinRod < this.engine.crankpinsPerRod; crankPinRod++) {
                 const cylinder = crankPin * this.engine.crankpinsPerRod + crankPinRod;
                 const cylinderRad = -Math.PI / 2 + Math.PI * this.engine.banks[cylinder] / 180;
-                // crankPinsElement.start += (this.engine.banks[cylinder] / this.engine.crankpinsPerRod);
 
                 const element = {
                     cylinder: {
@@ -138,7 +137,6 @@ class Graphics {
                 crankPinsElement.maxTop = Math.max(crankPinsElement.maxTop, element.top);
                 crankPinsElement.maxBottom = Math.max(crankPinsElement.maxBottom, element.bottom);
             });
-            //crankPinsElement.start = Math.abs(crankPinsElement.start);
             positions.crankPins.push(crankPinsElement);
         }
         positions.crankPins.forEach(element => {
@@ -206,7 +204,7 @@ class Graphics {
 
             // base angle
             const baseAngle = Math.round(offset + this.baseOffset) % 720;
-            const baseRad = (offset + this.baseOffset - 90 + crankPinsElement.start) * Math.PI / 180;
+            const baseRad = (offset + this.baseOffset - 90) * Math.PI / 180;
             const baseX = this.crankshaftRadius * Math.cos(baseRad);
             const baseY = this.crankshaftRadius * Math.sin(baseRad);
             ctx.strokeStyle = "#eee";
@@ -225,7 +223,7 @@ class Graphics {
                 const crankPinRodsElement = crankPinsElement.crankPinRods[crankPinRod];
                 const pistonNumber = crankPinRod + crankPin * this.engine.crankpinsPerRod;
                 // -90 to start at the top
-                const crankshaftAngle = crankshaftAngles[pistonNumber] + offset + crankPinsElement.start + this.baseOffset - 90 - this.engine.banks[pistonNumber];
+                const crankshaftAngle = crankshaftAngles[pistonNumber] + offset + positions.start + this.baseOffset - 90 - this.engine.banks[pistonNumber];
 
                 const pistonX = this.crankshaftRadius * Math.cos(Math.PI * (crankshaftAngle) / 180);
                 const pistonY = this.crankshaftRadius * Math.sin(Math.PI * (crankshaftAngle) / 180);

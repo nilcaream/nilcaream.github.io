@@ -41,12 +41,12 @@ class Engine {
         this.splitPins = Engine._loop(source.splitPins || [0], this.cylinders);
         this.crankshaft = source.crankshaft;
         this.crankshaftZero = this.createCrankshaftZero();
-        this.tdcs = this.createTdcs();
-        this.tdcsZero = this.createTdcsZero();
+        this.tdcs = this.createTdcs(this.crankshaftZero, this.banks);
+        this.tdcsZero = this.createTdcsZero(this.tdcs);
+        this.tdcsZero720 = this.createTdcsZero720(this.tdcsZero);
         this.bdcs = this.createBdcs();
-        if (this.name === "V6 60") {
-            this.ignitionsEven = this.createIgnitionsEven();
-        }
+        this.evenAngleDiff = 720 / this.tdcs.length;
+        // this.ignitionsEven = this.createIgnitionsEven();
     }
 
     static _duplicate(array, count) {
@@ -67,22 +67,25 @@ class Engine {
         return result;
     }
 
-    createTdcs() {
-        return this.crankshaftZero.map((angle, index) => {
-            const tdc = (360 - angle + this.banks[index]) % 360;
+    createTdcs(crankshaftZero, banks) {
+        return crankshaftZero.map((angle, index) => {
+            const tdc = (360 - angle + banks[index]) % 360;
             return tdc < 0 ? 360 + tdc : tdc;
         });
     }
 
-    createTdcsZero() {
-        const result = this.tdcs.map(angle => {
-            const tdcsZero = angle - this.tdcs[0];
+    createTdcsZero(tdcs) {
+        return tdcs.map(angle => {
+            const tdcsZero = angle - tdcs[0];
             return tdcsZero < 0 ? 360 + tdcsZero : tdcsZero;
         });
-        // const length = result.length;
-        // for (let i = 0; i < length; i++) {
-        //     result.push(result[i] + 360);
-        // }
+    }
+
+    createTdcsZero720(tdcsZero) {
+        const result = [...tdcsZero];
+        tdcsZero.forEach(angle => {
+            result.push(360 + angle);
+        });
         return result;
     }
 
@@ -94,13 +97,14 @@ class Engine {
 
     createIgnitionsEven() {
         const results = [];
-        const gap = 360 / this.tdcs.length;
-        console.log(gap);
+        console.log(this.name + " even angle diff: " + this.evenAngleDiff);
         Engine.permute(Engine.range(1, this.tdcs.length - 1), array => {
             let ok = true;
-            array.map(i => this.tdcsZero[i]).forEach((angle, index) => {
-                ok = ok && (angle === (gap * (index + 1)) % 360);
-                console.log("1," + array.map(a => a + 1) + " " + angle + " " + (gap * index) + " " + ok + " " + index);
+            console.log("-------------");
+            array.map(i => this.tdcsZero[i]).forEach((currentAngle, index) => {
+                const expectedAngle = this.evenAngleDiff * (index + 1);
+                ok = ok && (currentAngle === expectedAngle % 360);
+                console.log("1," + array.map(a => a + 1) + " " + (index + 1) + " current: " + currentAngle + ", expected: " + expectedAngle % 360 + " (" + expectedAngle + "), ok: " + ok);
             });
             // for (let angle = gap, i = 1; angle < 720 && ok; angle += gap, i++) {
             //     ok = ok && ((angle % 360) === this.tdcsZero[i]);
@@ -108,10 +112,53 @@ class Engine {
             // }
             if (ok) {
                 results.push([1, ...array.map(a => a + 1)]);
+                console.log([1, ...array.map(a => a + 1)] + " ===================");
             }
-            console.log("------");
+            //console.log("------");
         });
         return results;
+    }
+
+    createIgnitionsUneven() {
+        const results = [];
+
+
+        /*
+        Engine.permute(Engine.range(1, this.tdcs.length - 1), array => {
+            let ok = true;
+            console.log("-------------");
+            array.map(i => this.tdcsZero[i]).forEach((currentAngle, index) => {
+                const expectedAngle = this.evenAngleDiff * (index + 1);
+                ok = ok && (currentAngle === expectedAngle % 360);
+                console.log("1," + array.map(a => a + 1) + " " + (index + 1) + " current: " + currentAngle + ", expected: " + expectedAngle % 360 + " (" + expectedAngle + "), ok: " + ok);
+            });
+            // for (let angle = gap, i = 1; angle < 720 && ok; angle += gap, i++) {
+            //     ok = ok && ((angle % 360) === this.tdcsZero[i]);
+            //     console.log("0," + array + " " + (angle % 360) + " " + this.tdcsZero[i] + " " + ok + " " + i);
+            // }
+            if (ok) {
+                results.push([1, ...array.map(a => a + 1)]);
+                console.log([1, ...array.map(a => a + 1)] + " ===================");
+            }
+            //console.log("------");
+        });
+        return results;
+
+        // ============================
+
+        const diffs = [];
+        this.tdcsZero.forEach(tdc1 => {
+            this.tdcsZero.forEach(tdc2 => {
+                let diff = tdc1 - tdc2;
+                diff = diff >= 0 ? diff : 360 - diff;
+                if (diff !== 0 && diff !== this.evenAngleDiff && diffs.indexOf(diff) === -1) {
+                    diffs.push(diff);
+                }
+            });
+        });
+        diffs.sort();
+        console.log(this.name + " uneven angle diffs: " + diffs);
+        */
     }
 
     createCrankshaftZero() {

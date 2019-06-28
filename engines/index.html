@@ -16,6 +16,9 @@
         $(() => {
             enginesProvider.init().then(() => {
                 enginesProvider.getAll().forEach(engine => {
+                    console.log("------------------------------------");
+                    // engine.createIgnitionsUneven();
+                    // engine.ignitionsEven = engine.createIgnitionsEven();
                     const graphics = new Graphics(engine);
                     $("body").append(graphics.canvas).append($("<br/>"));
                     allGraphics.push(graphics);

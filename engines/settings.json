@@ -1,20 +1,34 @@
 {
   "engines": [
     {
+      "name": "V2 45 Harley-Davidson",
+      "numbering": [1, 2],
+      "banks": [-22.5, 22.5],
+      "crankshaft": [0]
+    }, {
+      "name": "V2 60",
+      "numbering": [1, 2],
+      "banks": [-30, 30],
+      "crankshaft": [0]
+    }, {
+      "name": "V2 90",
+      "numbering": [1, 2],
+      "banks": [-45, 45],
+      "crankshaft": [0]
+    }, {
+      "name": "V2 90 split pin",
+      "numbering": [1, 2],
+      "banks": [-45, 45],
+      "splitPins": [-15, 15],
+      "crankshaft": [0]
+    }, {
       "name": "Inline-3",
       "numbering": [1, 2, 3],
-      "crankshaft": [0, 120, 240]
+      "crankshaft": [0, 240, 120]
     }, {
       "name": "Inline-4",
       "numbering": [1, 2, 3, 4],
       "crankshaft": [0, 180, 180, 0],
-      "firingOrder": [1, 3, 4, 2]
-    }, {
-      "name": "V6 60",
-      "numbering": [1, 2, 3, 4, 5, 6],
-      "banks": [-30, 30],
-      "splitPins": [-15, 15],
-      "crankshaft": [0, 120, 240],
       "firingOrder": [1, 3, 4, 2]
     }, {
       "name": "Boxer-4",
@@ -22,6 +36,17 @@
       "banks": [-90, 90],
       "crankshaft": [0, 180, 180, 0],
       "firingOrder": [1, 3, 2, 4]
+    }, {
+      "name": "V6 60",
+      "numbering": [1, 2, 3, 4, 5, 6],
+      "banks": [-30, 30],
+      "crankshaft": [0, 240, 120]
+    }, {
+      "name": "V6 90",
+      "numbering": [1, 2, 3, 4, 5, 6],
+      "banks": [-45, 45],
+      "splitPins": [-15, 15],
+      "crankshaft": [0, 240, 120]
     }, {
       "name": "Ferrari V8 (flatplane)",
       "numbering": [1, 2, 3, 4, 5, 6, 7, 8],
