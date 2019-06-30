@@ -119,6 +119,42 @@ class Engine {
         return results;
     }
 
+    doStuff(tdcsZero720, tdcsZero) {
+        const angleDiffs = new Set();
+        tdcsZero720.forEach(tdcs1 => {
+            tdcsZero720.forEach(tdcs2 => {
+                angleDiffs.add(Math.abs(tdcs1 - tdcs2));
+            });
+        });
+        angleDiffs.delete(0);
+
+        const angleDiffsArray = Array.from(angleDiffs);
+        console.log(angleDiffs);
+
+        for (let anglesCount = 1; anglesCount <= 4; anglesCount++) {
+            console.log(">>>>>>>>>>>>");
+            const angles = Combinations.kCombinations(angleDiffsArray, anglesCount);
+            console.log(angles);
+            angles.forEach(ang => {
+                console.log("::::::::::::::");
+                Combinations.permutation(ang, p => {
+                    const res = [0];
+                    for (let x = 1; x < tdcsZero720.length / 2 - 1; x++) {
+                        res.push(res[x - 1] + p[x % p.length]);
+                    }
+                    console.log(res);
+                });
+            });
+            // Combinations.permutation(angles, anglesPermutation => {
+            //     for (let ang = 0, i = 0; i < tdcsZero720.length / 2; i++) {
+            //         console.log(i + " " + ang);
+            //         ang += anglesPermutation[i % anglesPermutation.length];
+            //     }
+            // });
+        }
+
+    }
+
     createIgnitionsUneven() {
         const results = [];
 

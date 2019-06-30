@@ -7,6 +7,7 @@
     <script src="jquery-3.3.1.min.js"></script>
     <script src="engines.js"></script>
     <script src="graphics.js"></script>
+    <script src="combinations.js"></script>
     <link rel="stylesheet" href="engines.css" type="text/css">
     <script language="JavaScript">
 
@@ -15,10 +16,11 @@
 
         $(() => {
             enginesProvider.init().then(() => {
-                enginesProvider.getAll().forEach(engine => {
+                enginesProvider.getAll().slice(1, 3).forEach(engine => {
                     console.log("------------------------------------");
                     // engine.createIgnitionsUneven();
                     // engine.ignitionsEven = engine.createIgnitionsEven();
+                    engine.doStuff(engine.tdcsZero720, engine.tdcsZero);
                     const graphics = new Graphics(engine);
                     $("body").append(graphics.canvas).append($("<br/>"));
                     allGraphics.push(graphics);
