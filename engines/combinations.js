@@ -128,7 +128,6 @@ class Combinations {
         return results;
     }
 
-
     /**
      * Combinations
      *
@@ -180,7 +179,15 @@ class Combinations {
                 ++i;
             }
         }
-    };
+    }
+
+    static range(from, to) {
+        const result = [];
+        for (let i = from; i <= to; i++) {
+            result.push(i);
+        }
+        return result;
+    }
 
     static assert(actual, expected) {
         const actualJson = JSON.stringify(actual);
