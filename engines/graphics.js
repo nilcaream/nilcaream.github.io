@@ -5,6 +5,7 @@ class Graphics {
     constructor(engine, unit = 80) {
         this.engine = engine;
         this.started = false;
+        this.redraw = true;
         this.baseOffset = 0;
         this.timestamp = 0;
 
@@ -30,18 +31,18 @@ class Graphics {
         this.context.lineCap = "round";
 
         requestAnimationFrame(this.draw.bind(this));
-
-        console.log(this);
     }
 
     increaseOffset(delta) {
         this.baseOffset = Math.round(this.baseOffset + delta);
         // smooth and align to zero
         this.baseOffset = this.baseOffset - this.baseOffset % delta;
+        this.redraw = true;
     }
 
     start() {
         this.started = true;
+        this.redraw = true;
     }
 
     stop() {
@@ -57,23 +58,32 @@ class Graphics {
     }
 
     draw(timestamp) {
-        this.storeFrameData(timestamp);
+        // frame time limiter; refresh every 40ms or more
+        if ((timestamp - this.timestamp > 40 && this.started) || this.redraw) {
+            this.storeFrameData(timestamp);
 
-        const ctx = this.context;
-        ctx.save();
-        ctx.clearRect(0, 0, this.positions.width, this.positions.height);
-        this.drawBlock();
-        this.drawPistons();
-        ctx.restore();
+            const ctx = this.context;
+            ctx.save();
+            ctx.clearRect(0, 0, this.positions.width, this.positions.height);
+            this.drawBlock();
+            this.drawPistons();
+            ctx.restore();
 
-        if (this.started) {
-            this.baseOffset = (this.baseOffset + this.frame / 16) % 720;
+            if (this.started) {
+                this.baseOffset = (this.baseOffset + this.frame / 16) % 720;
+            }
+
+            this.redraw = false;
         }
         requestAnimationFrame(this.draw.bind(this));
     }
 
     storeFrameData(timestamp) {
-        this.frame = timestamp - this.timestamp;
+        if (this.redraw) {
+            this.frame = 20;
+        } else {
+            this.frame = timestamp - this.timestamp;
+        }
         this.fps = 1000 / this.frame;
         this.timestamp = timestamp;
     }

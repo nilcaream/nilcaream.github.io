@@ -16,7 +16,7 @@
       "banks": [-45, 45],
       "crankshaft": [0]
     }, {
-      "name": "V2 90 split pin",
+      "name": "V2 90 split 30",
       "numbering": [1, 2],
       "banks": [-45, 45],
       "splitPins": [-15, 15],
@@ -37,15 +37,30 @@
       "crankshaft": [0, 180, 180, 0],
       "firingOrder": [1, 3, 2, 4]
     }, {
+      "name": "Inline-6",
+      "numbering": [1, 2, 3, 4, 5, 6],
+      "crankshaft": [0, 240, 120, 120, 240, 0]
+    }, {
       "name": "V6 60",
       "numbering": [1, 2, 3, 4, 5, 6],
       "banks": [-30, 30],
       "crankshaft": [0, 240, 120]
     }, {
-      "name": "V6 90",
+      "name": "V6 60 split 60",
+      "numbering": [1, 2, 3, 4, 5, 6],
+      "banks": [-30, 30],
+      "splitPins": [-30, 30],
+      "crankshaft": [0, 240, 120]
+    }, {
+      "name": "V6 90 split 30",
       "numbering": [1, 2, 3, 4, 5, 6],
       "banks": [-45, 45],
       "splitPins": [-15, 15],
+      "crankshaft": [0, 240, 120]
+    }, {
+      "name": "V6 120",
+      "numbering": [1, 2, 3, 4, 5, 6],
+      "banks": [-60, 60],
       "crankshaft": [0, 240, 120]
     }, {
       "name": "Ferrari V8 (flatplane)",

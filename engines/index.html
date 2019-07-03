@@ -19,8 +19,6 @@
                 enginesProvider.getAll()
                 // .slice(1, 2)
                     .forEach(engine => {
-                        console.log("------------------------------------");
-                        engine.ignitionsEven = engine.createIgnitionsEven(engine.tdcsZero720, engine.evenAngleDiff);
                         const graphics = new Graphics(engine);
                         $("body").append(graphics.canvas).append($("<br/>"));
                         allGraphics.push(graphics);

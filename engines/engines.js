@@ -16,6 +16,7 @@ class EnginesProvider {
                     const engine = new Engine(engines);
                     dis.engines[engine.name] = engine;
                 });
+                console.log("Initialized engines");
                 console.log(dis.engines);
             });
     }
@@ -46,7 +47,8 @@ class Engine {
         this.tdcsZero720 = this.createTdcsZero720(this.tdcsZero);
         this.bdcs = this.createBdcs();
         this.evenAngleDiff = 720 / this.tdcs.length;
-        //this.ignitionsEven = this.createIgnitionsEven(this.tdcsZero720, this.evenAngleDiff);
+        this.ignitionsEven = this.createIgnitionsEven(this.tdcsZero720, this.evenAngleDiff);
+        this.ignitionsUneven = this.createIgnitionsUneven(this.tdcsZero720);
     }
 
     static _duplicate(array, count) {
@@ -95,7 +97,7 @@ class Engine {
         });
     }
 
-    createIgnitionsEven(tdcsZero720, evenAngleDiff) {
+    createTdcsAtAngles(tdcsZero720, angleDiffs) {
         const find = (array, value) => {
             const found = [];
             array.forEach((element, index) => {
@@ -106,6 +108,19 @@ class Engine {
             return found;
         };
 
+        const results = [];
+        // i=-1 because second stoke is the first angle difference
+        for (let angle = 0, i = -1; angle < 720; i++, angle += angleDiffs[i % angleDiffs.length]) {
+            const foundTdcs = find(tdcsZero720, angle);
+            console.log(this.name + ", tdcs[" + angle + "]: " + JSON.stringify(foundTdcs));
+            // if (foundTdcs.length > 0) {
+            results.push(foundTdcs);
+            // }
+        }
+        return results;
+    }
+
+    createIgnitions(tdcsZero720, angleDiffs) {
         const deepCopy = array => {
             const result = [];
             array.forEach(elements => {
@@ -127,6 +142,15 @@ class Engine {
 
         const is1d = arrays => arrays.reduce((x, y) => x && y.length === 1, true);
 
+        const reduceDepth = arrays => arrays.map(a => a[0]);
+
+        const areAllNotEmpty = arrays => arrays.reduce((x, y) => x && y.length > 0, true);
+
+        const hasNoDuplicates = arrays => {
+            const reduced = reduceDepth(arrays);
+            return reduced.reduce((x, y) => x && reduced.indexOf(y) === reduced.lastIndexOf(y), true);
+        };
+
         const expand = (array, callback = x => x) => {
             if (is1d(array)) {
                 callback(array);
@@ -143,37 +167,82 @@ class Engine {
             }
         };
 
-        const foundTdcsList = [];
-        let alwaysFoundSomething = true;
-        for (let angle = 0; angle < 720 && alwaysFoundSomething; angle += evenAngleDiff) {
-            const foundTdcs = find(tdcsZero720, angle);
-            alwaysFoundSomething = alwaysFoundSomething && foundTdcs.length > 0;
-            foundTdcsList.push(foundTdcs);
-        }
+        const foundTdcsList = this.createTdcsAtAngles(tdcsZero720, angleDiffs);
+        console.log(this.name + ", foundTdcs: " + JSON.stringify(foundTdcsList));
 
+        const flatResults = [];
         const results = [];
-        if (alwaysFoundSomething) {
-            console.log(this.name + " " + evenAngleDiff);
+
+        if (foundTdcsList.length === tdcsZero720.length / 2 && areAllNotEmpty(foundTdcsList)) {
+            // console.log(this.name + ", angleDiffs: " + angleDiffs.join(","));
             const normalizedResults = foundTdcsList.map(a => a.map(b => 1 + b % (tdcsZero720.length / 2)));
 
             // ensure that first bucket contains only first cylinder
-            const input = enforceValue(normalizedResults, normalizedResults[0][0], 0);
+            // const input = enforceValue(normalizedResults, normalizedResults[0][0], 0);
+            const input = normalizedResults;
 
             expand(input, array => {
-                if (is1d(array)) {
-                    const flat = flatten(array);
-                    if (results.indexOf(flat) === -1) {
-                        console.log("R: " + JSON.stringify(array));
-                        results.push(flat);
+                if (is1d(array) && hasNoDuplicates(array)) {
+                    const setup = {};
+                    for (let angle = 0, i = 0; i < tdcsZero720.length / 2; i++, angle += angleDiffs[(i - 1) % angleDiffs.length]) {
+                        setup[angle] = array[i][0];
+                    }
+                    const flat = JSON.stringify(setup);
+
+                    if (flatResults.indexOf(flat) === -1 && setup[0] === 1) {
+                        console.log(this.name + ", angleDiffs: " + angleDiffs.join(",") + ", ignitions: " + array.join(",") + ", setup: " + flat);
+                        flatResults.push(flat);
+                        results.push(setup);
                     }
                 }
             });
-
         } else {
-            console.log("Not found");
+            console.log(this.name + ", invalid length or empty tdcs");
         }
+        return results;
+    }
 
-        return results.map(a => a.split(""));
+    createIgnitionsEven(tdcsZero720, evenAngleDiff) {
+        return this.createIgnitions(tdcsZero720, [evenAngleDiff]);
+    }
+
+    createIgnitionsUneven(tdcsZero720) {
+        const tdcsDiffs = [];
+
+        tdcsZero720.forEach(a => {
+            tdcsZero720.forEach(b => {
+                let diff = a - b;
+                if (diff < 0) {
+                    diff = 360 - diff;
+                }
+                diff = diff % 720;
+                if (diff > 0 && tdcsDiffs.indexOf(diff) === -1) {
+                    tdcsDiffs.push(diff);
+                }
+            });
+
+        });
+
+        tdcsDiffs.sort((x, y) => x - y);
+        console.log(this.name + ", TDC angle differences: " + tdcsDiffs.join(","));
+
+        const flatResults = [];
+        const results = [];
+        Combinations.kCombinations(tdcsDiffs, 2).forEach(tdcsDiff => {
+            Combinations.permutation(tdcsDiff, tdcsDiffsPermutation => {
+                console.log(this.name + ", possible angles: " + tdcsDiffsPermutation.join(","));
+                const partialResults = this.createIgnitions(tdcsZero720, tdcsDiffsPermutation);
+                partialResults.forEach(partialResult => {
+                    const flatResult = JSON.stringify(partialResult);
+                    if (flatResults.indexOf(flatResult) === -1) {
+                        flatResults.push(flatResult);
+                        results.push(partialResult);
+                    }
+                });
+            });
+        });
+
+        return results;
     }
 
     createCrankshaftZero() {
