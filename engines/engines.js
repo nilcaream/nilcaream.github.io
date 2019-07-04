@@ -48,7 +48,9 @@ class Engine {
         this.bdcs = this.createBdcs();
         this.evenAngleDiff = 720 / this.tdcs.length;
         this.ignitionsEven = this.createIgnitionsEven(this.tdcsZero720, this.evenAngleDiff);
+        this.ignitionsEvenBanks = this.ignitionsEven.map(setup => this.createBanksOrder(setup, this.banks));
         this.ignitionsUneven = this.createIgnitionsUneven(this.tdcsZero720);
+        this.ignitionsUnevenBanks = this.ignitionsUneven.map(setup => this.createBanksOrder(setup, this.banks));
     }
 
     static _duplicate(array, count) {
@@ -67,6 +69,13 @@ class Engine {
             result.push(array[i % array.length]);
         }
         return result;
+    }
+
+    createBanksOrder(ignitions, banks) {
+        const banksCount = new Set(banks).size;
+        const bankIds = banksCount === 1 ? ["C"] : banksCount === 2 ? ["L", "R"] : banksCount === 3 ? ["L", "C", "R"] : Combinations.range(1, banksCount).map(x => "B" + x);
+        const angles = Object.keys(ignitions).sort((x, y) => x - y);
+        return angles.map(angle => ignitions[angle] - 1).map(cylinderNumber => bankIds[cylinderNumber % bankIds.length]);
     }
 
     createTdcs(crankshaftZero, banks) {
@@ -177,11 +186,7 @@ class Engine {
             // console.log(this.name + ", angleDiffs: " + angleDiffs.join(","));
             const normalizedResults = foundTdcsList.map(a => a.map(b => 1 + b % (tdcsZero720.length / 2)));
 
-            // ensure that first bucket contains only first cylinder
-            // const input = enforceValue(normalizedResults, normalizedResults[0][0], 0);
-            const input = normalizedResults;
-
-            expand(input, array => {
+            expand(normalizedResults, array => {
                 if (is1d(array) && hasNoDuplicates(array)) {
                     const setup = {};
                     for (let angle = 0, i = 0; i < tdcsZero720.length / 2; i++, angle += angleDiffs[(i - 1) % angleDiffs.length]) {
