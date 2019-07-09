@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sound</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <script src="jquery-3.3.1.min.js"></script>
+    <script src="engines.js"></script>
+    <script src="graphics.js"></script>
+    <script src="combinations.js"></script>
+    <link rel="stylesheet" href="engines.css" type="text/css">
+    <script language="JavaScript">
+
+        const enginesProvider = new EnginesProvider();
+        const options = [];
+
+        let rpm = 100;
+        let audioBufferSource;
+        let waveData;
+        let audioCtx;
+
+        const addToOptions = (description, engineName, even, configurationIndex) => {
+            $("#engineSelect").append($('<option>', {
+                value: options.length, text: description
+            }));
+            options.push({
+                engineName: engineName,
+                even: even,
+                configurationIndex: configurationIndex
+            });
+        };
+
+        const startAudio = () => {
+            if (audioBufferSource) {
+                audioBufferSource.start();
+            }
+        };
+
+        const stopAudio = () => {
+            if (audioBufferSource) {
+                audioBufferSource.stop();
+            }
+        };
+
+        const selectOption = index => {
+            const option = options[index];
+            const engine = enginesProvider.get(option.engineName);
+
+            stopAudio();
+
+            //https://developer.mozilla.org/en-US/docs/Web/API/BaseAudioContext/createBuffer
+            audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+            const sampleRate = audioCtx.sampleRate;
+
+            const base = engine.createIgnitionTimesProvider(option.even, option.configurationIndex)(rpm);
+            const channels = Object.keys(base).filter(x => x !== "total");
+
+            const bufferSize = Math.round(base.total * sampleRate / 1000);
+            const buffer = audioCtx.createBuffer(channels.length, bufferSize, sampleRate);
+            const smoothSteps = Math.round(0.05 * bufferSize / engine.numbering.length);
+            // TODO
+            // const fadeRatio = 1 - engine.numbering.length / bufferSize;
+
+            const play = () => {
+                const channelData = channels.map((c, i) => buffer.getChannelData(i));
+                // console.log("Channel data");
+                // console.log(channelData);
+
+                const ranges = channels.map(x => []);
+                channels.forEach((channel, channelIndex) => {
+                    base[channel].map(time => time * sampleRate / 1000).forEach(position => {
+                        ranges[channelIndex].push(Math.round(position));
+                    });
+                });
+
+                console.log("Buffer size " + bufferSize);
+                ranges.forEach((positions, channelIndex) => {
+                    positions.forEach((position, positionIndex) => {
+                        const start = position;
+                        const end = positions[(positionIndex + 1) % positions.length];
+                        const length = (end > start) ? end - start : bufferSize - start + end;
+                        console.log("Channel " + channelIndex + " start: " + start + ", end: " + end + ", length: " + length);
+
+                        for (let i = 0; i < length; i++) {
+                            const pos = (i + start) % bufferSize;
+                            const sound = waveData[i];
+                            let smoothFactor = 1;
+
+                            if (i < smoothSteps) {
+                                smoothFactor = i / smoothSteps;
+                            } else if (i > length - smoothSteps) {
+                                smoothFactor = (smoothSteps + length - i) / smoothSteps - 1;
+                            }
+
+                            channelData[channelIndex][pos] = smoothFactor * sound;
+                        }
+                    });
+                });
+
+                for (let i = 0; i < bufferSize; i++) {
+                    //console.log("i=" + i + ", data " + channels.map((channel, index) => channelData[index][i].toFixed(3)).join(" "));
+                }
+                console.log("Smooth steps: " + smoothSteps);
+                console.log("Ranges: " + ranges.map(r => r.join(",")).join(" : "));
+
+                // stereo to mono 50/50 downmix
+                for (let i = 0; i < bufferSize; i++) {
+                    let sum = 0;
+                    channelData.forEach(data => sum += data[i]);
+                    sum = sum / channelData.length;
+                    channelData.forEach(data => data[i] = 0.5 * data[i] + 0.5 * sum);
+                }
+
+                audioBufferSource = audioCtx.createBufferSource();
+                audioBufferSource.buffer = buffer;
+                audioBufferSource.loop = true;
+                audioBufferSource.start(0);
+                audioBufferSource.connect(audioCtx.destination);
+            };
+
+            if (waveData) {
+                play();
+            } else {
+                const request = new XMLHttpRequest();
+                request.open('GET', "sound01.wav", true);
+                request.responseType = 'arraybuffer';
+                request.onload = () => {
+                    audioCtx.decodeAudioData(request.response, waveBuffer => {
+                        console.log("Loaded");
+                        waveData = waveBuffer.getChannelData(0);
+                        play();
+                    }, console.log);
+                };
+                request.send();
+            }
+        };
+
+        $(() => {
+            enginesProvider.init().then(() => {
+                enginesProvider.getAll().forEach((engine, index) => {
+                    console.log("Engine number: " + index + ", name: " + engine.name);
+                    engine.ignitionsEven.forEach((setup, i) => {
+                        addToOptions(engine.name + " even " + Object.values(setup).join("") + " (" + Object.keys(setup) + ") " + engine.ignitionsEvenBanks[i].join(""), engine.name, true, i);
+                        console.log("Even: " + i + ", setup: " + Object.keys(setup) + ", banks: " + engine.ignitionsEvenBanks[i].join(""));
+                    });
+                    engine.ignitionsUneven.forEach((setup, i) => {
+                        addToOptions(engine.name + " uneven " + Object.values(setup).join("") + " (" + Object.keys(setup) + ") " + engine.ignitionsUnevenBanks[i].join(""), engine.name, false, i);
+                        console.log("Uneven: " + i + ", setup: " + Object.keys(setup) + ", banks: " + engine.ignitionsUnevenBanks[i].join(""));
+                    });
+                });
+
+                $("#engineSelect").change(event => {
+                    const optionIndex = parseInt($(event.target).val());
+                    if (optionIndex !== -1) {
+                        selectOption(optionIndex);
+                    }
+                });
+
+                const rpmSelect = $("#rpmSelect");
+                [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 2000, 3000, 4000, 5000, 6000].forEach(selectedRpm => {
+                    rpmSelect.append($('<option>', {
+                        value: selectedRpm, text: selectedRpm + " RPM"
+                    }));
+                });
+                rpmSelect.change(event => {
+                    const optionIndex = parseInt($(event.target).val());
+                    if (optionIndex !== -1) {
+                        rpm = optionIndex;
+                        $("#engineSelect").change();
+                    }
+                });
+
+                $("#stop").click(() => {
+                    stopAudio();
+                });
+
+            });
+        });
+
+    </script>
+</head>
+<body>
+<select id="engineSelect">
+    <option value="-1">Select configuration</option>
+</select>
+<select id="rpmSelect">
+    <option value="-1">Select RPM</option>
+</select>
+<button id="stop">Stop</button>
+</body>
+</html>

@@ -71,6 +71,27 @@ class Engine {
         return result;
     }
 
+    createIgnitionTimesProvider(even, index) {
+        const ignitions = (even ? this.ignitionsEven : this.ignitionsUneven)[index];
+        const ignitionsAngles = Object.keys(ignitions);
+        const banks = (even ? this.ignitionsEvenBanks : this.ignitionsUnevenBanks)[index];
+
+        const banksChannels = Array.from(new Set(banks));
+
+        return rpm => {
+            const totalTimeMs = 60000 / rpm;
+            const angleToMs = angle => totalTimeMs * angle / 720;
+
+            const results = {total: totalTimeMs};
+            banksChannels.forEach(bankChannel => results[bankChannel] = []);
+            ignitionsAngles.forEach((angle, index) => {
+                results[banks[index]].push(angleToMs(angle));
+            });
+
+            return results;
+        };
+    }
+
     createBanksOrder(ignitions, banks) {
         const banksCount = new Set(banks).size;
         const bankIds = banksCount === 1 ? ["C"] : banksCount === 2 ? ["L", "R"] : banksCount === 3 ? ["L", "C", "R"] : Combinations.range(1, banksCount).map(x => "B" + x);

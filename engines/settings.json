@@ -37,6 +37,10 @@
       "crankshaft": [0, 180, 180, 0],
       "firingOrder": [1, 3, 2, 4]
     }, {
+      "name": "Inline-5",
+      "numbering": [1, 2, 3, 4, 5],
+      "crankshaft": [0, 216, 144, 72, 288]
+    }, {
       "name": "Inline-6",
       "numbering": [1, 2, 3, 4, 5, 6],
       "crankshaft": [0, 240, 120, 120, 240, 0]
