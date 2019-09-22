@@ -36,8 +36,9 @@
             canvas.style.position = "fixed";
             canvas.style.top = 0;
             canvas.style.left = 0;
-            canvas.style.cursor = "none";
-            canvas.style["z-index"] = 30303;
+            // canvas.style.cursor = "none";
+            // canvas.style["z-index"] = 30303;
+            canvas.style["z-index"] = -10;
 
             this.canvas = canvas;
             this.context = canvas.getContext("2d");
