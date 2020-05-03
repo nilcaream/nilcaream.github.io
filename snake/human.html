@@ -8,45 +8,54 @@
     <script src="jquery-3.5.0.min.js"></script>
     <script src="snake.js"></script>
     <script src="game.js"></script>
-    <script src="step-human.js"></script>
+    <script src="human.js"></script>
     <link rel="stylesheet" href="snake.css" type="text/css">
     <script language="JavaScript">
         $(() => {
-            const world = { width: 20, height: 20, unit: 16, pad: 1 };
+            const state = { dx: 0, dy: 0, time: 0 };
+            const world = { width: 20, height: 20, unit: 30, pad: 1, refresh: 200 };
             const game = new Game(world.width, world.height);
-            const player = new StepHuman((dx, dy) => game.step(dx, dy));
-            const board = $("#board")
-                .css("border", "1px solid black")
-                .attr("width", world.width * world.unit)
-                .attr("height", world.height * world.unit);
-            const ctx = board[0].getContext("2d");
-            const drawPixel = (positionX, positionY) => ctx.fillRect(positionX * world.unit + world.pad, positionY * world.unit + world.pad, world.unit - 2 * world.pad, world.unit - 2 * world.pad);
-            const draw = timestamp => {
-                ctx.clearRect(0, 0, world.width * world.unit, world.height * world.unit);
-                game.snake.tail.forEach((e, i) => {
-                    const index = game.snake.tail.length - i;
-                    if (i === game.snake.tail.length - 1) {
-                        ctx.fillStyle = "yellow";
-                    } else {
-                        ctx.fillStyle = `rgb(100,${Math.max(150, 250 - 10 * index)},${Math.min(250, 100 + 10 * index)})`;
+            const player = new Human("keydown", (dx, dy) => { state.dx = dx; state.dy = dy });
+            //const player = new Human("keyup", (dx, dy) => game.step(dx, dy));
 
+            const ctx = $("#board").css("border", "1px solid black")
+                .attr("width", world.width * world.unit).attr("height", world.height * world.unit)[0].getContext("2d");
+            ctx.font = "20px monospace";
+
+            const drawPixel = (positionX, positionY) => ctx.fillRect(positionX * world.unit + world.pad, positionY * world.unit + world.pad, world.unit - 2 * world.pad, world.unit - 2 * world.pad);
+
+            const animate = timestamp => {
+                if (timestamp - state.time > world.refresh) {
+                    ctx.clearRect(0, 0, world.width * world.unit, world.height * world.unit);
+                    if (state.dx !== 0 || state.dy !== 0) {
+                        game.step(state.dx, state.dy);
                     }
-                    drawPixel(e.x, e.y);
-                });
-                ctx.fillStyle = "rgb(255,0,0)";
-                drawPixel(game.apple.x, game.apple.y);
-                requestAnimationFrame(draw);
+                    game.snake.tail.forEach((e, i) => {
+                        const index = game.snake.tail.length - i;
+                        if (i === game.snake.tail.length - 1) {
+                            ctx.fillStyle = "yellow";
+                        } else {
+                            ctx.fillStyle = `rgb(${100 + 100 * Math.sin(index / 17)},${200 + 50 * Math.cos(index / 8)},${150 + 100 * Math.sin(index / 13)})`;
+                        }
+                        drawPixel(e.x, e.y);
+                    });
+                    ctx.fillStyle = "rgb(255,0,0)";
+                    drawPixel(game.apple.x, game.apple.y);
+                    ctx.fillStyle = "black";
+                    ctx.fillText(`Points: ${game.points}`, 0, 18);
+                    ctx.fillText(`Lives: ${game.lives}`, 0, 38);
+                    state.time = timestamp;
+                }
+                requestAnimationFrame(animate);
             }
-            requestAnimationFrame(draw);
+            requestAnimationFrame(animate);
 
         });
     </script>
 </head>
 
 <body>
-    <div class="w50 fl">
-        <canvas id="board" />
-    </div>
+    <div class="w50 fl"> <canvas id="board" /> </div>
     <div class="w50">right</div>
 </body>
 
