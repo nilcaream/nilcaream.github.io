@@ -13,20 +13,22 @@ class Neural {
         const f = Neural.sigmoid;
         let layer = input.map((e, i) => f(e * this.weights[0][i][0]));
 
-        console.log(layer);
+        //console.log(layer);
         for (let i = 1; i < this.weights.length; i++) {
             const outputs = [];
             for (let j = 0; j < this.weights[i].length; j++) {
                 let output = 0;
                 for (let k = 0; k < this.weights[i][j].length; k++) {
                     output += this.weights[i][j][k] * layer[k];
-                    console.log(`w(${i}${j}${k})=${this.weights[i][j][k]} p(k)=${layer[k]}`);
+                    //console.log(`w(${i}${j}${k})=${this.weights[i][j][k]} p(k)=${layer[k]}`);
                 }
                 outputs.push(f(output));
             }
-            console.log(outputs);
+            //console.log(outputs);
             layer = outputs;
         }
+
+        return layer;
     }
 
     // neuronCounts - array of neron counts per layer e.g. [2,4,4,5]

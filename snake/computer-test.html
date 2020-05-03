@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Neural</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="jquery-3.5.0.min.js"></script>
+    <script src="snake.js"></script>
+    <script src="game.js"></script>
+    <script src="neural.js"></script>
+    <script src="computer.js"></script>
+    <link rel="stylesheet" href="snake.css" type="text/css">
+    <script language="JavaScript">
+        $(() => {
+            for (let i = 0; i < 128; i++) {
+                const weights = Neural.randomWeights([6, 6, 6, 4]);
+                const neural = new Neural(weights);
+                const game = new Game(20, 20);
+                const computer = new Computer(game, neural);
+                const score = computer.run();
+                console.log(`===== score: ${score}, points: ${game.points}, age: ${game.age}, lives: ${game.lives}`);
+            }
+        });
+    </script>
+</head>
+
+<body>
+</body>
+
+</html>

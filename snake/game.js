@@ -7,6 +7,7 @@ class Game {
         this.apple = this.createApple();
         this.points = 0;
         this.lives = this.reward;
+        this.age = 0;
     }
 
     createApple() {
@@ -33,6 +34,7 @@ class Game {
             this.snake.shrink();
             this.lives--;
         }
+        this.age++;
         return this.lives > 0;
     }
 }
