@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Cube</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="jquery-3.5.0.min.js"></script>
+    <script src="snake.js"></script>
+    <script src="game.js"></script>
+    <script src="step-human.js"></script>
+    <link rel="stylesheet" href="snake.css" type="text/css">
+    <script language="JavaScript">
+        $(() => {
+            const world = { width: 20, height: 20, unit: 16, pad: 1 };
+            const game = new Game(world.width, world.height);
+            const player = new StepHuman((dx, dy) => game.step(dx, dy));
+            const board = $("#board")
+                .css("border", "1px solid black")
+                .attr("width", world.width * world.unit)
+                .attr("height", world.height * world.unit);
+            const ctx = board[0].getContext("2d");
+            const drawPixel = (positionX, positionY) => ctx.fillRect(positionX * world.unit + world.pad, positionY * world.unit + world.pad, world.unit - 2 * world.pad, world.unit - 2 * world.pad);
+            const draw = timestamp => {
+                ctx.clearRect(0, 0, world.width * world.unit, world.height * world.unit);
+                game.snake.tail.forEach((e, i) => {
+                    const index = game.snake.tail.length - i;
+                    if (i === game.snake.tail.length - 1) {
+                        ctx.fillStyle = "yellow";
+                    } else {
+                        ctx.fillStyle = `rgb(100,${Math.max(150, 250 - 10 * index)},${Math.min(250, 100 + 10 * index)})`;
+
+                    }
+                    drawPixel(e.x, e.y);
+                });
+                ctx.fillStyle = "rgb(255,0,0)";
+                drawPixel(game.apple.x, game.apple.y);
+                requestAnimationFrame(draw);
+            }
+            requestAnimationFrame(draw);
+
+        });
+    </script>
+</head>
+
+<body>
+    <div class="w50 fl">
+        <canvas id="board" />
+    </div>
+    <div class="w50">right</div>
+</body>
+
+</html>

@@ -1,0 +1,14 @@
+html, body {
+    font-size: 13px;
+    margin: 0.2rem;
+    font-family: monospace;
+    white-space: nowrap;
+}
+
+.w50 {
+    width: 50%;
+}
+
+.fl {
+    float: left;
+}
