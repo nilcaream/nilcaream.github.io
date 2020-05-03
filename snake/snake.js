@@ -37,6 +37,6 @@ class Snake {
 
     hasHitWall(minX, maxX, minY, maxY) {
         const head = this.getHead();
-        return head.x < minX || head.x > maxX || head.y < minY || head.y > maxY;
+        return head.x < minX || head.x >= maxX || head.y < minY || head.y >= maxY;
     }
 }
