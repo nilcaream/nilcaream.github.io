@@ -18,7 +18,6 @@ class Computer {
     }
 
     run(weights) {
-        this.game.reset();
         while (this.game.lives > 0) {
             const input = this.calculateInput();
             //console.log(input);
@@ -26,7 +25,6 @@ class Computer {
             //console.log(output);
             const max = output.indexOf(Math.max(...output));
             this.game.step((max === 0) - (max === 1), (max === 2) - (max === 3));
-        }
-        return this.game.points * 1000 / this.diagonal + this.game.age;
+        }        
     }
 }

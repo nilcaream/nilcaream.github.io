@@ -14,8 +14,8 @@
     <link rel="stylesheet" href="snake.css" type="text/css">
     <script language="JavaScript">
         $(() => {
-            const populationSize = 512;
-            const generations = 30000;
+            const populationSize = 2 * 1024;
+            const generations = 16 * 1024;
             const game = new Game(20, 20);
             const computer = new Computer(game);
             const weights = Array(populationSize).fill(null).map(() => Neural.createWeights([6, 6, 6, 4], () => Math.random() * 100 - 50));
@@ -25,22 +25,24 @@
                 //console.log("--------------------");
                 const results = [];
                 for (let i = 0; i < populationSize; i++) {
-                    const score = computer.run(weights[i]);
+                    game.reset();
+                    computer.run(weights[i]);
+                    const score = game.points * 300 + game.age;                   
                     //console.log(`> score: ${score}, points: ${game.points}, age: ${game.age}`);
                     results.push({ score: score, points: game.points, age: game.age, generation: g, weights: weights[i] });
                 }
                 results.sort((a, b) => b.score - a.score);
-                results.slice(0, 8).forEach(result => {
+                results.slice(0, 8).filter(result => result.points >= 3).forEach(result => {
                     //console.log(`g:${g} score: ${result.score}, points: ${result.points}, age: ${result.age}`);
                     best.push(result);
                 });
                 results.forEach((result, i) => {
-                    if (i < populationSize / 2) {
+                    if (i < populationSize * 0.3) {
                         weights[i] = result.weights;
                     } else {
-                        const weightsA = results[Math.floor(Math.random() * populationSize)].weights;
-                        const weightsB = results[Math.floor(Math.random() * populationSize)].weights;
-                        weights[i] = Genetic.crossover(weightsA, weightsB, () => Math.random() > 0.5, (x) => Math.random() > 0.05 ? x : Math.random * 100 - 50);
+                        const weightsA = results[(Math.random() * populationSize * 0.5) | 0].weights;
+                        const weightsB = results[(Math.random() * populationSize * 0.7) | 0].weights;
+                        weights[i] = Genetic.crossover(weightsA, weightsB, () => Math.random() > 0.5, (x) => Math.random() > 0.05 ? x : Math.random() * 100 - 50);
                     }
                 });
                 if (g % 100 == 0) {
