@@ -9,12 +9,13 @@
     <script src="snake.js"></script>
     <script src="game.js"></script>
     <script src="neural.js"></script>
+    <script src="genetic.js"></script>
     <link rel="stylesheet" href="snake.css" type="text/css">
     <script language="JavaScript">
         $(() => {
-            const weights = Neural.randomWeights([2, 3, 4]);
+            const weights = Neural.createWeights([2, 3, 4], () => Math.random() * 100 - 50);
             console.log(weights);
-            new Neural(weights).calculateOutput([-2, 2]);
+            Neural.calculateOutput([-2, 2], weights);
         });
     </script>
 </head>
