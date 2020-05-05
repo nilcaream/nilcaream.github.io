@@ -1,7 +1,6 @@
 class Computer {
-    constructor(game, neural) {
+    constructor(game) {
         this.game = game;
-        this.neural = neural;
         this.diagonal = Math.sqrt(game.width * game.width + game.height * game.height);
     }
 
@@ -18,15 +17,16 @@ class Computer {
         ];
     }
 
-    run() {
+    run(weights) {
+        this.game.reset();
         while (this.game.lives > 0) {
             const input = this.calculateInput();
             //console.log(input);
-            const output = this.neural.calculateOutput(input);
+            const output = Neural.calculateOutput(input, weights);
             //console.log(output);
             const max = output.indexOf(Math.max(...output));
             this.game.step((max === 0) - (max === 1), (max === 2) - (max === 3));
         }
-        return this.game.points * 100 + this.game.age;
+        return this.game.points * 1000 / this.diagonal + this.game.age;
     }
 }

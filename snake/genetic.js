@@ -10,9 +10,9 @@ class Genetic {
         }
     }
 
-    chooseBest(fraction) {
-        const number = Math.floor(this.results.length * fraction);
-        return this.results.sort((a, b) => b.score - a.score).slice(0, number);
+    static chooseBest(results, fraction) {
+        const number = Math.floor(results.length * fraction);
+        return results.sort((a, b) => b.score - a.score).slice(0, number);
     }
 
     static crossover(weightsA, weightsB, selector, mutator) {

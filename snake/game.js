@@ -2,8 +2,12 @@ class Game {
     constructor(width, height) {
         this.width = width;
         this.height = height;
-        this.reward = 2 * Math.floor(Math.sqrt(width * width + height * height));
-        this.snake = new Snake(Math.floor(width / 2), Math.floor(height / 2), 4);
+        this.reset();
+    }
+
+    reset() {
+        this.reward = 2 * Math.floor(Math.sqrt(this.width * this.width + this.height * this.height));
+        this.snake = new Snake(Math.floor(this.width / 2), Math.floor(this.height / 2), 4);
         this.apple = this.createApple();
         this.points = 0;
         this.lives = this.reward;

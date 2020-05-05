@@ -10,22 +10,57 @@
     <script src="game.js"></script>
     <script src="neural.js"></script>
     <script src="computer.js"></script>
+    <script src="genetic.js"></script>
     <link rel="stylesheet" href="snake.css" type="text/css">
     <script language="JavaScript">
         $(() => {
-            for (let i = 0; i < 128; i++) {
-                const weights = Neural.randomWeights([6, 6, 6, 4]);
-                const neural = new Neural(weights);
-                const game = new Game(20, 20);
-                const computer = new Computer(game, neural);
-                const score = computer.run();
-                console.log(`===== score: ${score}, points: ${game.points}, age: ${game.age}, lives: ${game.lives}`);
+            const populationSize = 512;
+            const generations = 30000;
+            const game = new Game(20, 20);
+            const computer = new Computer(game);
+            const weights = Array(populationSize).fill(null).map(() => Neural.createWeights([6, 6, 6, 4], () => Math.random() * 100 - 50));
+            const best = [];
+
+            for (let g = 0; g < generations; g++) {
+                //console.log("--------------------");
+                const results = [];
+                for (let i = 0; i < populationSize; i++) {
+                    const score = computer.run(weights[i]);
+                    //console.log(`> score: ${score}, points: ${game.points}, age: ${game.age}`);
+                    results.push({ score: score, points: game.points, age: game.age, generation: g, weights: weights[i] });
+                }
+                results.sort((a, b) => b.score - a.score);
+                results.slice(0, 8).forEach(result => {
+                    //console.log(`g:${g} score: ${result.score}, points: ${result.points}, age: ${result.age}`);
+                    best.push(result);
+                });
+                results.forEach((result, i) => {
+                    if (i < populationSize / 2) {
+                        weights[i] = result.weights;
+                    } else {
+                        const weightsA = results[Math.floor(Math.random() * populationSize)].weights;
+                        const weightsB = results[Math.floor(Math.random() * populationSize)].weights;
+                        weights[i] = Genetic.crossover(weightsA, weightsB, () => Math.random() > 0.5, (x) => Math.random() > 0.05 ? x : Math.random * 100 - 50);
+                    }
+                });
+                if (g % 100 == 0) {
+                    console.log(`g:${g} score: ${results[0].score}, points: ${results[0].points}, age: ${results[0].age}`);
+                }
             }
+
+            console.log("===============");
+            const div = $("#results");
+            best.sort((a, b) => b.score - a.score);
+            best.slice(0, 64).forEach(result => {
+                div.append($("<div></div>").addClass("result").text(JSON.stringify(result)));
+                console.log(`g:${result.generation} score: ${result.score}, points: ${result.points}, age: ${result.age}`);
+            });
         });
     </script>
 </head>
 
 <body>
+    <div id="results"></div>
 </body>
 
 </html>
