@@ -21,23 +21,20 @@
                 div.append($("<div></div>").text(text));
                 window.scrollTo(0, document.body.scrollHeight);
             };
-            const ui = new GameUi({ width: 20, height: 20, unit: 30, pad: 1, refreshInterval: 200 }, "board");
-            const uiComputer = new Computer(ui.game);
 
-            const populationSize = 1 * 1024;
-            const generations = 8 * 1024;
+            const populationSize = 1000;
+            const generations = 4000;
             const game = new Game(20, 20);
             const computer = new Computer(game);
-            const stored = Storage.load();
+            const stored = Storage.load().slice(0, populationSize * 0.8);
             const weights = stored.map(x => x.weights);
-            //Array(populationSize).fill(null).map(() => Neural.createWeights([6, 5, 5, 4], () => Math.random() * 100 - 50));
             const bestResults = [];
 
             log(`Population ${populationSize}, generations ${generations}`);
             log(`Loaded ${stored.length} weights`);
-            log(`Best: ${JSON.stringify(stored[0])}`);
+            log(`Best: ${JSON.stringify(stored[0] || {})}`);
             while (weights.length < populationSize) {
-                weights.push(Neural.createWeights([6, 5, 5, 4], () => Math.random() * 100 - 50));
+                weights.push(Neural.createWeights([8, 8, 8, 4], () => Math.random() * 100 - 50));
             }
 
             let g = 0;
@@ -52,7 +49,7 @@
                     while (game.lives > 0) {
                         computer.step(weights[i]);
                     }
-                    const score = game.points * 300 + game.age;
+                    const score = game.points * 800 + game.age;
                     //console.log(`> score: ${score}, points: ${game.points}, age: ${game.age}`);
                     results.push({ score: score, points: game.points, age: game.age, generation: g, seed: game.seed, weights: weights[i] });
                 }
@@ -96,23 +93,24 @@
                     bestResults.slice(0, 64).forEach(result => log(`g:${result.generation} score: ${result.score}, points: ${result.points}, age: ${result.age}`));
                     log("===============");
                     bestResults.slice(0, 64).forEach(result => log(JSON.stringify(result)));
-                    Storage.add(bestResults);
+
+                    const ui = new GameUi({ width: 20, height: 20, unit: 30, pad: 1, refreshInterval: 200 }, "board");
+                    const uiComputer = new Computer(ui.game);
+
+                    setInterval(() => {
+                        uiComputer.step(singBestResult.weights);
+                        ui.draw();
+                        if (ui.game.lives <= 0) {
+                            ui.game.reset();
+                        }
+                    }, 100);
+                    Storage.add(bestResults, 128);
                 } else {
                     setTimeout(() => work100(), 0)
                 }
             }
 
             setTimeout(() => work100(), 0);
-
-            setInterval(() => {
-                if (singBestResult.score > 0) {
-                    uiComputer.step(singBestResult.weights);
-                    ui.draw();
-                    if (ui.game.lives <= 0) {
-                        ui.game.reset();
-                    }
-                }
-            }, 100);
         });
     </script>
 </head>

@@ -12,7 +12,7 @@ class GameUi {
             .css("background-color", "rgba(255,255,255,0.95)")
             .attr("width", this.world.width * this.world.unit)
             .attr("height", this.world.height * this.world.unit)[0].getContext("2d");
-        ctx.font = "20px monospace";
+        ctx.font = "14px monospace";
         return ctx;
     }
 
@@ -34,7 +34,9 @@ class GameUi {
         this.ctx.fillStyle = "rgb(255,0,0)";
         this.drawPixel(this.game.apple.x, this.game.apple.y);
         this.ctx.fillStyle = "black";
-        this.ctx.fillText(`Points: ${this.game.points}`, 0, 18);
-        this.ctx.fillText(`Lives: ${this.game.lives}`, 0, 38);
+        this.ctx.fillText(`Points: ${this.game.points}`, 0, 14);
+        this.ctx.fillText(`Lives: ${this.game.lives}`, 0, 28);
+        this.ctx.fillText(`Age: ${this.game.age}`, 0, 42);
+        this.ctx.fillText(`Distance: ${this.game.getDistance().toFixed(2)}`, 0, 56);
     }
 }

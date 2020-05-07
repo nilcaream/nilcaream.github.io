@@ -8,7 +8,7 @@ class Game {
 
     reset(seed) {
         //this.updateSeed(seed);
-        this.reward = 2 * Math.floor(Math.sqrt(this.width * this.width + this.height * this.height));
+        this.reward = 2 * Math.max(this.width, this.height);
         this.snake = new Snake(Math.floor(this.width / 2), Math.floor(this.height / 2), 4);
         this.apple = this.createApple();
         this.points = 0;
@@ -19,6 +19,11 @@ class Game {
     updateSeed(seed) {
         this.seed = seed || this.seed || Math.random() * new Date().getTime();
         this.random = Game.mulberry32(this.seed);
+    }
+
+    getDistance() {
+        const head = this.snake.getHead();
+        return Math.hypot(this.apple.x - head.x, this.apple.y - head.y);
     }
 
     createApple() {
