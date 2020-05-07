@@ -9,6 +9,7 @@ class GameUi {
     createContext(boardId) {
         const ctx = $("#" + boardId)
             .css("border", "1px solid black")
+            .css("background-color", "rgba(255,255,255,0.95)")
             .attr("width", this.world.width * this.world.unit)
             .attr("height", this.world.height * this.world.unit)[0].getContext("2d");
         ctx.font = "20px monospace";

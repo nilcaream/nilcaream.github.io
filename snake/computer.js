@@ -17,14 +17,10 @@ class Computer {
         ];
     }
 
-    run(weights) {
-        while (this.game.lives > 0) {
-            const input = this.calculateInput();
-            //console.log(input);
-            const output = Neural.calculateOutput(input, weights);
-            //console.log(output);
-            const max = output.indexOf(Math.max(...output));
-            this.game.step((max === 0) - (max === 1), (max === 2) - (max === 3));
-        }        
+    step(weights) {
+        const input = this.calculateInput();
+        const output = Neural.calculateOutput(input, weights);
+        const max = output.indexOf(Math.max(...output));
+        this.game.step((max === 0) - (max === 1), (max === 2) - (max === 3));
     }
 }

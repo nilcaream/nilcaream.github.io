@@ -2,11 +2,12 @@ class Game {
     constructor(width, height, seed) {
         this.width = width;
         this.height = height;
+        this.random = Math.random;
         this.reset(seed);
     }
 
     reset(seed) {
-        this.updateSeed(seed);
+        //this.updateSeed(seed);
         this.reward = 2 * Math.floor(Math.sqrt(this.width * this.width + this.height * this.height));
         this.snake = new Snake(Math.floor(this.width / 2), Math.floor(this.height / 2), 4);
         this.apple = this.createApple();
