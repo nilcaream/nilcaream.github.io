@@ -14,7 +14,7 @@
     <script language="JavaScript">
         $(() => {
             const state = { dx: 0, dy: 1, time: 0 };
-            const world = { width: 20, height: 20, unit: 30, pad: 1, refreshInterval: 100 };
+            const world = { width: 20, height: 20, unit: 30, pad: 1 };
             const gameUi = new GameUi(world, "board");
 
             Human.register("keyup", (dx, dy) => { gameUi.game.step(dx, dy); gameUi.draw(); });

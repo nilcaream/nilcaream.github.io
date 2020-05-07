@@ -1,7 +1,7 @@
 class GameUi {
-    constructor(world, boardId) {
+    constructor(world, boardId, seed) {
         this.world = world;
-        this.game = new Game(world.width, world.height);
+        this.game = new Game(world.width, world.height, seed);
         this.ctx = this.createContext(boardId);
         this.frameTime = 0;
     }

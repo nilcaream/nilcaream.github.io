@@ -1,17 +1,23 @@
 class Game {
-    constructor(width, height) {
+    constructor(width, height, seed) {
         this.width = width;
         this.height = height;
-        this.reset();
+        this.reset(seed);
     }
 
-    reset() {
+    reset(seed) {
+        this.updateSeed(seed);
         this.reward = 2 * Math.floor(Math.sqrt(this.width * this.width + this.height * this.height));
         this.snake = new Snake(Math.floor(this.width / 2), Math.floor(this.height / 2), 4);
         this.apple = this.createApple();
         this.points = 0;
         this.lives = this.reward;
         this.age = 0;
+    }
+
+    updateSeed(seed) {
+        this.seed = seed || this.seed || Math.random() * new Date().getTime();
+        this.random = Game.mulberry32(this.seed);
     }
 
     createApple() {
@@ -23,7 +29,7 @@ class Game {
     }
 
     createRandomPoint() {
-        return { x: Math.floor(Math.random() * this.width), y: Math.floor(Math.random() * this.height) };
+        return { x: Math.floor(this.random() * this.width), y: Math.floor(this.random() * this.height) };
     }
 
     step(dx, dy) {
@@ -40,5 +46,15 @@ class Game {
         }
         this.age++;
         return this.lives > 0;
+    }
+
+    // https://stackoverflow.com/a/47593316
+    static mulberry32(a) {
+        return function () {
+            var t = a += 0x6D2B79F5;
+            t = Math.imul(t ^ t >>> 15, t | 1);
+            t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+            return ((t ^ t >>> 14) >>> 0) / 4294967296;
+        }
     }
 }
