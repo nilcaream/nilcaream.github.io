@@ -17,7 +17,10 @@
     <script language="JavaScript">
         $(() => {
             const div = $("#results");
-            const log = (text) => div.prepend($("<div></div>").text(text));
+            const log = (text) => {
+                div.append($("<div></div>").text(text));
+                window.scrollTo(0, document.body.scrollHeight);
+            };
             const ui = new GameUi({ width: 20, height: 20, unit: 30, pad: 1, refreshInterval: 200 }, "board");
             const uiComputer = new Computer(ui.game);
 
@@ -29,7 +32,8 @@
             const weights = stored.map(x => x.weights);
             //Array(populationSize).fill(null).map(() => Neural.createWeights([6, 5, 5, 4], () => Math.random() * 100 - 50));
             const bestResults = [];
-            
+
+            log(`Population ${populationSize}, generations ${generations}`);
             log(`Loaded ${stored.length} weights`);
             log(`Best: ${JSON.stringify(stored[0])}`);
             while (weights.length < populationSize) {
@@ -64,7 +68,7 @@
                     }
                 });
                 results.forEach((result, i) => {
-                    if (i < populationSize * 0.3) {
+                    if (i < populationSize * 0.5) {
                         weights[i] = result.weights;
                     } else {
                         const weightsA = results[(Math.random() * populationSize * 0.5) | 0].weights;

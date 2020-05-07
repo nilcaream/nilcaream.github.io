@@ -1,19 +1,4 @@
 class Genetic {
-    constructor(work) {
-        this.results = [];
-    }
-
-    runSingle(iterations) {
-        for (let i = 0; i < iterations; i++) {
-            // object with score number and weights array
-            this.results.push(work.run());
-        }
-    }
-
-    static chooseBest(results, fraction) {
-        const number = Math.floor(results.length * fraction);
-        return results.sort((a, b) => b.score - a.score).slice(0, number);
-    }
 
     static crossover(weightsA, weightsB, selector, mutator) {
         const results = [];
@@ -57,7 +42,3 @@ class Genetic {
 }
 
 Genetic.test();
-
-class Work {
-
-}

@@ -1,4 +1,5 @@
 class Storage {
+    
     static load() {
         const stored = window.localStorage.getItem("snake-results") || "[]";
         return JSON.parse(stored);
