@@ -22,8 +22,9 @@
                 div.append($("<div></div>").text(text));
                 window.scrollTo(0, document.body.scrollHeight);
             };
+            const weights = Storage.load().slice(0, 100).map(x => x.weights);
 
-            const learn = new Learn(500, 1000, undefined, [], log);
+            const learn = new Learn(500, 10000, undefined, weights, log);
             learn.start();
 
             setTimeout(() => {
@@ -31,12 +32,15 @@
                 const computer = new Computer(ui.game);
                 GameUi.animate(() => {
                     computer.step(learn.best[0].weights);
+                    ui.source = Learn.identify(learn.best[0]);
                     ui.draw();
                     if (ui.game.lives <= 0) {
                         ui.game.reset();
                     }
                 }, 100);
             }, 2000);
+
+            setInterval(() => Storage.add(learn.best), 5000);
         });
     </script>
 </head>

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Neural</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="jquery-3.5.0.min.js"></script>
+    <script src="snake.js"></script>
+    <script src="game.js"></script>
+    <script src="neural.js"></script>
+    <script src="computer.js"></script>
+    <script src="genetic.js"></script>
+    <script src="game-ui.js"></script>
+    <script src="storage.js"></script>
+    <script src="learn.js"></script>
+    <link rel="stylesheet" href="snake.css" type="text/css">
+    <script language="JavaScript">
+        $(() => {
+            const div = $("#results");
+            let result = Storage.load()[0];
+
+            const ui = new GameUi({ width: 20, height: 20, unit: 30, pad: 1 }, "board");
+            const computer = new Computer(ui.game);
+            ui.source = Learn.identify(result);
+            GameUi.animate(() => {
+                computer.step(result.weights);
+                ui.draw();
+                if (ui.game.lives <= 0) {
+                    result = Storage.load()[0];
+                    ui.source = Learn.identify(result);
+                    ui.game.reset();
+                }
+            }, 75);
+        });
+    </script>
+</head>
+
+<body>
+    <div id="results"></div>
+    <canvas id="board" style="position:fixed; top:5px; right:5px" />
+</body>
+
+</html>

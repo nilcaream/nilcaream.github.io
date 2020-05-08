@@ -64,7 +64,7 @@ class Learn {
     }
 
     log(result) {
-        this.logger(`generation:${result.generation}, score:${result.score}, points:${result.points}, age:${result.age}`);
+        this.logger(`generation:${result.generation}, score:${result.score}, points:${result.points}, age:${result.age}, id:${Learn.identify(result)}`);
     }
 
     prepareNewWeights(results) {
@@ -98,5 +98,15 @@ class Learn {
         if ((currentBest || {}).score !== this.best[0].score) {
             this.log(this.best[0]);
         }
+    }
+
+    // https://stackoverflow.com/questions/6122571/simple-non-secure-hash-function-for-javascript#comment67396297_6122571
+    static hash(weights) {
+        const b = JSON.stringify(weights);
+        for (var a = 0, c = b.length; c--;)a += b.charCodeAt(c), a += a << 10, a ^= a >> 6; a += a << 3; a ^= a >> 11; return ((a + (a << 15) & 4294967295) >>> 0).toString(16)
+    };
+
+    static identify(result) {
+        return `${Learn.hash(result.weights)}:p${result.points}:a${result.age}`;
     }
 }

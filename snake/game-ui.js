@@ -32,7 +32,6 @@ class GameUi {
     }
 
     draw() {
-        const head = this.game.snake.getHead();
         this.ctx.clearRect(0, 0, this.world.width * this.world.unit, this.world.height * this.world.unit);
         this.game.snake.tail.forEach((e, i) => {
             const index = this.game.snake.tail.length - i;
@@ -46,10 +45,11 @@ class GameUi {
         this.ctx.fillStyle = "rgb(255,0,0)";
         this.drawPixel(this.game.apple.x, this.game.apple.y);
         this.ctx.fillStyle = "black";
-        this.ctx.fillText(`Points: ${this.game.points}`, 2, 14);
-        this.ctx.fillText(`Lives: ${this.game.lives}`, 2, 28);
-        this.ctx.fillText(`Age: ${this.game.age}`, 2, 42);
-        this.ctx.fillText(`Distance: ${this.game.getDistance().toFixed(2)}`, 2, 56);
-        this.ctx.fillText(`Head: (${head.x},${head.y})`, 2, 70);
+        this.ctx.fillText(`Points: ${this.game.points}`, 3, 14);
+        this.ctx.fillText(`Lives: ${this.game.lives}`, 3, 28);
+        this.ctx.fillText(`Age: ${this.game.age}`, 3, 42);
+        if (this.source) {
+            this.ctx.fillText(`Source: ${this.source}`, 3, this.world.height * this.world.unit - 4);
+        }
     }
 }
