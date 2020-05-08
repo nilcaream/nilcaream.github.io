@@ -21,22 +21,16 @@ class Snake {
         return this.tail[this.tail.length - 1];
     }
 
-    contains(point) {
-        return this.tail.filter(e => e.x === point.x && e.y === point.y).length > 0;
-    }
-
-    hasEatenTail() {
-        const head = this.getHead();
-        for (let i = 0; i < this.tail.length - 1; i++) {
-            if (head.x === this.tail[i].x && head.y === this.tail[i].y) {
-                return true;
+    isEmptySpot(position, width, height) {
+        if (position.x < 0 || position.y < 0 || position.x >= width || position.y >= height) {
+            return false;
+        } else {
+            for (let i = 0; i < this.tail.length; i++) {
+                if (position.x === this.tail[i].x && position.y === this.tail[i].y) {
+                    return false;
+                }
             }
+            return true;
         }
-        return false;
-    }
-
-    hasHitWall(minX, maxX, minY, maxY) {
-        const head = this.getHead();
-        return head.x < minX || head.x >= maxX || head.y < minY || head.y >= maxY;
     }
 }

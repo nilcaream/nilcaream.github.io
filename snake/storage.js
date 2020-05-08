@@ -11,7 +11,7 @@ class Storage {
 
     static add(results, maxSize = 1024) {
         const stored = Storage.load();
-        stored.push(...results);
+        results.forEach(result => stored.push(result));
         stored.sort((a, b) => b.score - a.score);
         Storage.save(stored.slice(0, maxSize));
     }

@@ -1,9 +1,8 @@
 class GameUi {
-    constructor(world, boardId, seed) {
+    constructor(world, boardId) {
         this.world = world;
-        this.game = new Game(world.width, world.height, seed);
+        this.game = new Game(world.width, world.height);
         this.ctx = this.createContext(boardId);
-        this.frameTime = 0;
     }
 
     createContext(boardId) {
@@ -16,11 +15,24 @@ class GameUi {
         return ctx;
     }
 
+    static animate(onFrame, interval) {
+        let time = 0;
+        const animate = (timestamp) => {
+            if (timestamp - time > interval) {
+                onFrame();
+                time = timestamp;
+            }
+            requestAnimationFrame(animate);
+        };
+        requestAnimationFrame(animate);
+    }
+
     drawPixel(positionX, positionY) {
         this.ctx.fillRect(positionX * this.world.unit + this.world.pad, positionY * this.world.unit + this.world.pad, this.world.unit - 2 * this.world.pad, this.world.unit - 2 * this.world.pad);
     }
 
     draw() {
+        const head = this.game.snake.getHead();
         this.ctx.clearRect(0, 0, this.world.width * this.world.unit, this.world.height * this.world.unit);
         this.game.snake.tail.forEach((e, i) => {
             const index = this.game.snake.tail.length - i;
@@ -34,9 +46,10 @@ class GameUi {
         this.ctx.fillStyle = "rgb(255,0,0)";
         this.drawPixel(this.game.apple.x, this.game.apple.y);
         this.ctx.fillStyle = "black";
-        this.ctx.fillText(`Points: ${this.game.points}`, 0, 14);
-        this.ctx.fillText(`Lives: ${this.game.lives}`, 0, 28);
-        this.ctx.fillText(`Age: ${this.game.age}`, 0, 42);
-        this.ctx.fillText(`Distance: ${this.game.getDistance().toFixed(2)}`, 0, 56);
+        this.ctx.fillText(`Points: ${this.game.points}`, 2, 14);
+        this.ctx.fillText(`Lives: ${this.game.lives}`, 2, 28);
+        this.ctx.fillText(`Age: ${this.game.age}`, 2, 42);
+        this.ctx.fillText(`Distance: ${this.game.getDistance().toFixed(2)}`, 2, 56);
+        this.ctx.fillText(`Head: (${head.x},${head.y})`, 2, 70);
     }
 }

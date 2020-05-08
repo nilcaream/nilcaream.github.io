@@ -44,6 +44,35 @@ class Neural {
         return result;
     }
 
+    static copyWeights(weights) {
+        const result = [];
+        for (let i = 0; i < weights.length; i++) {
+            const iWeights = [];
+            for (let j = 0; j < weights[i].length; j++) {
+                const jWeights = [];
+                for (let k = 0; k < weights[i][j].length; k++) {
+                    jWeights.push(weights[i][j][k]);
+                }
+                iWeights.push(jWeights);
+            }
+            result.push(iWeights);
+        }
+        return result;
+    }
+
+    static isSame(weightsA, weightsB) {
+        for (let i = 0; i < weightsA.length; i++) {
+            for (let j = 0; j < weightsA[i].length; j++) {
+                for (let k = 0; k < weightsA[i][j].length; k++) {
+                    if (weightsA[i][j][k] !== weightsB[i][j][k]) {
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
     static sigmoid(x) {
         return 1 / (1 + Math.exp(-x));
     }
@@ -74,6 +103,12 @@ class Neural {
         weights = Neural.createWeights([2, 3], () => ++x);
         output = Neural.calculateOutput([-2, 2], weights, (x) => 7 * x);
         assert(output, [7 * 3 * (7 * 1 * -2) + 7 * 4 * (7 * 2 * 2), 7 * 5 * (7 * 1 * -2) + 7 * 6 * (7 * 2 * 2), 7 * 7 * (7 * 1 * -2) + 7 * 8 * (7 * 2 * 2)]);
+        // --------
+        x = 0;
+        weights = Neural.createWeights([2, 3, 4], () => ++x);
+        assert(weights, [[[1], [2]], [[3, 4], [5, 6], [7, 8]], [[9, 10, 11], [12, 13, 14], [15, 16, 17], [18, 19, 20]]]);
+        let copy = Neural.copyWeights(weights);
+        assert(copy, weights);
     }
 }
 

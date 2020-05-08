@@ -1,21 +1,21 @@
 class Computer {
     constructor(game) {
         this.game = game;
+        this.normalization = Math.max(game.width, game.height);
     }
 
-    // returns [bias, appleDistance, dxPositiveEmpty, dxNegativeEmpty, dyPositiveEmpty, dyNegativeEmpty]
     calculateInput() {
         const head = this.game.snake.getHead();
         const distance = this.game.getDistance();
         return [
             1,
-            distance,
-            head.x === this.game.apple.x ? 1 : 0,
-            head.y === this.game.apple.y ? 1 : 0,
-            this.game.snake.contains({ x: head.x + 1, y: head.y }) || head.x + 1 === this.game.width ? 0 : 1,
-            this.game.snake.contains({ x: head.x - 1, y: head.y }) || head.x - 1 === 0 ? 0 : 1,
-            this.game.snake.contains({ x: head.x, y: head.y + 1 }) || head.y + 1 === this.game.height ? 0 : 1,
-            this.game.snake.contains({ x: head.x, y: head.y - 1 }) || head.y - 1 === 0 ? 0 : 1
+            distance / this.normalization,
+            (head.x - this.game.apple.x) / this.normalization,
+            (head.y - this.game.apple.y) / this.normalization,
+            this.game.snake.isEmptySpot({ x: head.x + 1, y: head.y }),
+            this.game.snake.isEmptySpot({ x: head.x - 1, y: head.y }),
+            this.game.snake.isEmptySpot({ x: head.x, y: head.y + 1 }),
+            this.game.snake.isEmptySpot({ x: head.x, y: head.y - 1 }),
         ];
     }
 

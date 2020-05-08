@@ -22,8 +22,8 @@
                 window.scrollTo(0, document.body.scrollHeight);
             };
 
-            const populationSize = 1000;
-            const generations = 4000;
+            const populationSize = 500;
+            const generations = 10000;
             const game = new Game(20, 20);
             const computer = new Computer(game);
             const stored = Storage.load().slice(0, populationSize * 0.8);
@@ -54,11 +54,11 @@
                     results.push({ score: score, points: game.points, age: game.age, generation: g, seed: game.seed, weights: weights[i] });
                 }
                 results.sort((a, b) => b.score - a.score);
-                results.slice(0, 8).filter(result => result.points >= 3).forEach(result => {
+                results.slice(0, 16).filter(result => result.points >= 3).forEach(result => {
                     //console.log(`g:${g} score: ${result.score}, points: ${result.points}, age: ${result.age}`);
                     bestResults.push(result);
-                    //bestResults.sort((a, b) => b.score - a.score);
-                    //bestResults.splice(64);
+                    bestResults.sort((a, b) => b.score - a.score);
+                    bestResults.splice(64);
                     if (result.score > singBestResult.score) {
                         singBestResult = result;
                         log(`g:${g} score: ${result.score}, points: ${result.points}, age: ${result.age}, best`);
@@ -116,7 +116,9 @@
 </head>
 
 <body>
-    <div id="results"></div>
+    <div id="results">
+        <a href="#" onclick="Storage.save([]);">reset</a>
+    </div>
     <canvas id="board" style="position:fixed; top:5px; right:5px" />
 </body>
 
