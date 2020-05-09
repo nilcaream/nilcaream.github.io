@@ -12,3 +12,7 @@ html, body {
 .fl {
     float: left;
 }
+
+.pr05 {
+    padding-right: 0.5rem;
+}

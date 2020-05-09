@@ -9,20 +9,25 @@ class Storage {
         window.localStorage.setItem("snake-results", JSON.stringify(results));
     }
 
-    static add(results, maxSize = 1024) {
-        const stored = Storage.load();
-        results.filter(result => !Storage.contains(result, stored)).forEach(result => stored.push(result));
-        stored.sort((a, b) => b.score - a.score);
-        Storage.save(stored.slice(0, maxSize));
-    }
+    static add(results, maxSize = 128) {
+        const loadedResults = Storage.load();
+        const idToResult = [];
+        loadedResults.forEach(r => idToResult[r.id] = r);
 
-    static contains(needle, haystack) {
-        for (let i = 0; i < haystack.length; i++) {
-            const hay = haystack[i];
-            if (needle.score === hay.score && needle.points === hay.points && needle.age === hay.age) {
-                return true;
+        results.forEach(result => {
+            result.id = Learn.hash(result.weights);
+            const loadedResult = idToResult[result.id];
+            if (loadedResult) {
+                if (loadedResult.score < result.score) {
+                    idToResult[result.id] = result;
+                }
+            } else {
+                idToResult[result.id] = result;
             }
-        }
-        return false;
+        });
+
+        const newResults = Object.keys(idToResult).map(id => idToResult[id]);
+        newResults.sort((a, b) => b.score - a.score);
+        Storage.save(newResults.slice(0, maxSize));
     }
 }

@@ -17,7 +17,6 @@
     <link rel="stylesheet" href="snake.css" type="text/css">
     <script language="JavaScript">
         $(() => {
-            const div = $("#results");
             let result = Storage.load()[0];
 
             const ui = new GameUi({ width: 20, height: 20, unit: 30, pad: 1 }, "board");
@@ -37,8 +36,9 @@
 </head>
 
 <body>
-    <div id="results"></div>
-    <canvas id="board" style="position:fixed; top:5px; right:5px" />
+    <div style="width: 100%; text-align:center;">
+        <canvas id="board" style="display: inline; padding: 3px;" />
+    </div>
 </body>
 
 </html>

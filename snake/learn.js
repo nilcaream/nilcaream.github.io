@@ -1,24 +1,36 @@
 class Learn {
-    constructor(populationSize, generations, onEnd, weights = [], logger = console.log) {
-        this.weights = weights;
-        this.populationSize = populationSize;
-        this.generations = generations;
+    constructor(populationSize, generations, weights, logger = console.log, onEnd) {
         this.game = new Game(20, 20);
         this.computer = new Computer(this.game);
         this.logger = logger;
-        this.best = [];
         this.onEnd = onEnd || (() => { });
+        this.ageWeight = 20 * Math.max(this.game.width, this.game.height);
+        this.reset(populationSize, generations, weights);
+    }
 
+    random() {
+        return Math.random() * 512 - 256;
+    }
+
+    reset(populationSize, generations, weights) {
+        this.logger("--------------------- reset");
+        this.weights = weights || this.weights || [];
+        this.populationSize = populationSize || this.populationSize || 500;
+        this.generations = generations || this.generations || 1000;
+        this.best = [];
         this.generation = 1;
-        while (this.weights.length < populationSize) {
-            this.weights.push(Neural.createWeights([8, 8, 8, 4], () => Math.random() * 100 - 50));
+        this.game.reset();
+        this.moves = 0;
+        this.movesPerMs = 0;
+        this.time = new Date().getTime();
+        while (this.weights.length < this.populationSize) {
+            this.weights.push(Neural.createWeights([8, 8, 8, 4], () => this.random()));
         }
     }
 
     start() {
-        const packSize = 4;
         setTimeout(() => {
-            this.run(packSize);
+            this.run(1);
             if (this.generation < this.generations) {
                 this.start();
             } else {
@@ -28,13 +40,13 @@ class Learn {
     }
 
     end() {
-        this.logger("---------------------");
-        this.best.forEach(best => this.log(best));
+        this.logger("--------------------- end");
+        this.best.slice(0, 32).forEach(best => this.log(best));
         this.onEnd(this.best);
     }
 
     getScore() {
-        return this.game.points * 800 + this.game.age;
+        return this.game.points + this.game.age / this.ageWeight;
     }
 
     run(steps = 1) {
@@ -43,6 +55,7 @@ class Learn {
             for (let p = 0; p < this.populationSize; p++) {
                 this.game.reset();
                 while (this.game.lives > 0) {
+                    this.moves++;
                     this.computer.step(this.weights[p]);
                 }
                 results.push({
@@ -50,21 +63,23 @@ class Learn {
                     points: this.game.points,
                     age: this.game.age,
                     generation: this.generation,
-                    weights: Neural.copyWeights(this.weights[p])
+                    weights: this.weights[p] //Neural.copyWeights(this.weights[p])
                 });
             }
             results.sort((a, b) => b.score - a.score);
-            this.updateBest(results);
+            this.updateBest(results.slice(0, 0.1 * this.populationSize));
             this.weights = this.prepareNewWeights(results);
-            if (this.generation % 100 === 0) {
-                this.logger(`generation:${this.generation}`);
+            if (this.generation % 10 === 0) {
+                this.movesPerMs = this.moves / (new Date().getTime() - this.time);
+                this.moves = 0;
+                this.time = new Date().getTime();
             }
             this.generation++;
         }
     }
 
     log(result) {
-        this.logger(`generation:${result.generation}, score:${result.score}, points:${result.points}, age:${result.age}, id:${Learn.identify(result)}`);
+        this.logger(`generation:${result.generation}, score:${result.score.toFixed(2)}, points:${result.points}, age:${result.age}, id:${Learn.identify(result)}`);
     }
 
     prepareNewWeights(results) {
@@ -72,12 +87,12 @@ class Learn {
         this.best.slice(0, 0.1 * this.populationSize).forEach(best => weights.push(best.weights));
         results.slice(0, 0.4 * this.populationSize).forEach(result => weights.push(result.weights));
         while (weights.length < this.populationSize) {
-            weights.push(results[(Math.random() * this.populationSize * 0.7) | 0].weights);
+            weights.push(results[(Math.random() * this.populationSize * 0.75) | 0].weights);
         }
-        for (let i = weights.length - 1; i > 0.5 * this.populationSize; i--) {
-            const weightsA = weights[(Math.random() * this.populationSize * 0.5) | 0];
-            const weightsB = weights[(Math.random() * this.populationSize * 0.7) | 0];
-            weights[i] = Genetic.crossover(weightsA, weightsB, () => Math.random() > 0.5, (x) => Math.random() > 0.05 ? x : Math.random() * 100 - 50);
+        for (let i = weights.length - 1; i > 0.75 * this.populationSize; i--) {
+            const weightsA = weights[(Math.random() * this.populationSize) | 0];
+            const weightsB = weights[(Math.random() * this.populationSize) | 0];
+            weights[i] = Genetic.crossover(weightsA, weightsB, () => Math.random() > 0.5, (x) => Math.random() > 0.01 ? x : this.random());
         }
         return weights;
     }
@@ -93,7 +108,7 @@ class Learn {
             weights: Neural.copyWeights(result.weights)
         }));
         this.best.sort((a, b) => b.score - a.score);
-        this.best.splice(64);
+        this.best.splice(0.25 * this.populationSize);
 
         if ((currentBest || {}).score !== this.best[0].score) {
             this.log(this.best[0]);
