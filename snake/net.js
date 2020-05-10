@@ -1,11 +1,13 @@
 class Net {
-    constructor(unit, canvasId, weights, outputTexts, inputTexts) {
-        this.unit = unit;
-        this.padX = 4 * this.unit;
-        this.padY = 2 * this.unit;
-        this.radius = 0.6 * this.unit;
-        this.width = (weights.length + 1 - 1) * this.padX + 2 * this.radius + 2 * this.unit / 24;
-        this.height = Math.max(...weights.map(w => w.length)) * this.padY - this.radius - 2 * this.unit / 24;
+    constructor(width, height, canvasId, weights, outputTexts, inputTexts) {
+        this.unit = width / (weights.length + 0.5);
+        this.padX = this.unit;
+        this.radius = 0.15 * this.unit;
+
+        this.padY = height ? (height + this.radius) / Math.max(...weights.map(w => w.length)) : this.padX * 0.8;
+
+        this.width = width;
+        this.height = height || (Math.max(...weights.map(w => w.length)) - 0.4) * this.padY;
         this.outputTexts = outputTexts;
         this.inputTexts = inputTexts;
         this.ctx = this.createContext(canvasId);
@@ -23,14 +25,14 @@ class Net {
 
     circle(x, y, color, text) {
         this.ctx.save();
-        this.ctx.font = ((this.unit / 3).toFixed()) + "px monospace";
+        this.ctx.font = ((this.radius / 2).toFixed()) + "px monospace";
         this.ctx.textAlign = "center";
         this.ctx.textBaseline = "middle";
         this.ctx.beginPath();
         this.ctx.arc(x, y, this.radius, 0, 2 * Math.PI);
         this.ctx.fillStyle = color;
         this.ctx.fill();
-        this.ctx.lineWidth = this.unit / 24;
+        this.ctx.lineWidth = this.radius / 12;
         this.ctx.strokeStyle = "black";
         this.ctx.stroke();
         this.ctx.fillStyle = "black";
@@ -40,9 +42,8 @@ class Net {
 
     line(parameters) {
         this.ctx.save();
-        if (parameters.w < this.unit / 32) {
-            parameters.w = Math.max(1, this.unit / 32);
-            this.ctx.setLineDash([this.unit / 16, this.unit / 8]);
+        if (parameters.w < 2) {
+            this.ctx.setLineDash([this.unit / 32, this.unit / 16]);
         } else {
             this.ctx.setLineDash([]);
         }
@@ -58,11 +59,10 @@ class Net {
     draw(input, weights, layers) {
         const output = layers[layers.length - 1];
         const outputTexts = this.outputTexts(output);
-        //const max = output.indexOf(Math.max(...output));
 
         this.ctx.save();
         this.ctx.clearRect(0, 0, this.width, this.height);
-        this.ctx.translate(0.5 * this.padX + this.radius + this.unit / 24, this.radius + this.unit / 24);
+        this.ctx.translate(1.5 * this.radius + this.padX / 2, 1.5 * this.radius);
 
         // layers weights
         for (let i = 0; i < weights.length; i++) {
@@ -77,7 +77,7 @@ class Net {
                         p0: { x: (i === 0 ? -0.5 : i - 1) * this.padX, y: (i === 0 ? j : k) * this.padY },
                         p1: { x: i * this.padX, y: j * this.padY }
                     };
-                    line.w = Math.max(this.unit / 128, 0.5 * this.unit * (line.r + line.g + line.b) / (3 * 255));
+                    line.w = Math.max(1, 0.14 * this.unit * (line.r + line.g + line.b) / (3 * 255));
                     this.line(line);
                 }
                 this.ctx.restore();
@@ -89,10 +89,10 @@ class Net {
             const outputText = outputTexts[i];
             const line = {
                 p0: { x: output.length * this.padX, y: i * this.padY },
-                p1: { x: (output.length + 0.5) * this.padX, y: i * this.padY }
+                p1: { x: (output.length + 0.5) * this.padX - this.radius, y: i * this.padY }
             };
             this.ctx.strokeStyle = outputText.color;
-            this.ctx.lineWidth = this.unit / 16;
+            this.ctx.lineWidth = this.unit / 32;
             this.ctx.beginPath();
             this.ctx.moveTo(line.p0.x, line.p0.y);
             this.ctx.lineTo(line.p1.x, line.p1.y);

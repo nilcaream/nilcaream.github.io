@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Neural</title>
+    <title>Play</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <script src="jquery-3.5.0.min.js"></script>
     <script src="snake.js"></script>
@@ -21,14 +21,19 @@
         body {
             margin: 0;
             padding: 0;
-            overflow: hidden;
         }
 
     </style>
     <script language="JavaScript">
         $(() => {
+            if (window.innerWidth > window.innerHeight) {
+                $("#board").parent().addClass("fl");
+            }
+
             let result = Storage.load()[0];
-            const size = Math.min(window.innerWidth, window.innerHeight);
+            const size = Math.min(window.innerWidth, window.innerHeight) - 5;
+            const netWidth = window.innerWidth > window.innerHeight ? window.innerWidth / 2 : window.innerWidth - 5;
+            const netHeight = window.innerWidth > window.innerHeight ? window.innerHeight - 5 : 0;
 
             const ui = new GameUi({ width: 20, height: 20, unit: size / 20, pad: 1 }, "board");
             const computer = new Computer(ui.game);
@@ -55,7 +60,7 @@
                 });
                 return results;
             }
-            const net = new Net(38, "net", result.weights, outputTexts, inputTexts);
+            const net = new Net(netWidth, netHeight, "net", result.weights, outputTexts, inputTexts);
 
             ui.source = Learn.identify(result);
 
@@ -75,7 +80,7 @@
 </head>
 
 <body>
-    <div class="fl">
+    <div>
         <canvas id="board" />
     </div>
     <div>
