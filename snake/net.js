@@ -119,7 +119,14 @@ class Net {
         for (let i = 0; i < layers.length; i++) {
             for (let j = 0; j < layers[i].length; j++) {
                 const layer = layers[i][j];
-                const color = `rgb(${layer > 0.5 ? 128 : 255}, ${layer > 0.5 ? 255 : 128},128)`;
+                let color;
+                if (layer > 0.505) {
+                    color = "rgb(180,255,180)";
+                } else if (layer < 0.495) {
+                    color = "rgb(255,180,180)";
+                } else {
+                    color = "rgb(180,180,255)";
+                }
                 this.circle(i * this.padX, j * this.padY, color, `${layer.toFixed(2)}`);
             }
         }
