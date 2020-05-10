@@ -1,85 +1,15 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="p0 m0">
 
 <head>
     <meta charset="UTF-8">
     <title>Play</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <script src="jquery-3.5.0.min.js"></script>
-    <script src="snake.js"></script>
-    <script src="game.js"></script>
-    <script src="neural.js"></script>
-    <script src="computer.js"></script>
-    <script src="genetic.js"></script>
-    <script src="game-ui.js"></script>
-    <script src="storage.js"></script>
-    <script src="learn.js"></script>
-    <script src="net.js"></script>
+    <script type="module" src="play-main.js"></script>
     <link rel="stylesheet" href="snake.css" type="text/css">
-    <style>
-        html,
-        body {
-            margin: 0;
-            padding: 0;
-        }
-
-    </style>
-    <script language="JavaScript">
-        $(() => {
-            if (window.innerWidth > window.innerHeight) {
-                $("#board").parent().addClass("fl");
-            }
-
-            let result = Storage.load()[0];
-            const size = Math.min(window.innerWidth, window.innerHeight) - 5;
-            const netWidth = window.innerWidth > window.innerHeight ? window.innerWidth / 2 : window.innerWidth - 5;
-            const netHeight = window.innerWidth > window.innerHeight ? window.innerHeight - 5 : 0;
-
-            const ui = new GameUi({ width: 20, height: 20, unit: size / 20, pad: 1 }, "board");
-            const computer = new Computer(ui.game);
-            const inputTexts = (input) => [
-                "Bias",
-                Number(input[1]).toFixed(2),
-                Number(input[2]).toFixed(2),
-                Number(input[3]).toFixed(2),
-                input[4] > 0.5 ? "RIGHT" : "-",
-                input[5] > 0.5 ? "LEFT" : "-",
-                input[6] > 0.5 ? "DOWN" : "-",
-                input[7] > 0.5 ? "UP" : "-",
-
-            ];
-            const outputTexts = (output) => {
-                const results = [];
-                const max = output.indexOf(Math.max(...output));
-                const labels = ["RIGHT", "LEFT", "DOWN", "UP"];
-                output.forEach((o, i) => {
-                    results.push({
-                        color: `rgb(${i !== max ? 255 : 0},${i === max ? 255 : 0},0)`,
-                        label: i === max ? labels[i] : "-"
-                    });
-                });
-                return results;
-            }
-            const net = new Net(netWidth, netHeight, "net", result.weights, outputTexts, inputTexts);
-
-            ui.source = Learn.identify(result);
-
-            GameUi.animate(() => {
-                const input = computer.calculateInput();
-                const layers = computer.step(result.weights);
-                ui.draw();
-                net.draw(input, result.weights, layers);
-                if (ui.game.lives <= 0) {
-                    result = Storage.load()[0];
-                    ui.source = Learn.identify(result);
-                    ui.game.reset();
-                }
-            }, 100);
-        });
-    </script>
 </head>
 
-<body>
+<body class="p0 m0">
     <div>
         <canvas id="board" />
     </div>

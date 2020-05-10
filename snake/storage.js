@@ -1,12 +1,15 @@
-class Storage {
+export class Storage {
+    static name() {
+        return "nc.snake.v01";
+    }
 
     static load() {
-        const stored = window.localStorage.getItem("snake-results") || "[]";
+        const stored = window.localStorage.getItem(Storage.name()) || "[]";
         return JSON.parse(stored);
     }
 
     static save(results) {
-        window.localStorage.setItem("snake-results", JSON.stringify(results));
+        window.localStorage.setItem(Storage.name(), JSON.stringify(results));
     }
 
     static add(results, maxSize = 128) {
@@ -15,7 +18,6 @@ class Storage {
         loadedResults.forEach(r => idToResult[r.id] = r);
 
         results.forEach(result => {
-            result.id = Learn.hash(result.weights);
             const loadedResult = idToResult[result.id];
             if (loadedResult) {
                 if (loadedResult.score < result.score) {

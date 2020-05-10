@@ -1,4 +1,6 @@
-class Game {
+import { Snake } from "./snake.js"
+
+export class Game {
     constructor(width, height) {
         this.width = width;
         this.height = height;
@@ -36,7 +38,7 @@ class Game {
         const newHead = { x: head.x + dx, y: head.y + dy };
         if (newHead.x === this.apple.x && newHead.y === this.apple.y) {
             this.points++;
-            this.lives = Math.min(4 * this.reward, this.lives + this.reward);
+            this.lives = Math.min(3 * this.reward, this.lives + this.reward);
             this.snake.grow(dx, dy);
             this.apple = this.createApple();
         } else if (this.snake.isEmptySpot(newHead, this.width, this.height)) {

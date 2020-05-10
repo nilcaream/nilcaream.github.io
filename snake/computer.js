@@ -1,4 +1,6 @@
-class Computer {
+import { Neural } from "./neural.js"
+
+export class Computer {
     constructor(game) {
         this.game = game;
         this.normalization = Math.max(game.width, game.height);

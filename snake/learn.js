@@ -1,4 +1,9 @@
-class Learn {
+import { Game } from "./game.js"
+import { Neural } from "./neural.js"
+import { Genetic } from "./genetic.js"
+import { Computer } from "./computer.js"
+
+export class Learn {
     constructor(populationSize, generations, weights, logger = console.log, onEnd) {
         this.game = new Game(20, 20);
         this.computer = new Computer(this.game);
@@ -106,7 +111,8 @@ class Learn {
             points: result.points,
             age: result.age,
             generation: result.generation,
-            weights: Neural.copyWeights(result.weights)
+            weights: Neural.copyWeights(result.weights),
+            id: Learn.hash(result.weights)
         }));
         this.best.sort((a, b) => b.score - a.score);
         this.best.splice(0.25 * this.populationSize);

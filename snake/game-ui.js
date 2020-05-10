@@ -1,4 +1,6 @@
-class GameUi {
+import { Game } from "./game.js"
+
+export class GameUi {
     constructor(world, boardId) {
         this.world = world;
         this.game = new Game(world.width, world.height);
@@ -13,6 +15,15 @@ class GameUi {
             .attr("height", this.world.height * this.world.unit)[0].getContext("2d");
         ctx.font = "14px monospace";
         return ctx;
+    }
+
+    static animate2(onFrame, interval) {
+        (function animate() {
+            setTimeout(function () {
+                onFrame();
+                requestAnimationFrame(animate);
+            }, interval);
+        })();
     }
 
     static animate(onFrame, interval) {

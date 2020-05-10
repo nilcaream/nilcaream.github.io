@@ -1,7 +1,6 @@
 // heavily inspired by https://github.com/mlruzic/jake-the-snake 
 
-class Neural {
-
+export class Neural {
     static calculateOutput(input, weights, f = Neural.sigmoid) {
         return Neural.calculateLayers(input, weights, f)[weights.length - 1];
     }
