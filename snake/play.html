@@ -14,30 +14,72 @@
     <script src="game-ui.js"></script>
     <script src="storage.js"></script>
     <script src="learn.js"></script>
+    <script src="net.js"></script>
     <link rel="stylesheet" href="snake.css" type="text/css">
+    <style>
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+    </style>
     <script language="JavaScript">
         $(() => {
             let result = Storage.load()[0];
+            const size = Math.min(window.innerWidth, window.innerHeight);
 
-            const ui = new GameUi({ width: 20, height: 20, unit: 30, pad: 1 }, "board");
+            const ui = new GameUi({ width: 20, height: 20, unit: size / 20, pad: 1 }, "board");
             const computer = new Computer(ui.game);
+            const inputTexts = (input) => [
+                "Bias",
+                Number(input[1]).toFixed(2),
+                Number(input[2]).toFixed(2),
+                Number(input[3]).toFixed(2),
+                input[4] > 0.5 ? "RIGHT" : "-",
+                input[5] > 0.5 ? "LEFT" : "-",
+                input[6] > 0.5 ? "DOWN" : "-",
+                input[7] > 0.5 ? "UP" : "-",
+
+            ];
+            const outputTexts = (output) => {
+                const results = [];
+                const max = output.indexOf(Math.max(...output));
+                const labels = ["RIGHT", "LEFT", "DOWN", "UP"];
+                output.forEach((o, i) => {
+                    results.push({
+                        color: `rgb(${i !== max ? 255 : 0},${i === max ? 255 : 0},0)`,
+                        label: i === max ? labels[i] : "-"
+                    });
+                });
+                return results;
+            }
+            const net = new Net(38, "net", result.weights, outputTexts, inputTexts);
+
             ui.source = Learn.identify(result);
+
             GameUi.animate(() => {
-                computer.step(result.weights);
+                const input = computer.calculateInput();
+                const layers = computer.step(result.weights);
                 ui.draw();
+                net.draw(input, result.weights, layers);
                 if (ui.game.lives <= 0) {
                     result = Storage.load()[0];
                     ui.source = Learn.identify(result);
                     ui.game.reset();
                 }
-            }, 75);
+            }, 100);
         });
     </script>
 </head>
 
 <body>
-    <div style="width: 100%; text-align:center;">
-        <canvas id="board" style="display: inline; padding: 3px;" />
+    <div class="fl">
+        <canvas id="board" />
+    </div>
+    <div>
+        <canvas id="net" />
     </div>
 </body>
 

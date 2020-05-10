@@ -3,12 +3,14 @@
 class Neural {
 
     static calculateOutput(input, weights, f = Neural.sigmoid) {
-        if (input.length !== weights[0].length) {
-            throw "Invalid input length";
-        }
+        return Neural.calculateLayers(input, weights, f)[weights.length - 1];
+    }
 
+    static calculateLayers(input, weights, f = Neural.sigmoid) {
+        const layers = [];
         let layer = input.map((e, i) => f(e * weights[0][i][0]));
 
+        layers.push(layer);
         for (let i = 1; i < weights.length; i++) {
             const outputs = [];
             for (let j = 0; j < weights[i].length; j++) {
@@ -19,9 +21,10 @@ class Neural {
                 outputs.push(f(output));
             }
             layer = outputs;
+            layers.push(layer);
         }
 
-        return layer;
+        return layers;
     }
 
     // neuronCounts - array of neron counts per layer e.g. [2,4,4,5]
@@ -109,6 +112,13 @@ class Neural {
         assert(weights, [[[1], [2]], [[3, 4], [5, 6], [7, 8]], [[9, 10, 11], [12, 13, 14], [15, 16, 17], [18, 19, 20]]]);
         let copy = Neural.copyWeights(weights);
         assert(copy, weights);
+        // --------
+        x = 0;
+        weights = Neural.createWeights([2, 3, 4], () => ++x);
+        output = Neural.calculateOutput([-2, 2], weights, (x) => 7 * x);
+        assert(output, [146804, 190022, 233240, 276458]);
+        let layers = Neural.calculateLayers([-2, 2], weights, (x) => 7 * x);
+        assert(layers, [[-14, 28], [490, 686, 882], [146804, 190022, 233240, 276458]]);
     }
 }
 

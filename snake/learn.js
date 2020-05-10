@@ -4,7 +4,8 @@ class Learn {
         this.computer = new Computer(this.game);
         this.logger = logger;
         this.onEnd = onEnd || (() => { });
-        this.ageWeight = 20 * Math.max(this.game.width, this.game.height);
+        this.ageWeight = 10 * Math.max(this.game.width, this.game.height);
+        this.network = [8, 8, 8, 8, 4];
         this.reset(populationSize, generations, weights);
     }
 
@@ -13,8 +14,7 @@ class Learn {
     }
 
     reset(populationSize, generations, weights) {
-        this.logger("--------------------- reset");
-        this.weights = weights || this.weights || [];
+        this.weights = Neural.copyWeights(weights || this.weights || []);
         this.populationSize = populationSize || this.populationSize || 500;
         this.generations = generations || this.generations || 1000;
         this.best = [];
@@ -23,8 +23,9 @@ class Learn {
         this.moves = 0;
         this.movesPerMs = 0;
         this.time = new Date().getTime();
+        this.logger(`--------------------- reset p:${this.populationSize} g:${this.generations} w:${this.weights.length}`);
         while (this.weights.length < this.populationSize) {
-            this.weights.push(Neural.createWeights([8, 8, 8, 4], () => this.random()));
+            this.weights.push(Neural.createWeights(this.network, () => this.random()));
         }
     }
 
@@ -89,10 +90,10 @@ class Learn {
         while (weights.length < this.populationSize) {
             weights.push(results[(Math.random() * this.populationSize * 0.75) | 0].weights);
         }
-        for (let i = weights.length - 1; i > 0.75 * this.populationSize; i--) {
-            const weightsA = weights[(Math.random() * this.populationSize) | 0];
+        for (let i = weights.length - 1; i > 0.5 * this.populationSize; i--) {
+            const weightsA = weights[(Math.random() * 0.5 * this.populationSize) | 0];
             const weightsB = weights[(Math.random() * this.populationSize) | 0];
-            weights[i] = Genetic.crossover(weightsA, weightsB, () => Math.random() > 0.5, (x) => Math.random() > 0.01 ? x : this.random());
+            weights[i] = Genetic.crossover(weightsA, weightsB, () => Math.random() > 0.75, (x) => Math.random() > 0.01 ? x : this.random());
         }
         return weights;
     }
