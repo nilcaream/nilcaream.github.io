@@ -1,9 +1,9 @@
-import * as jQuery from "./jquery-3.5.0.min.js"
-import { Storage } from "./storage.js"
-import { GameUi } from "./game-ui.js"
-import { Computer } from "./computer.js"
-import { Net } from "./net.js"
-import { Learn } from "./learn.js"
+import * as jQuery from "./scripts/jquery-3.5.0.min.js"
+import { Storage } from "./scripts/storage.js"
+import { GameUi } from "./scripts/game-ui.js"
+import { Computer } from "./scripts/computer.js"
+import { Net } from "./scripts/net.js"
+import { Learn } from "./scripts/learn.js"
 
 $(() => {
     if (window.innerWidth > window.innerHeight) {

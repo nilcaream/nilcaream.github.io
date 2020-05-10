@@ -3,24 +3,10 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Human</title>
+    <title>Human Step</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <script src="jquery-3.5.0.min.js"></script>
-    <script src="snake.js"></script>
-    <script src="game.js"></script>
-    <script src="game-ui.js"></script>
-    <script src="human.js"></script>
+    <script type="module" src="human-step-main.js"></script>
     <link rel="stylesheet" href="snake.css" type="text/css">
-    <script language="JavaScript">
-        $(() => {
-            const state = { dx: 0, dy: 1, time: 0 };
-            const world = { width: 20, height: 20, unit: 30, pad: 1 };
-            const gameUi = new GameUi(world, "board");
-
-            Human.register("keyup", (dx, dy) => { gameUi.game.step(dx, dy); gameUi.draw(); });
-            gameUi.draw();
-        });
-    </script>
 </head>
 
 <body>

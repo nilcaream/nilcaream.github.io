@@ -1,6 +1,6 @@
-import * as jQuery from "./jquery-3.5.0.min.js"
-import { Storage } from "./storage.js"
-import { Learn } from "./learn.js"
+import * as jQuery from "./scripts/jquery-3.5.0.min.js"
+import { Storage } from "./scripts/storage.js"
+import { Learn } from "./scripts/learn.js"
 
 $(() => {
     let running = true;

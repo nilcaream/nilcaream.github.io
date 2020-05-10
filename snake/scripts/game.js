@@ -41,14 +41,16 @@ export class Game {
             this.lives = Math.min(3 * this.reward, this.lives + this.reward);
             this.snake.grow(dx, dy);
             this.apple = this.createApple();
+            this.age++;
         } else if (this.snake.isEmptySpot(newHead, this.width, this.height)) {
             this.snake.grow(dx, dy);
             this.snake.shrink();
             this.lives--;
+            this.age++;
         } else {
             this.lives = 0;
         }
-        this.age++;
+
         return this.lives > 0;
     }
 }
