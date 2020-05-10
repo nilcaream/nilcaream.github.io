@@ -3,11 +3,12 @@ export class Net {
         this.unit = width / (weights.length + 0.5);
         this.padX = this.unit;
         this.radius = 0.15 * this.unit;
+        this.maxLayers = Math.max(...weights.map(w => w.length));
 
-        this.padY = height ? (height + this.radius) / Math.max(...weights.map(w => w.length)) : this.padX * 0.8;
+        this.padY = height ? (height + this.radius) / this.maxLayers : this.padX * 0.8;
 
         this.width = width;
-        this.height = height || (Math.max(...weights.map(w => w.length)) - 0.4) * this.padY;
+        this.height = height || (this.maxLayers - 0.4) * this.padY;
         this.outputTexts = outputTexts;
         this.inputTexts = inputTexts;
         this.ctx = this.createContext(canvasId);
@@ -68,14 +69,16 @@ export class Net {
         for (let i = 0; i < weights.length; i++) {
             for (let j = 0; j < weights[i].length; j++) {
                 this.ctx.save();
+                const y0 = 0.5 * (this.maxLayers - layers[Math.max(0, i - 1)].length) * this.padY;
+                const y1 = 0.5 * (this.maxLayers - layers[i].length) * this.padY;
                 for (let k = 0; k < weights[i][j].length; k++) {
                     const weight = weights[i][j][k];
                     const line = {
                         r: Math.floor(Math.max(0, -weight)),
                         g: Math.floor(Math.max(0, weight)),
                         b: 0,
-                        p0: { x: (i === 0 ? -0.5 : i - 1) * this.padX, y: (i === 0 ? j : k) * this.padY },
-                        p1: { x: i * this.padX, y: j * this.padY }
+                        p0: { x: (i === 0 ? -0.5 : i - 1) * this.padX, y: (i === 0 ? j : k) * this.padY + y0 },
+                        p1: { x: i * this.padX, y: j * this.padY + y1 }
                     };
                     line.w = Math.max(1, 0.14 * this.unit * (line.r + line.g + line.b) / (3 * 255));
                     this.line(line);
@@ -85,11 +88,13 @@ export class Net {
         }
 
         // output weights
+        this.ctx.save();
+        this.ctx.translate(0, 0.5 * (this.maxLayers - layers[layers.length - 1].length) * this.padY);
         for (let i = 0; i < outputTexts.length; i++) {
             const outputText = outputTexts[i];
             const line = {
-                p0: { x: output.length * this.padX, y: i * this.padY },
-                p1: { x: (output.length + 0.5) * this.padX - this.radius, y: i * this.padY }
+                p0: { x: (layers.length - 1) * this.padX, y: i * this.padY },
+                p1: { x: (layers.length - 0.5) * this.padX - this.radius, y: i * this.padY }
             };
             this.ctx.strokeStyle = outputText.color;
             this.ctx.lineWidth = this.unit / 32;
@@ -98,8 +103,11 @@ export class Net {
             this.ctx.lineTo(line.p1.x, line.p1.y);
             this.ctx.stroke();
         }
+        this.ctx.restore();
 
         // input values
+        this.ctx.save();
+        this.ctx.translate(0, 0.5 * (this.maxLayers - input.length) * this.padY);
         if (this.inputTexts) {
             this.inputTexts(input).forEach((text, i) => {
                 this.circle(-0.5 * this.padX, i * this.padY, "white", text);
@@ -109,10 +117,14 @@ export class Net {
                 this.circle(-0.5 * this.padX, i * this.padY, "white", `${Number(value).toFixed(2)}`);
             });
         }
+        this.ctx.restore();
 
         // output labels
         outputTexts.forEach((outputText, i) => {
+            this.ctx.save();
+            this.ctx.translate(0, 0.5 * (this.maxLayers - layers[layers.length - 1].length) * this.padY);
             this.circle((layers.length - 0.5) * this.padX, i * this.padY, "white", outputText.label);
+            this.ctx.restore();
         });
 
         // layers values
@@ -127,7 +139,10 @@ export class Net {
                 } else {
                     color = "rgb(180,180,255)";
                 }
+                this.ctx.save();
+                this.ctx.translate(0, 0.5 * (this.maxLayers - layers[i].length) * this.padY);
                 this.circle(i * this.padX, j * this.padY, color, `${layer.toFixed(2)}`);
+                this.ctx.restore();
             }
         }
 

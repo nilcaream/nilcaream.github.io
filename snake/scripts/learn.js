@@ -42,7 +42,7 @@ export class Learn {
             } else {
                 this.end();
             }
-        }, 0);
+        }, 10);
     }
 
     end() {
