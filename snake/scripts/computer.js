@@ -9,16 +9,23 @@ export class Computer {
     calculateInput() {
         const head = this.game.snake.getHead();
         const distance = this.game.getDistance();
+        const distances = this.game.snake.distanceToNonEmpty(this.game.width, this.game.height);
         return [
             1,
             Math.atan2(head.y - this.game.apple.y, head.x - this.game.apple.x),
-            //distance / this.normalization,
-            (head.x - this.game.apple.x) / this.normalization,
-            (head.y - this.game.apple.y) / this.normalization,
-            this.game.snake.isEmptySpot({ x: head.x + 1, y: head.y }),
-            this.game.snake.isEmptySpot({ x: head.x - 1, y: head.y }),
-            this.game.snake.isEmptySpot({ x: head.x, y: head.y + 1 }),
-            this.game.snake.isEmptySpot({ x: head.x, y: head.y - 1 }),
+            distance / this.normalization,
+            this.game.snake.tail.length,
+            this.game.lives,
+            (head.x - this.game.apple.x) / this.game.width,
+            (head.y - this.game.apple.y) / this.game.height,
+            distances.xPositive / this.game.width,
+            distances.xNegative / this.game.width,
+            distances.yPositive / this.game.height,
+            distances.yNegative / this.game.height,
+            // this.game.snake.isEmptySpot({ x: head.x + 1, y: head.y }),
+            // this.game.snake.isEmptySpot({ x: head.x - 1, y: head.y }),
+            // this.game.snake.isEmptySpot({ x: head.x, y: head.y + 1 }),
+            // this.game.snake.isEmptySpot({ x: head.x, y: head.y - 1 }),
         ];
     }
 

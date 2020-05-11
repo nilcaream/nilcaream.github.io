@@ -40,7 +40,7 @@ $(() => {
         });
         return results;
     }
-    const net = new Net(netWidth, netHeight, "net", result.weights, outputTexts, inputTexts);
+    const net = new Net(netWidth, netHeight, "net", result.weights, outputTexts);//, inputTexts);
 
     ui.source = Learn.identify(result);
 

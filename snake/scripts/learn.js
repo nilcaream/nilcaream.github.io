@@ -10,7 +10,7 @@ export class Learn {
         this.logger = logger;
         this.onEnd = onEnd || (() => { });
         this.ageWeight = 10 * Math.max(this.game.width, this.game.height);
-        this.network = [8, 8, 8, 8, 4];
+        this.network = [11, 8, 8, 4];
         this.reset(populationSize, generations, weights);
     }
 
@@ -19,7 +19,15 @@ export class Learn {
     }
 
     reset(populationSize, generations, weights) {
-        this.weights = Neural.copyWeights(weights || this.weights || []);
+        this.weights = Neural.copyWeights(weights || this.weights || []).filter(weight => {
+            const lenghts = weight.map(w => w.length);
+            for (let i = 0; i < Math.min(lenghts.length, this.network.length); i++) {
+                if (lenghts[i] !== this.network[i]) {
+                    return false;
+                }
+            }
+            return lenghts.length === this.network.length;
+        });
         this.populationSize = populationSize || this.populationSize || 500;
         this.generations = generations || this.generations || 1000;
         this.best = [];

@@ -33,4 +33,19 @@ export class Snake {
             return true;
         }
     }
+
+    distanceToNonEmpty(width, height) {
+        const head = this.getHead();
+        const xPositive = Math.min(...this.tail.filter(t => t.x > head.x && t.y === head.y).map(t => t.x), width) - head.x - 1;
+        const xNegative = head.x - Math.max(...this.tail.filter(t => t.x < head.x && t.y === head.y).map(t => t.x), -1) - 1;
+
+        const yPositive = Math.min(...this.tail.filter(t => t.y > head.y && t.x === head.x).map(t => t.y), height) - head.y - 1;
+        const yNegative = head.y - Math.max(...this.tail.filter(t => t.y < head.y && t.x === head.x).map(t => t.y), -1) - 1;
+        return {
+            xPositive: xPositive,
+            yPositive: yPositive,
+            xNegative: xNegative,
+            yNegative: yNegative
+        }
+    }
 }
