@@ -1,4 +1,4 @@
-export class Net {
+class Net {
     constructor(width, height, canvasId, weights, outputTexts, inputTexts) {
         this.unit = width / (weights.length + 0.5);
         this.padX = this.unit;

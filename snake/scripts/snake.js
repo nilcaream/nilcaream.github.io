@@ -1,4 +1,4 @@
-export class Snake {
+class Snake {
     constructor(x, y, length) {
         this.tail = [{ x: x, y: y - length }];
         for (let i = 0; i < length; i++) {

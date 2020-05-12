@@ -1,4 +1,4 @@
-export class Human {
+class Human {
     static register(eventType, callback) {
         $(document).on(eventType, event => {
             if (event.code === "ArrowRight") {

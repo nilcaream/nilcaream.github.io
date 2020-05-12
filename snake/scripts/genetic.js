@@ -1,6 +1,4 @@
-import { Neural } from "./neural.js"
-
-export class Genetic {
+class Genetic {
 
     static crossover(weightsA, weightsB, selector, mutator) {
         const results = [];

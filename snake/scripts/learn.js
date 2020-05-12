@@ -1,9 +1,4 @@
-import { Game } from "./game.js"
-import { Neural } from "./neural.js"
-import { Genetic } from "./genetic.js"
-import { Computer } from "./computer.js"
-
-export class Learn {
+class Learn {
     constructor(populationSize, generations, weights, logger = console.log, onEnd) {
         this.game = new Game(20, 20);
         this.computer = new Computer(this.game);

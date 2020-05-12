@@ -1,4 +1,4 @@
-export class Storage {
+class Storage {
     static name() {
         return "nc.snake.v02";
     }

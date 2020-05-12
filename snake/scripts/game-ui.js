@@ -1,6 +1,4 @@
-import { Game } from "./game.js"
-
-export class GameUi {
+class GameUi {
     constructor(world, boardId) {
         this.world = world;
         this.game = new Game(world.width, world.height);

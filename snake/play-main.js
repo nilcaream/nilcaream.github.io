@@ -1,16 +1,9 @@
-import * as jQuery from "./scripts/jquery-3.5.0.min.js"
-import { Storage } from "./scripts/storage.js"
-import { GameUi } from "./scripts/game-ui.js"
-import { Computer } from "./scripts/computer.js"
-import { Net } from "./scripts/net.js"
-import { Learn } from "./scripts/learn.js"
-
 $(() => {
     if (window.innerWidth > window.innerHeight) {
         $("#board").parent().addClass("fl");
     }
 
-    let result = Storage.load()[0];
+    let result = Storage.load()[0] || {};
     const size = Math.min(window.innerWidth, window.innerHeight) - 5;
     const netWidth = window.innerWidth > window.innerHeight ? window.innerWidth / 2 : window.innerWidth - 5;
     const netHeight = window.innerWidth > window.innerHeight ? window.innerHeight - 5 : 0;

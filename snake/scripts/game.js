@@ -1,6 +1,4 @@
-import { Snake } from "./snake.js"
-
-export class Game {
+class Game {
     constructor(width, height) {
         this.width = width;
         this.height = height;

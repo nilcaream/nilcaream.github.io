@@ -1,7 +1,3 @@
-import * as jQuery from "./scripts/jquery-3.5.0.min.js"
-import { Storage } from "./scripts/storage.js"
-import { Learn } from "./scripts/learn.js"
-
 $(() => {
     let running = true;
     const now = () => { let d = new Date(); return new Date(d.getTime() - 60 * 1000 * d.getTimezoneOffset()).toISOString().replace(/[TZ]/g, " ").trim(); };
