@@ -1,6 +1,6 @@
 class Storage {
     static name() {
-        return "nc.snake.v02";
+        return "nc.snake.v03";
     }
 
     static load() {
@@ -12,7 +12,7 @@ class Storage {
         window.localStorage.setItem(Storage.name(), JSON.stringify(results));
     }
 
-    static add(results, maxSize = 128) {
+    static add(results = [], maxSize = 128) {
         const loadedResults = Storage.load();
         const idToResult = [];
         loadedResults.forEach(r => idToResult[r.id] = r);

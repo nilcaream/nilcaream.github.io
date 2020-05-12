@@ -48,6 +48,10 @@ class Learn {
         }, 10);
     }
 
+    stop() {
+        this.generations = 0;
+    }
+
     end() {
         this.logger("--------------------- end");
         this.best.slice(0, 32).forEach(best => this.log(best));
@@ -120,7 +124,7 @@ class Learn {
         this.best.sort((a, b) => b.score - a.score);
         this.best.splice(0.25 * this.populationSize);
 
-        if ((currentBest || {}).score !== this.best[0].score) {
+        if (currentBest && currentBest.score !== this.best[0].score) {
             this.log(this.best[0]);
         }
     }

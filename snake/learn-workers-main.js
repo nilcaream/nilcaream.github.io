@@ -8,7 +8,7 @@ $(() => {
     }
     const loadWeights = (amount) => Storage.load().slice(0, amount).map(x => x.weights)
     const weights = window.location.hash.indexOf("reset") !== -1 ? [] : loadWeights(10);
-    const learn = new Learn(100, 1000, weights, log, () => running = false);
+    const learn = new LearnProxy(new Worker("worker.js"), 100, 1000, weights, log, () => running = false);
 
     learn.start();
     setInterval(() => Storage.add(learn.best), 5000);
