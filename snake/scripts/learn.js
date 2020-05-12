@@ -5,7 +5,7 @@ class Learn {
         this.logger = logger;
         this.onEnd = onEnd || (() => { });
         this.ageWeight = 10 * Math.max(this.game.width, this.game.height);
-        this.network = [11, 8, 8, 4];
+        this.network = [this.computer.inputLength(), 8, 8, 4];
         this.reset(populationSize, generations, weights);
     }
 

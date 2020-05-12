@@ -4,6 +4,10 @@ class Computer {
         this.normalization = Math.max(game.width, game.height);
     }
 
+    inputLength() {
+        return 11;
+    }
+
     calculateInput() {
         const head = this.game.snake.getHead();
         const distance = this.game.getDistance();
