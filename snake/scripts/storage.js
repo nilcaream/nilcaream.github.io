@@ -1,6 +1,6 @@
 class Storage {
     static name() {
-        return "nc.snake.v03";
+        return "nc.snake.v04";
     }
 
     static load() {

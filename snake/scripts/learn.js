@@ -1,12 +1,11 @@
 class Learn {
-    constructor(populationSize, generations, weights, logger = console.log, onEnd) {
+    constructor() {
         this.game = new Game(20, 20);
         this.computer = new Computer(this.game);
-        this.logger = logger;
-        this.onEnd = onEnd || (() => { });
         this.ageWeight = 10 * Math.max(this.game.width, this.game.height);
         this.network = [this.computer.inputLength(), 8, 8, 4];
-        this.reset(populationSize, generations, weights);
+        this.running = false;
+        this.logger = console.log;
     }
 
     random() {
@@ -38,24 +37,25 @@ class Learn {
     }
 
     start() {
+        this.running = true;
         setTimeout(() => {
             this.run(1);
-            if (this.generation < this.generations) {
+            if (this.generation < this.generations && this.running) {
                 this.start();
             } else {
+                this.stop();
                 this.end();
             }
         }, 10);
     }
 
     stop() {
-        this.generations = 0;
+        this.running = false;
     }
 
     end() {
         this.logger("--------------------- end");
         this.best.slice(0, 32).forEach(best => this.log(best));
-        this.onEnd(this.best);
     }
 
     getScore() {
