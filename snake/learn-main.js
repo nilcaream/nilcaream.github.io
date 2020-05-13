@@ -1,24 +1,50 @@
 $(() => {
-    let running = true;
     const now = () => { let d = new Date(); return new Date(d.getTime() - 60 * 1000 * d.getTimezoneOffset()).toISOString().replace(/[TZ]/g, " ").trim(); };
     const log = (text) => $("#results").prepend($("<div></div>").text(`${now()} ${text}`));
-    window.addEventListener("error", (e) => log(`Error ${e.message} at ${e.filename}:${e.lineno}:${e.colno}`));
-    if (window.location.hash.indexOf("delete") !== -1) {
-        Storage.save([]);
-    }
     const loadWeights = (amount) => Storage.load().slice(0, amount).map(x => x.weights)
-    const weights = window.location.hash.indexOf("reset") !== -1 ? [] : loadWeights(10);
-    const learn = new Learn(100, 1000, weights, log, () => running = false);
+    const addButton = (text, action) => $("#controlls").append($("<a></a>").addClass("pr05").attr("href", "#").text(text).click(action));
 
-    learn.start();
-    setInterval(() => Storage.add(learn.best), 5000);
+    window.addEventListener("error", (e) => log(`Error ${e.message} at ${e.filename}:${e.lineno}:${e.colno}`));
 
-    const updateStatus = () => {
-        $("#status").empty()
-            .text(`${now()} generation:${learn.generation}/${learn.generations}, populationSize:${learn.populationSize}, movesPerMs: ${learn.movesPerMs.toPrecision(3)}, score: ${(learn.best[0] || { score: 0 }).score.toFixed(2)}, running: ${running}`);
+    const worker = new Worker("generic-worker.js");
+    worker.postMessage({ initialize: "Learn" });
+    worker.postMessage({ override: "logger" });
+
+    const learn = {
+        start: () => {
+            worker.postMessage({ "method": "start", arguments: [] });
+        },
+        stop: () => {
+            worker.postMessage({ "method": "stop", arguments: [] });
+        },
+        reset: (populationSize, generations, weights) => {
+            worker.postMessage({ "method": "reset", arguments: [populationSize, generations, weights] });
+        },
+        logger: (text) => {
+            log(text);
+        }
+    };
+    learn.reset(100, 1000, loadWeights(10));
+
+    worker.onmessage = (event) => {
+        console.log("learn-generic-worker-main.js onmessage");
+        console.log(event.data);
+        if (event.data.property) {
+            learn[event.data.property] = event.data.value;
+        } else if (event.data.method) {
+            learn[event.data.method](...event.data.arguments);
+        } else {
+            console.log("Unknown event");
+        }
     };
 
-    const addButton = (text, action) => $("#controlls").append($("<a></a>").addClass("pr05").attr("href", "#").text(text).click(action));
+    const updateStatus = () => {
+        const score = ((learn.best || [])[0] || { score: 0 }).score.toFixed(2);
+        const movesPerMs = (learn.movesPerMs || 0).toPrecision(3);
+        $("#status").empty()
+            .text(`${now()} generation:${learn.generation}/${learn.generations}, populationSize:${learn.populationSize}, movesPerMs:${movesPerMs}, score:${score}, running:${learn.running}`);
+    };
+
     addButton("P:50", () => learn.reset(50, 0, loadWeights(5)));
     addButton("P:100", () => learn.reset(100, 0, loadWeights(10)));
     addButton("P:500", () => learn.reset(500, 0, loadWeights(50)));
@@ -34,14 +60,16 @@ $(() => {
     addButton("Clear", () => $("#results").empty());
     addButton("Restart", () => learn.reset(0, 0, loadWeights(0.1 * learn.populationSize)));
     addButton("Start", () => {
-        if (!running) {
+        if (learn.running) {
+            log("Already running");
+        } else {
             learn.start();
-            running = true;
         }
     });
     addButton("Stop", () => learn.stop());
     addButton("Reset", () => learn.reset(0, 0, []));
     addButton("Delete", () => { learn.reset(0, 0, []); Storage.save([]); });
 
-    setInterval(() => updateStatus(), 500);
+    setInterval(() => updateStatus(), 1000);
+    setInterval(() => Storage.add(learn.best), 5000);
 });
