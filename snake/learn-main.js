@@ -72,4 +72,39 @@ $(() => {
 
     setInterval(() => updateStatus(), 1000);
     setInterval(() => Storage.add(learn.best), 5000);
+
+    // ----------
+
+    const outputTexts = (output) => {
+        const results = [];
+        const max = output.indexOf(Math.max(...output));
+        const labels = ["RIGHT", "LEFT", "DOWN", "UP"];
+        output.forEach((o, i) => {
+            results.push({
+                color: `rgb(${i !== max ? 255 : 0},${i === max ? 255 : 0},0)`,
+                label: i === max ? labels[i] : "-"
+            });
+        });
+        return results;
+    }
+
+    const ui = new GameUi({ width: 20, height: 20, unit: 0.25 * window.innerWidth / 20, pad: 1 }, "board");
+    const computer = new Computer(ui.game);
+    let net;
+
+    GameUi.animate(() => {
+        const result = (learn.best || [])[0] || {};
+        if (result.weights) {
+            if (net === undefined) {
+                net = new Net(0.25 * window.innerWidth, 0.25 * window.innerWidth, "net", result.weights, outputTexts);
+            }
+            const input = computer.calculateInput();
+            const layers = computer.step(result.weights);
+            ui.draw();
+            net.draw(input, result.weights, layers);
+            if (ui.game.lives <= 0) {
+                ui.game.reset();
+            }
+        }
+    }, 100);
 });

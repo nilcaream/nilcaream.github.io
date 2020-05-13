@@ -1,14 +1,14 @@
 class Net {
     constructor(width, height, canvasId, weights, outputTexts, inputTexts) {
-        this.unit = width / (weights.length + 0.5);
+        this.unit = width / (weights.length + 1);
         this.padX = this.unit;
         this.radius = 0.15 * this.unit;
         this.maxLayers = Math.max(...weights.map(w => w.length));
 
-        this.padY = height ? (height + this.radius) / this.maxLayers : this.padX * 0.8;
+        this.padY = height / (this.maxLayers);
 
         this.width = width;
-        this.height = height || (this.maxLayers - 0.4) * this.padY;
+        this.height = height;
         this.outputTexts = outputTexts;
         this.inputTexts = inputTexts;
         this.ctx = this.createContext(canvasId);
@@ -16,6 +16,7 @@ class Net {
 
     createContext(canvasId) {
         const ctx = $("#" + canvasId)
+            .css("border", "1px solid black")
             .attr("width", this.width)
             .attr("height", this.height)[0].getContext("2d");
         ctx.font = ((this.unit / 3).toFixed()) + "px monospace";
@@ -63,7 +64,7 @@ class Net {
 
         this.ctx.save();
         this.ctx.clearRect(0, 0, this.width, this.height);
-        this.ctx.translate(1.5 * this.radius + this.padX / 2, 1.5 * this.radius);
+        this.ctx.translate(this.padX, this.padY / 2);
 
         // layers weights
         for (let i = 0; i < weights.length; i++) {

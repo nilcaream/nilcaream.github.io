@@ -4,11 +4,11 @@ $(() => {
     }
 
     let result = Storage.load()[0] || {};
-    const size = Math.min(window.innerWidth, window.innerHeight) - 5;
-    const netWidth = window.innerWidth > window.innerHeight ? window.innerWidth / 2 : window.innerWidth - 5;
-    const netHeight = window.innerWidth > window.innerHeight ? window.innerHeight - 5 : 0;
+    // const size = Math.min(window.innerWidth, window.innerHeight) - 5;
+    // const netWidth = window.innerWidth > window.innerHeight ? window.innerWidth / 2 : window.innerWidth - 5;
+    // const netHeight = window.innerWidth > window.innerHeight ? window.innerHeight - 5 : 0;
 
-    const ui = new GameUi({ width: 20, height: 20, unit: size / 20, pad: 1 }, "board");
+    const ui = new GameUi({ width: 20, height: 20, unit: (window.innerHeight - 10) / 20, pad: 1 }, "board");
     const computer = new Computer(ui.game);
     const inputTexts = (input) => [
         "Bias",
@@ -33,7 +33,7 @@ $(() => {
         });
         return results;
     }
-    const net = new Net(netWidth, netHeight, "net", result.weights, outputTexts);//, inputTexts);
+    const net = new Net(window.innerWidth - window.innerHeight - 10, window.innerHeight - 10, "net", result.weights, outputTexts);//, inputTexts);
 
     ui.source = Learn.identify(result);
 
