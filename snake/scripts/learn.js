@@ -2,14 +2,15 @@ class Learn {
     constructor() {
         this.game = new Game(20, 20);
         this.computer = new Computer(this.game);
+        this.boardSize = Math.max(this.game.width, this.game.height);
         this.ageWeight = 10 * Math.max(this.game.width, this.game.height);
-        this.network = [this.computer.inputLength(), 8, 8, 4];
+        this.network = [this.computer.inputLength(), this.computer.inputLength() + 3, this.computer.inputLength() - 3, this.computer.inputLength(), 4];
         this.running = false;
         this.logger = console.log;
     }
 
     random() {
-        return Math.random() * 512 - 256;
+        return Math.random() * 1024 - 512;
     }
 
     reset(populationSize, generations, weights) {
@@ -59,36 +60,45 @@ class Learn {
     }
 
     getScore() {
-        return this.game.points + this.game.age / this.ageWeight;
+        const genFactor = (this.boardSize - this.game.points) / this.boardSize;
+        return this.game.points + Math.max(0, genFactor) * this.game.age / this.ageWeight;
     }
 
-    run(steps = 1) {
-        for (let r = 0; r < steps; r++) {
-            const results = [];
-            for (let p = 0; p < this.populationSize; p++) {
+    run(totalTries = 1) {
+        const results = [];
+        for (let p = 0; p < this.populationSize; p++) {
+
+            const tries = [];
+            for (let t = 0; t < totalTries; t++) {
                 this.game.reset();
                 while (this.game.lives > 0) {
                     this.moves++;
                     this.computer.step(this.weights[p]);
                 }
-                results.push({
+                tries.push({
                     score: this.getScore(),
                     points: this.game.points,
-                    age: this.game.age,
-                    generation: this.generation,
-                    weights: this.weights[p] //Neural.copyWeights(this.weights[p])
+                    age: this.game.age
                 });
             }
-            results.sort((a, b) => b.score - a.score);
-            this.updateBest(results.slice(0, 0.1 * this.populationSize));
-            this.weights = this.prepareNewWeights(results);
-            if (this.generation % 10 === 0) {
-                this.movesPerMs = this.moves / (new Date().getTime() - this.time);
-                this.moves = 0;
-                this.time = new Date().getTime();
-            }
-            this.generation++;
+            tries.sort((a, b) => b.score - a.score);
+
+            const average = tries[Math.floor(totalTries / 2)];
+            results.push({
+                score: average.score,
+                points: average.points,
+                age: average.age,
+                generation: this.generation,
+                weights: this.weights[p] //Neural.copyWeights(this.weights[p])
+            });
         }
+        results.sort((a, b) => b.score - a.score);
+        this.updateBest(results.slice(0, 0.1 * this.populationSize));
+        this.weights = this.prepareNewWeights(results);
+        this.movesPerMs = this.moves / (new Date().getTime() - this.time);
+        this.moves = 0;
+        this.time = new Date().getTime();
+        this.generation++;
     }
 
     log(result) {

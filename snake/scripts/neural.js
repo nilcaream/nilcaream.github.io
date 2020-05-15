@@ -1,11 +1,11 @@
 // heavily inspired by https://github.com/mlruzic/jake-the-snake 
 
 class Neural {
-    static calculateOutput(input, weights, f = Neural.sigmoid) {
+    static calculateOutput(input, weights, f = Neural.swish) {
         return Neural.calculateLayers(input, weights, f)[weights.length - 1];
     }
 
-    static calculateLayers(input, weights, f = Neural.sigmoid) {
+    static calculateLayers(input, weights, f = Neural.swish) {
         const layers = [];
         let layer = input.map((e, i) => f(e * weights[0][i][0]));
 
@@ -77,6 +77,10 @@ class Neural {
 
     static sigmoid(x) {
         return 1 / (1 + Math.exp(-x));
+    }
+
+    static swish(x) {
+        return x / (1 + Math.exp(-x));
     }
 
     static test() {

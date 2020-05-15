@@ -88,7 +88,8 @@ $(() => {
         return results;
     }
 
-    const ui = new GameUi({ width: 20, height: 20, unit: 0.25 * window.innerWidth / 20, pad: 1 }, "board");
+    const scale = 0.3;
+    const ui = new GameUi({ width: 20, height: 20, unit: scale * window.innerWidth / 20, pad: 1 }, "board");
     const computer = new Computer(ui.game);
     let net;
 
@@ -96,7 +97,7 @@ $(() => {
         const result = (learn.best || [])[0] || {};
         if (result.weights) {
             if (net === undefined) {
-                net = new Net(0.25 * window.innerWidth, 0.25 * window.innerWidth, "net", result.weights, outputTexts);
+                net = new Net(scale * window.innerWidth, scale * window.innerWidth, "net", result.weights, outputTexts);
             }
             const input = computer.calculateInput();
             const layers = computer.step(result.weights);
