@@ -4,13 +4,14 @@ class Learn {
         this.computer = new Computer(this.game);
         this.boardSize = Math.max(this.game.width, this.game.height);
         this.ageWeight = 10 * Math.max(this.game.width, this.game.height);
-        this.network = [this.computer.inputLength(), this.computer.inputLength() + 3, this.computer.inputLength() - 3, this.computer.inputLength(), 4];
+        this.network = [this.computer.inputLength(), this.computer.inputLength(), this.computer.inputLength(), this.computer.inputLength(), this.computer.outputLength()];
         this.running = false;
         this.logger = console.log;
+        this.randomRange = 256;
     }
 
     random() {
-        return Math.random() * 1024 - 512;
+        return Math.random() * this.randomRange - this.randomRange / 2;
     }
 
     reset(populationSize, generations, weights) {
@@ -115,7 +116,7 @@ class Learn {
         for (let i = weights.length - 1; i > 0.5 * this.populationSize; i--) {
             const weightsA = weights[(Math.random() * 0.5 * this.populationSize) | 0];
             const weightsB = weights[(Math.random() * this.populationSize) | 0];
-            weights[i] = Genetic.crossover(weightsA, weightsB, () => Math.random() > 0.75, (x) => Math.random() > 0.01 ? x : this.random());
+            weights[i] = Genetic.crossover(weightsA, weightsB, () => Math.random() > 0.5, (x) => Math.random() > 0.05 ? x : this.random());
         }
         return weights;
     }

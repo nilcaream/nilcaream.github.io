@@ -8,10 +8,10 @@ class Net {
         this.inputTexts = inputTexts;
         this.ctx = this.createContext(canvasId, width, height);
 
-        const pad = 0.55 * height / this.gridY;
-        this.ctx.translate(pad, pad);
-        this.width = width - 2 * pad;
-        this.height = height - 2 * pad;
+        this.pad = 0.55 * height / this.gridY;
+        this.ctx.translate(this.pad, this.pad);
+        this.width = width - 2 * this.pad;
+        this.height = height - 2 * this.pad;
     }
 
     createContext(canvasId, width, height) {
@@ -59,12 +59,27 @@ class Net {
         this.ctx.restore();
     }
 
+    toNumber(value) {
+        const x = Number(value);
+        if (x === 0) {
+            return "0";
+        } else if (Math.abs(x) < 1e-100) {
+            return x.toExponential(0);
+        } else if (Math.abs(x) < 1e-10) {
+            return x.toExponential(1);
+        } else if (Math.abs(x) < 1e-3) {
+            return x.toExponential(2);
+        } else {
+            return x.toPrecision(3).replace(/(.+\.[0-9]*[1-9])0+/,"$1");
+        }
+    }
+
     draw(input, weights, layers) {
         const output = layers[layers.length - 1];
         const outputTexts = this.outputTexts(output);
 
         this.ctx.save();
-        this.ctx.clearRect(0, 0, this.width, this.height);
+        this.ctx.clearRect(-this.pad, -this.pad, this.width + 2 * this.pad, this.height + 2 * this.pad);
 
         // weight min/max
         let weightMin = 9999999;
@@ -164,7 +179,7 @@ class Net {
             });
         } else {
             input.forEach((value, i) => {
-                this.circle(0, i * this.height / (input.length - 1), "white", `${Number(value).toPrecision(3)}`);
+                this.circle(0, i * this.height / (input.length - 1), "white", this.toNumber(value));
             });
         }
         this.ctx.restore();
@@ -191,7 +206,7 @@ class Net {
                 } else {
                     color = "rgb(180,180,255)";
                 }
-                this.circle(0, j * this.height / (layers[i].length - 1), color, `${layer.toPrecision(3)}`);
+                this.circle(0, j * this.height / (layers[i].length - 1), color, this.toNumber(layer));
             }
         }
         this.ctx.restore();
