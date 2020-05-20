@@ -8,6 +8,7 @@ importScripts("scripts/learn.js");
 importScripts("scripts/net.js");
 importScripts("scripts/snake.js");
 importScripts("scripts/storage.js");
+importScripts("scripts/verify.js");
 
 let target;
 

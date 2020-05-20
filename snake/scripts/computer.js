@@ -44,16 +44,10 @@ class Computer {
                 }
             })
             .filter(o => o.outputValue === m)
-            .sort((a, b) => b.inputValue - a.inputValue);
+            .filter(o => o.inputLength > 0)
+            .sort(() => Math.random() - 0.5);
 
-        const max = res[0].index;
-        // if (res.length > 1) {
-        //     console.log(input);
-        //     console.log(input.slice(offset, offset + 4));
-        //     console.log(output);
-        //     console.log(res);
-        //     console.log(`selected ${max}, input ${input[offset + max]}`);
-        // }
+        const max = res.length === 0 ? output.indexOf(m) : res[0].index;
         this.game.step((max === 0) - (max === 1), (max === 2) - (max === 3));
         return layers;
     }

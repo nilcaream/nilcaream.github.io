@@ -47,5 +47,5 @@ $(() => {
             ui.source = Learn.identify(result);
             ui.game.reset();
         }
-    }, 100);
+    }, 50);
 });

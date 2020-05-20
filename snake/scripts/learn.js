@@ -4,7 +4,10 @@ class Learn {
         this.computer = new Computer(this.game);
         this.boardSize = Math.max(this.game.width, this.game.height);
         this.ageWeight = 10 * Math.max(this.game.width, this.game.height);
-        this.network = [this.computer.inputLength(), this.computer.inputLength(), this.computer.inputLength(), this.computer.inputLength(), this.computer.outputLength()];
+
+        const il = this.computer.inputLength();
+        const ol = this.computer.outputLength();
+        this.network = [il, ol, ol];
         this.running = false;
         this.logger = console.log;
         this.randomRange = 256;

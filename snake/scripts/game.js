@@ -12,6 +12,7 @@ class Game {
         this.points = 0;
         this.lives = this.reward;
         this.age = 0;
+        this.lastHead = false;
     }
 
     getDistance() {
@@ -46,6 +47,7 @@ class Game {
             this.lives--;
             this.age++;
         } else {
+            this.lastHead = newHead;
             this.lives = 0;
         }
 
