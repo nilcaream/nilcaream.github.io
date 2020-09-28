@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, maximum-scale=1"/>
+    <title>Tabliczka mnożenia</title>
+    <style>
+        body {
+            background-color: white;
+            color: black;
+            font-family: monospace;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            text-align: center;
+        }
+
+        .good {
+            color: green;
+            font-weight: bold;
+        }
+
+        .bad {
+            color: red;
+            font-weight: bold;
+        }
+
+        .show {
+            display: block;
+        }
+
+        .hide {
+            display: none;
+        }
+
+        button:disabled {
+            color: darkgray;
+        }
+
+        button.start {
+            margin: 3vh 10vw;
+            padding: 4vh 5vw;
+            font-size: 9vh;
+            width: 80vw;
+            height: 19vh;
+        }
+
+        div.header {
+            margin: 2vh 0;
+            padding: 0;
+            font-size: 2.8vh;
+            word-spacing: -1vh;
+        }
+
+        div.equation {
+            padding: 2vh 5vw;
+            font-size: 6.5vh;
+            word-spacing: -1vh;
+        }
+
+        div.keyboard button {
+            height: 11.5vh;
+            width: 22vw;
+            margin: 5vh 4vw 1vh;
+            font-size: 4.5vh;
+        }
+
+        div.keyboard button.delete {
+            margin-top: 2vh;
+            height: 6vh;
+            width: 86vw;
+        }
+
+        div.keyboard button.zero {
+            margin-right: 35vw;
+        }
+
+        div.results, div.time {
+            padding: 2vh 0 0;
+            font-size: 4vh;
+        }
+
+        div.errors {
+            margin-top: 3vh;
+            font-size: 5vh;
+        }
+
+        button.restart {
+            width: 80vw;
+            height: 10vh;
+            position: fixed;
+            bottom: 4vh;
+            left: 10vw;
+            font-size: 5vh;
+        }
+
+        @media (orientation: landscape) {
+            div.header {
+                word-spacing: 0;
+                font-size: 3.8vh;
+            }
+
+            button.start {
+                width: 40vw;
+            }
+
+            div.keyboard button.delete {
+                font-size: 4vh;
+            }
+
+            div.keyboard button {
+                margin-bottom: 0.1vh;
+            }
+
+            div.equation {
+                padding: 1.5vh 5vw;
+                font-size: 8vh;
+            }
+
+            div.results.good {
+                margin-left: 7vw;
+                float: left;
+            }
+
+            div.results.bad {
+                margin-right: 7vw;
+                float: right;
+            }
+
+            div.errors {
+                font-size: 6.2vh;
+            }
+        }
+    </style>
+    <script>
+        const state = {};
+
+        const selectScreen = (panelId) => {
+            document.querySelectorAll("div.panel").forEach(div => {
+                div.classList.add("hide");
+                div.classList.remove("show");
+            });
+            document.querySelectorAll("#" + panelId).forEach(div => {
+                div.classList.add("show");
+                div.classList.remove("hide");
+            });
+        }
+
+        const start = count => {
+            selectScreen("test");
+            state.count = count;
+            state.current = 0;
+            state.good = 0;
+            state.bad = 0;
+            state.ratio = 0;
+            state.factor1 = 0;
+            state.factor2 = 0;
+            state.result = "";
+            state.previous = [];
+            state.startTime = new Date().getTime();
+            state.badHistory = [];
+            next();
+        };
+
+        const isCorrect = () => parseInt(state.result || "0") === state.factor1 * state.factor2;
+
+        const enableKeypad = enable => {
+            if (enable) {
+                document.querySelectorAll("button.delete").forEach(button => button.removeAttribute("disabled"));
+                document.querySelectorAll("button.number").forEach(button => button.removeAttribute("disabled"));
+            } else {
+                document.querySelectorAll("button.delete").forEach(button => button.setAttribute("disabled", "disabled"));
+                document.querySelectorAll("button.number").forEach(button => button.setAttribute("disabled", "disabled"));
+            }
+        };
+
+        const submit = () => {
+            enableKeypad(false);
+            const equation = document.querySelectorAll("#test div.equation")[0];
+
+            if (state.result === "00") {
+                selectScreen("index");
+            } else if (state.current === state.count) {
+                start(state.count);
+            } else if (state.solved) {
+                if (isCorrect()) {
+                    state.solved = false;
+                    equation.classList.remove("good");
+                    state.current++;
+                    next();
+                } else {
+                    equation.classList.remove("bad");
+                    equation.classList.add("good");
+                    state.result = state.factor1 * state.factor2;
+                }
+            } else {
+                if (isCorrect()) {
+                    equation.classList.add("good");
+                    state.good++;
+                } else {
+                    equation.classList.add("bad");
+                    state.bad++;
+                    state.badHistory.push(`${state.factor1} ⋅ ${state.factor2} = ${state.factor1 * state.factor2}`);
+                    while (state.badHistory.length > 10) {
+                        state.badHistory.shift();
+                    }
+                }
+                state.ratio = Math.round(100 * state.good / (state.good + state.bad));
+                state.solved = true;
+                if (state.current + 1 === state.count) {
+                    console.log("last");
+                    state.endTime = new Date().getTime();
+                }
+            }
+            draw();
+        }
+
+        const next = () => {
+            if (state.current === state.count) {
+                draw();
+            } else {
+                do {
+                    state.factor1 = 2 + Math.round(8 * Math.random());
+                    state.factor2 = 2 + Math.round(8 * Math.random());
+                } while (state.previous.indexOf(state.factor1 * state.factor2) !== -1)
+                state.previous.push(state.factor1 * state.factor2);
+                while (state.previous.length > 5) {
+                    state.previous.shift();
+                }
+                state.result = "";
+                enableKeypad(true);
+                draw();
+            }
+        };
+
+        const update = (number) => {
+            if (number === -1) {
+                state.result = state.result.substring(0, state.result.length - 1);
+            } else {
+                state.result += number;
+            }
+            draw();
+        }
+
+        const draw = () => {
+            const header = document.querySelectorAll("#test div.header")[0];
+            if (state.current === state.count) {
+                document.querySelectorAll("#stats div.results.good")[0].textContent = `Dobre: ${state.good} (${state.ratio}%)`;
+                document.querySelectorAll("#stats div.results.bad")[0].textContent = `Złe: ${state.bad} (${100 - state.ratio}%)`;
+                document.querySelectorAll("#stats div.time")[0].textContent = `Czas: ${((state.endTime - state.startTime) / 1000).toFixed(2)} sekund`;
+                const errorsDiv = document.querySelectorAll("#stats div.errors")[0];
+                errorsDiv.innerHTML = state.badHistory.join("<br/>");
+                selectScreen("stats");
+            } else {
+                header.textContent = `Test ${state.current + 1} z ${state.count}. Dobre: ${state.good} (${state.ratio}%)`;
+                const equation = document.querySelectorAll("#test div.equation")[0];
+                equation.textContent = `${state.factor1} ⋅ ${state.factor2} = ${state.result}`;
+            }
+        };
+
+        ((ready) => {
+            if (document.readyState !== "loading") {
+                ready();
+            } else {
+                document.addEventListener("DOMContentLoaded", ready);
+            }
+        })(() => {
+            document.querySelectorAll("button.start").forEach(button => {
+                button.onclick = () => start(parseInt(button.textContent))
+            });
+            document.querySelectorAll("button.number").forEach(button => {
+                button.onclick = () => update(parseInt(button.textContent))
+            });
+            document.querySelectorAll("button.delete")[0].onclick = () => update(-1);
+            document.querySelectorAll("button.submit")[0].onclick = submit;
+            document.querySelectorAll("button.restart")[0].onclick = () => selectScreen("index");
+        });
+    </script>
+</head>
+<body>
+<div id="index" class="panel show">
+    <button class="start">10</button>
+    <button class="start">25</button>
+    <button class="start">50</button>
+    <button class="start">100</button>
+</div>
+<div id="test" class="panel hide">
+    <div class="header"></div>
+    <div class="equation"></div>
+    <div class="keyboard">
+        <div>
+            <button class="delete">Popraw</button>
+        </div>
+        <div>
+            <button class="number">1</button>
+            <button class="number">2</button>
+            <button class="number">3</button>
+        </div>
+        <div>
+            <button class="number">4</button>
+            <button class="number">5</button>
+            <button class="number">6</button>
+        </div>
+        <div>
+            <button class="number">7</button>
+            <button class="number">8</button>
+            <button class="number">9</button>
+        </div>
+        <div>
+            <button class="number zero">0</button>
+            <button class="submit">Dalej</button>
+        </div>
+    </div>
+</div>
+<div id="stats" class="panel hide">
+    <div class="results good"></div>
+    <div class="results bad"></div>
+    <div class="time"></div>
+    <div class="errors bad"></div>
+    <div class="restart">
+        <button class="restart">Start</button>
+    </div>
+</div>
+</body>
+</html>

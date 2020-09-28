@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>NilCaream</title>
     <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
-    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, maximum-scale=1"/>
 </head>
 <style>
     body {
@@ -20,6 +20,16 @@
 
     a {
         color: #00aa00;
+    }
+
+    @media screen and (max-width: 992px) {
+        body {
+            font-size: 1rem;
+        }
+
+        ul {
+            padding-left: 1rem;
+        }
     }
 </style>
 <body>
@@ -37,6 +47,8 @@
     <li><a href="game-v3">Game V3</a> single player space shooter with gamepad support (hardcoded bindings)</li>
     <li><a href="plasma-v1">Plasma V1</a> plasma-style animation</li>
     <li><a href="cars">Cars</a> simple 2-players minigame</li>
+    <li><a href="engines">Engines</a> combustion engine graphical simulation</li>
+    <li><a href="multiplication/multiplication.html">Multiplication</a> table test for kids (in Polish)</li>
     <li><a href="snake/human.html">Snake</a> Snake game
         <ul>
             <li><a href="snake/human-step.html">Step-based</a> user controlled game</li>

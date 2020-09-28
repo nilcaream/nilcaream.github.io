@@ -8,3 +8,8 @@ Small apps and code snippets created while learning JavaScript, HTML5 or Canvas.
 * [Engines](https://nilcaream.github.io/engines) - graphical simulation of 4-stroke combustion engines
 * [Snake Learn](https://nilcaream.github.io/snake/learn.html) - learn part of cpu-controlled snake game with deep neural network and genetic algorithm 
 * [Snake Play](https://nilcaream.github.io/snake/play.html) - auto-play part of snake game (requires some learning from previous step) 
+* [Engines](https://nilcaream.github.io/engines) - combustion engine graphical simulation 
+* [Multiplication](https://nilcaream.github.io/multiplication/multiplication.html) - multiplication table for kids (in Polish) 
+
+## Thanks
+This project has been developed with [IntelliJ IDEA Ultimate](https://www.jetbrains.com/?from=nil+caream) via JetBrains Open Source Free Licence Program.
