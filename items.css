@@ -1,0 +1,29 @@
+body {
+    font-size: 13px;
+    font-family: monospace;
+}
+
+.items {
+    margin: 0;
+    padding: 0;
+    list-style-type: none;
+    min-height: 7rem;
+}
+
+.items li {
+    width: 12rem;
+    height: 6rem;
+    margin: 0.2rem;
+    padding: 0.2rem;
+    float: left;
+    user-select: none;
+    border: 1px solid black;
+    background-color: lightsteelblue;
+}
+
+.box {
+    margin: 1rem;
+    padding: 1rem;
+    border: 1px solid black;
+    display: grid;
+}
