@@ -3,7 +3,7 @@ body {
     font-family: monospace;
 }
 
-.items {
+ul.items {
     margin: 0;
     padding: 0;
     list-style-type: none;
@@ -16,7 +16,7 @@ body {
     margin: 0.2rem;
     padding: 0.2rem;
     float: left;
-    user-select: none;
+    /*user-select: none;*/
     border: 1px solid black;
     background-color: lightsteelblue;
 }
