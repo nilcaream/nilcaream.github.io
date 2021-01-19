@@ -52,6 +52,11 @@ $(() => {
                 .sort((i0, i1) => i0.order[listId] - i1.order[listId]);
         },
 
+        getOtherItems: function (listIds) {
+            return Object.values(this.data)
+                .filter(item => !Object.keys(item.order).some(r => listIds.indexOf(r) !== -1));
+        },
+
         setOrder: function (itemId, listId, order) {
             this.data[itemId].order[listId] = order;
             this.modified = true;
@@ -63,7 +68,7 @@ $(() => {
         },
 
         getListIds: function (itemId) {
-            return Object.keys(this.data[itemId].order);
+            return Object.keys(this.data[itemId].order).filter(a => a).sort();
         },
 
         log: function () {
@@ -75,15 +80,18 @@ $(() => {
         renderItem: function (ul, item) {
             const setContent = (item, contentDiv) => {
                 contentDiv.attr("contenteditable", "false");
+                contentDiv.removeClass("editable");
                 item.content = contentDiv.text().trim();
                 storage.modified = true;
             };
 
-            const li = $("<li></li>").attr("data-item-id", item.id);
-            const contentDiv = $("<div></div>").addClass("content").text(item.content).focusout(() => setContent(item, contentDiv));
+            const li = $("<li></li>").addClass("item").attr("data-item-id", item.id);
+            const contentDiv = $("<div></div>").addClass("content").text(item.content)
+                .focusout(() => setContent(item, contentDiv))
+                .on("keydown", e => e.code === "Enter" ? setContent(item, contentDiv) : undefined);
             const infoDiv = $("<div></div>").addClass("info");
             const ordersDiv = $("<div></div>").addClass("orders");
-            const editDiv = $("<div></div>").addClass("edit").text("Edit").click(() => {
+            const editDiv = $("<div></div>").addClass("edit").html("&crarr;").click(() => {
                 contentDiv.toggleClass("editable");
                 if (contentDiv.hasClass("editable")) {
                     contentDiv.attr("contenteditable", "true");
@@ -109,7 +117,10 @@ $(() => {
             ul.find("li").each((i, element) => {
                 const li = $(element);
                 const itemId = li.attr("data-item-id");
-                storage.setOrder(itemId, listId, 100 + i);
+
+                if (listId) {
+                    storage.setOrder(itemId, listId, 100 + i);
+                }
 
                 const ordersDiv = li.find("div.orders").empty();
                 ordersDiv.text(storage.getListIds(itemId).join(" | "));
@@ -130,13 +141,23 @@ $(() => {
                 menu.append(addMenu).append(title);
                 container.append(menu).append(ul);
 
-                storage.getItems(listId).forEach(item => this.renderItem(ul, item));
+                if (listId === "") {
+                    const orders = container.parent().find(".items-container").get().map(a => a.getAttribute("data-list-id")).filter(a => a !== "");
+                    storage.getOtherItems(orders).forEach(item => this.renderItem(ul, item));
+                } else {
+                    storage.getItems(listId).forEach(item => this.renderItem(ul, item));
+                }
+
                 that.recalculateOrders(ul);
             });
 
             $(".items").sortable({
                 connectWith: ".items",
                 dropOnEmpty: true,
+                placeholder: "placeholder",
+                // containment: "parent",
+                cursor: "move",
+                tolerance: "pointer",
                 remove: (event, ui) => {
                     const ul = $(event.target);
                     const li = ui.item.first();
@@ -154,19 +175,27 @@ $(() => {
                     console.log(`Added ${itemId} to ${listId}`);
                     that.recalculateOrders(ul);
                 },
+                start: (event, ui) => {
+                    const li = ui.item.first();
+                    li.toggleClass("moved");
+                },
                 stop: (event, ui) => {
                     const ul = $(event.target);
                     const li = ui.item.first();
                     const listId = ul.attr("data-list-id");
                     const itemId = li.attr("data-item-id");
+                    li.toggleClass("moved");
                     console.log(`Stop ${itemId} from ${listId}`);
                     that.recalculateOrders(ul);
                 }
             });//.disableSelection();
+
         }
     };
 
     storage.load();
     storage.startAutoSave();
     view.initializeContainers();
+
+    $("#tabs").tabs();
 });
