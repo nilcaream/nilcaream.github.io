@@ -8,11 +8,11 @@ ul.items {
     border-radius: 0 0.3rem 0.3rem 0.3rem;
     margin: 0;
     padding: 0.2rem;
-    display: inline-block;
+    /*display: inline-block;*/
     background-color: #f8f8f8;
     list-style-type: none;
-    min-height: 7rem;
-    min-width: 13rem;
+    /*min-height: 7rem;*/
+    /*min-width: 13rem;*/
 }
 
 div.menu span.title {
@@ -36,7 +36,7 @@ div.menu span.add {
 }
 
 li.item div.content {
-    height: 4.6rem;
+    height: 100%;
     padding: 0.2rem;
     border-radius: 0.3rem;
     border: 1px solid transparent;
@@ -76,11 +76,10 @@ div.info div.edit:hover {
 }
 
 .items li {
-    width: 12rem;
-    height: 6rem;
+    /*width: 12rem;*/
+    /*height: 6rem;*/
     margin: 0.2rem;
     padding: 0.2rem;
-    float: left;
     border-radius: 0.2rem;
 
     display: flex;
@@ -101,3 +100,60 @@ li.placeholder {
 li.moved {
     border: 1px dashed darkslategray;
 }
+
+/* columns    */
+
+div.container.columns {
+    display: flex;
+    flex-direction: row;
+}
+
+div.container.columns div.items-container {
+    width: 100%;
+    padding: 0.2rem;
+    display: flex;
+    flex-direction: column;
+}
+
+div.container.columns div.wrapper {
+    height: 100%;
+}
+
+div.container.columns ul {
+    height: 100%;
+}
+
+div.container.columns li {
+    height: 4rem;
+}
+
+/* rows    */
+
+div.container.rows {
+    display: flex;
+    flex-direction: column;
+}
+
+div.container.rows div.items-container {
+    padding: 0.2rem;
+    display: flex;
+    flex-direction: column;
+}
+
+div.container.rows div.wrapper {
+    width: 100%;
+}
+
+div.container.rows ul {
+    min-height: 4rem;
+    display: flex;
+    flex-direction: row;
+}
+
+div.container.rows li {
+    height: 5rem;
+    max-width: 16rem;
+    flex: 1 1 0;
+}
+
+/*   */

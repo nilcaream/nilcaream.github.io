@@ -138,8 +138,10 @@ $(() => {
                 const menu = $("<div></div>").addClass("menu");
                 const addMenu = $("<span></span>").text("+").addClass("add").click(() => that.createItem(ul));
                 const title = $("<span></span>").text(container.attr("data-list-name")).addClass("title");
+
+                const ulWrapper = $("<div></div>").addClass("wrapper").append(ul);
                 menu.append(addMenu).append(title);
-                container.append(menu).append(ul);
+                container.append(menu).append(ulWrapper);
 
                 if (listId === "") {
                     const orders = container.parent().find(".items-container").get().map(a => a.getAttribute("data-list-id")).filter(a => a !== "");

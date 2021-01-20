@@ -12,26 +12,53 @@
 <body spellcheck="false">
 <div id="tabs">
     <ul>
-        <li><a href="#main">Main</a></li>
+        <li><a href="#columns">Columns</a></li>
+        <li><a href="#rows">Rows</a></li>
         <li><a href="#quad">Quad</a></li>
-        <li><a href="#contexts">Contexts</a></li>
+        <li><a href="#mixed1">Mixed1</a></li>
+        <li><a href="#mixed2">Mixed2</a></li>
     </ul>
-    <div id="main" class="container">
-        <div class="items-container" data-list-id="list-1" data-list-name="List 1"></div>
-        <div class="items-container" data-list-id="list-2" data-list-name="List 2"></div>
-        <div class="items-container" data-list-id="list-3" data-list-name="List 3"></div>
-        <div class="items-container" data-list-id="list-4" data-list-name="List 4"></div>
+    <div id="columns" class="container columns">
+        <div class="items-container" data-list-id="list-a" data-list-name="List A"></div>
+        <div class="items-container" data-list-id="list-b" data-list-name="List B"></div>
+        <div class="items-container" data-list-id="list-c" data-list-name="List C"></div>
         <div class="items-container" data-list-id="" data-list-name="Others"></div>
     </div>
-    <div id="quad" class="container">
+    <div id="rows" class="container rows">
+        <div class="items-container" data-list-id="list-a" data-list-name="List A"></div>
+        <div class="items-container" data-list-id="list-b" data-list-name="List B"></div>
+        <div class="items-container" data-list-id="" data-list-name="Others"></div>
+    </div>
+    <div id="quad" class="container rows">
         <div class="items-container" data-list-id="quad-urgent-important" data-list-name="Urgent. Important"></div>
         <div class="items-container" data-list-id="quad-not-urgent-important" data-list-name="No urgent. Important"></div>
         <div class="items-container" data-list-id="quad-urgent-not-important" data-list-name="Urgent. Not important"></div>
         <div class="items-container" data-list-id="quad-not-urgent-not-important" data-list-name="Not urgent. Not important"></div>
         <div class="items-container" data-list-id="" data-list-name="Others"></div>
     </div>
-    <div id="contexts">
-
+    <div id="mixed1">
+        <div class="container rows">
+            <div class="container columns">
+                <div class="items-container" data-list-id="list-a" data-list-name="List A"></div>
+                <div class="items-container" data-list-id="list-b" data-list-name="List B"></div>
+            </div>
+            <div class="container columns">
+                <div class="items-container" data-list-id="list-c" data-list-name="List C"></div>
+                <div class="items-container" data-list-id="list-d" data-list-name="List D"></div>
+            </div>
+        </div>
+    </div>
+    <div id="mixed2">
+        <div class="container columns">
+            <div class="container rows">
+                <div class="items-container" data-list-id="list-a" data-list-name="List A"></div>
+                <div class="items-container" data-list-id="list-b" data-list-name="List B"></div>
+            </div>
+            <div class="container rows">
+                <div class="items-container" data-list-id="list-c" data-list-name="List C"></div>
+                <div class="items-container" data-list-id="list-d" data-list-name="List D"></div>
+            </div>
+        </div>
     </div>
 </div>
 </body>
