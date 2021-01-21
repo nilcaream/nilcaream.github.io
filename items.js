@@ -67,8 +67,9 @@ $(() => {
             this.modified = true;
         },
 
-        getListIds: function (itemId) {
-            return Object.keys(this.data[itemId].order).filter(a => a).sort();
+        getItemIdToListIds: function () {
+            // filter removes blanks
+            return Object.values(this.data).map(item => ({itemId: item.id, listIds: Object.keys(item.order).filter(o => o).sort()}));
         },
 
         log: function () {
@@ -80,9 +81,13 @@ $(() => {
         renderItem: function (ul, item) {
             const setContent = (item, contentDiv) => {
                 contentDiv.attr("contenteditable", "false");
-                contentDiv.removeClass("editable");
-                item.content = contentDiv.text().trim();
-                storage.modified = true;
+                const content = contentDiv.text().trim();
+                if (content !== item.content) {
+                    storage.addToHistory(item, "modified: " + item.content);
+                    item.content = content;
+                    $(`li[data-item-id=${item.id}] div.content`).text(item.content);
+                    storage.modified = true;
+                }
             };
 
             const li = $("<li></li>").addClass("item").attr("data-item-id", item.id);
@@ -92,12 +97,11 @@ $(() => {
             const infoDiv = $("<div></div>").addClass("info");
             const ordersDiv = $("<div></div>").addClass("orders");
             const editDiv = $("<div></div>").addClass("edit").html("&crarr;").click(() => {
-                contentDiv.toggleClass("editable");
-                if (contentDiv.hasClass("editable")) {
+                if (contentDiv.attr("contenteditable") === "true") {
+                    setContent(item, contentDiv);
+                } else {
                     contentDiv.attr("contenteditable", "true");
                     contentDiv.focus();
-                } else {
-                    setContent(item, contentDiv);
                 }
             });
 
@@ -109,23 +113,25 @@ $(() => {
         createItem: function (ul) {
             const item = storage.createItem();
             this.renderItem(ul, item);
-            this.recalculateOrders(ul);
         },
 
-        recalculateOrders: function (ul) {
+        updateOrders: function (ul) {
             const listId = ul.attr("data-list-id");
             ul.find("li").each((i, element) => {
                 const li = $(element);
                 const itemId = li.attr("data-item-id");
-
                 if (listId) {
                     storage.setOrder(itemId, listId, 100 + i);
                 }
-
-                const ordersDiv = li.find("div.orders").empty();
-                ordersDiv.text(storage.getListIds(itemId).join(" | "));
             });
-            storage.log();
+        },
+
+        renderOrders: function () {
+            storage.getItemIdToListIds().forEach(entry => {
+                const itemId = entry.itemId;
+                const orders = entry.listIds.join(" | ");
+                $(`li[data-item-id=${itemId}] div.orders`).text(orders);
+            });
         },
 
         initializeContainers: function () {
@@ -143,21 +149,19 @@ $(() => {
                 menu.append(addMenu).append(title);
                 container.append(menu).append(ulWrapper);
 
-                if (listId === "") {
-                    const orders = container.parent().find(".items-container").get().map(a => a.getAttribute("data-list-id")).filter(a => a !== "");
-                    storage.getOtherItems(orders).forEach(item => this.renderItem(ul, item));
-                } else {
+                if (listId) {
                     storage.getItems(listId).forEach(item => this.renderItem(ul, item));
+                } else {
+                    const orders = container.parent().find(".items-container").get().map(a => a.getAttribute("data-list-id")).filter(a => a);
+                    storage.getOtherItems(orders).forEach(item => this.renderItem(ul, item));
                 }
-
-                that.recalculateOrders(ul);
             });
 
             $(".items").sortable({
                 connectWith: ".items",
                 dropOnEmpty: true,
                 placeholder: "placeholder",
-                // containment: "parent",
+                containment: "body > div",
                 cursor: "move",
                 tolerance: "pointer",
                 remove: (event, ui) => {
@@ -167,15 +171,14 @@ $(() => {
                     const itemId = li.attr("data-item-id");
                     storage.removeOrder(itemId, listId);
                     console.log(`Removed ${itemId} from ${listId}`);
-                    that.recalculateOrders(ul);
                 },
                 receive: (event, ui) => {
                     const ul = $(event.target);
                     const li = ui.item.first();
                     const listId = ul.attr("data-list-id");
                     const itemId = li.attr("data-item-id");
+                    that.updateOrders(ul);
                     console.log(`Added ${itemId} to ${listId}`);
-                    that.recalculateOrders(ul);
                 },
                 start: (event, ui) => {
                     const li = ui.item.first();
@@ -187,17 +190,18 @@ $(() => {
                     const listId = ul.attr("data-list-id");
                     const itemId = li.attr("data-item-id");
                     li.toggleClass("moved");
-                    console.log(`Stop ${itemId} from ${listId}`);
-                    that.recalculateOrders(ul);
+                    that.updateOrders(ul);
+                    that.renderOrders();
+                    console.log(`Stop ${itemId} from ${listId || "(others)"}`);
                 }
             });//.disableSelection();
-
         }
     };
 
     storage.load();
     storage.startAutoSave();
     view.initializeContainers();
+    view.renderOrders();
 
     $("#tabs").tabs();
 });
