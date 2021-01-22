@@ -134,6 +134,34 @@ $(() => {
             });
         },
 
+        initializeTabs: function (configuration) {
+            const root = $("#items");
+            const ul = $("<ul></ul>");
+            root.append(ul);
+
+            const addLi = (id, name) => ul.append($("<li></li>").append($("<a></a>").attr("href", "#" + id).text(name)));
+            const addItemContainer = (parent, listId, listName, size) => parent.append($("<div></div>").addClass(["items-container", "size-" + size]).attr("data-list-id", listId).attr("data-list-name", listName));
+
+            for (const [tabId, tabDefinition] of Object.entries(configuration)) {
+                addLi(tabId, tabDefinition.name);
+                const div = $("<div></div>").attr("id", tabId);
+                div.addClass(tabDefinition.type);
+                if (tabDefinition.lists) {
+                    div.addClass("container");
+                    tabDefinition.lists.forEach(list => addItemContainer(div, list.id, list.name, list.size));
+                }
+                // if (tabDefinition.split) {
+                //     div.addClass("split");
+                //     tabDefinition.split.forEach(split => {
+                //         const container = $("<div></div>").addClass(split.options).addClass("container");
+                //         split.lists.forEach(list => addItemContainer(container, list.id, list.name));
+                //         div.append(container);
+                //     });
+                // }
+                root.append(div);
+            }
+        },
+
         initializeContainers: function () {
             const that = this;
 
@@ -161,7 +189,7 @@ $(() => {
                 connectWith: ".items",
                 dropOnEmpty: true,
                 placeholder: "placeholder",
-                containment: "body > div",
+                containment: "#items",
                 cursor: "move",
                 tolerance: "pointer",
                 remove: (event, ui) => {
@@ -200,8 +228,9 @@ $(() => {
 
     storage.load();
     storage.startAutoSave();
+    view.initializeTabs(configuration);
     view.initializeContainers();
     view.renderOrders();
 
-    $("#tabs").tabs();
+    // $("#items").tabs();
 });

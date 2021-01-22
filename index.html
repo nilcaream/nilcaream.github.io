@@ -7,77 +7,10 @@
     <!--    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css">-->
     <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
     <link rel="stylesheet" href="items.css">
+    <script src="configuration.js"></script>
     <script src="items.js"></script>
 </head>
 <body spellcheck="false">
-<div id="tabs">
-    <ul>
-        <li><a href="#columns">Columns</a></li>
-        <li><a href="#rows">Rows</a></li>
-        <li><a href="#quad">Quad</a></li>
-        <li><a href="#columns-columns">Columns columns</a></li>
-        <li><a href="#columns-rows">Columns rows</a></li>
-        <li><a href="#rows-columns">Rows columns</a></li>
-        <li><a href="#rows-rows">Rows rows</a></li>
-    </ul>
-    <div id="columns" class="container columns">
-        <div class="items-container" data-list-id="list-a" data-list-name="List A"></div>
-        <div class="items-container" data-list-id="list-b" data-list-name="List B"></div>
-        <div class="items-container" data-list-id="list-c" data-list-name="List C"></div>
-        <div class="items-container" data-list-id="" data-list-name="Others"></div>
-    </div>
-    <div id="rows" class="container rows cells-7">
-        <div class="items-container" data-list-id="list-a" data-list-name="List A"></div>
-        <div class="items-container" data-list-id="list-b" data-list-name="List B"></div>
-        <div class="items-container" data-list-id="" data-list-name="Others"></div>
-    </div>
-    <div id="quad" class="container rows">
-        <div class="items-container" data-list-id="quad-urgent-important" data-list-name="Urgent. Important"></div>
-        <div class="items-container" data-list-id="quad-not-urgent-important" data-list-name="No urgent. Important"></div>
-        <div class="items-container" data-list-id="quad-urgent-not-important" data-list-name="Urgent. Not important"></div>
-        <div class="items-container" data-list-id="quad-not-urgent-not-important" data-list-name="Not urgent. Not important"></div>
-        <div class="items-container" data-list-id="" data-list-name="Others"></div>
-    </div>
-    <div id="columns-columns" class="split columns">
-        <div class="container columns">
-            <div class="items-container" data-list-id="list-a" data-list-name="List A"></div>
-            <div class="items-container" data-list-id="list-b" data-list-name="List B"></div>
-        </div>
-        <div class="container columns">
-            <div class="items-container" data-list-id="list-c" data-list-name="List C"></div>
-            <div class="items-container" data-list-id="list-d" data-list-name="List D"></div>
-        </div>
-    </div>
-    <div id="columns-rows" class="split columns">
-        <div class="container rows cells-3">
-            <div class="items-container" data-list-id="list-a" data-list-name="List A"></div>
-            <div class="items-container" data-list-id="list-b" data-list-name="List B"></div>
-        </div>
-        <div class="container rows cells-5">
-            <div class="items-container" data-list-id="list-c" data-list-name="List C"></div>
-            <div class="items-container" data-list-id="list-d" data-list-name="List D"></div>
-        </div>
-    </div>
-    <div id="rows-columns" class="split rows">
-        <div class="container columns">
-            <div class="items-container" data-list-id="list-a" data-list-name="List A"></div>
-            <div class="items-container" data-list-id="list-b" data-list-name="List B"></div>
-        </div>
-        <div class="container columns">
-            <div class="items-container" data-list-id="list-c" data-list-name="List C"></div>
-            <div class="items-container" data-list-id="list-d" data-list-name="List D"></div>
-        </div>
-    </div>
-    <div id="rows-rows" class="split rows">
-        <div class="container rows cells-3">
-            <div class="items-container" data-list-id="list-a" data-list-name="List A"></div>
-            <div class="items-container" data-list-id="list-b" data-list-name="List B"></div>
-        </div>
-        <div class="container rows cells-5">
-            <div class="items-container" data-list-id="list-c" data-list-name="List C"></div>
-            <div class="items-container" data-list-id="list-d" data-list-name="List D"></div>
-        </div>
-    </div>
-</div>
+<div id="items"></div>
 </body>
 </html>
