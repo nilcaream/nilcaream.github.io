@@ -149,15 +149,17 @@ $(() => {
                 if (tabDefinition.lists) {
                     div.addClass("container");
                     tabDefinition.lists.forEach(list => addItemContainer(div, list.id, list.name, list.size));
+                } else if (tabDefinition.cells) {
+                    tabDefinition.cells.forEach(row => {
+                        const container = $("<div></div>").addClass(`size-${row.length}`);
+                        row.forEach(column => {
+                            const cell = $("<div></div>").addClass([column.type, "container"]);
+                            column.lists.forEach(list => addItemContainer(cell, list.id, list.name, list.size));
+                            container.append(cell);
+                        });
+                        div.append(container);
+                    });
                 }
-                // if (tabDefinition.split) {
-                //     div.addClass("split");
-                //     tabDefinition.split.forEach(split => {
-                //         const container = $("<div></div>").addClass(split.options).addClass("container");
-                //         split.lists.forEach(list => addItemContainer(container, list.id, list.name));
-                //         div.append(container);
-                //     });
-                // }
                 root.append(div);
             }
         },
@@ -232,5 +234,5 @@ $(() => {
     view.initializeContainers();
     view.renderOrders();
 
-    // $("#items").tabs();
+    $("#items").tabs();
 });

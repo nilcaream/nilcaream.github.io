@@ -61,11 +61,6 @@ const configuration = {
                         id: "list-b",
                         name: "List B - Top-Left",
                         size: 2
-                    },
-                    {
-                        id: "list-c",
-                        name: "List C - Top-Left",
-                        size: 3
                     }
                 ]
             }, {
@@ -94,16 +89,11 @@ const configuration = {
                     {
                         id: "list-a",
                         name: "List A - Bottom-Left",
-                        size: 1
+                        size: 2
                     },
                     {
                         id: "list-b",
                         name: "List B - Bottom-Left",
-                        size: 2
-                    },
-                    {
-                        id: "list-c",
-                        name: "List C - Bottom-Left",
                         size: 3
                     }
                 ]
@@ -113,17 +103,12 @@ const configuration = {
                     {
                         id: "list-a",
                         name: "List A - Bottom-Right",
-                        size: 4
+                        size: 2
                     },
                     {
                         id: "list-b",
                         name: "List B - Bottom-Right",
-                        size: 5
-                    },
-                    {
-                        id: "list-c",
-                        name: "List C - Bottom-Right",
-                        size: 6
+                        size: 1
                     }
                 ]
             }]
