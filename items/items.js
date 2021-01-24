@@ -352,12 +352,13 @@ $(() => {
             });//.disableSelection();
         },
 
-        initializeToggle(data) {
-            const items = $("#items").toggle();
+        initializeSetup(data) {
+            const itemsDiv = $("#items").toggle();
             const configurationDiv = $("#configuration");
             const json = configurationDiv.find(".json").text(JSON.stringify(data));
-            const setup = $("#setup").click(() => {
-                items.toggle();
+            const setupButton = $("#setup").click(() => {
+                setupButton.toggleClass("mirror");
+                itemsDiv.toggle();
                 configurationDiv.toggle();
             });
 
@@ -365,6 +366,18 @@ $(() => {
             configurationDiv.find(".save").click(() => {
                 configuration.data = JSON.parse(json.text());
                 configuration.save();
+            });
+
+            const download = configurationDiv.find(".download a");
+            download.click(() => {
+                const content = {
+                    "version": 1,
+                    "configuration": JSON.parse(json.text()),
+                    "items": storage.data
+                }
+                const href = URL.createObjectURL(new Blob([JSON.stringify(content, null, 2)], {type: "application/json"}));
+                download.attr("href", href);
+                setTimeout(() => URL.revokeObjectURL(href), 1000);
             });
         }
     };
@@ -378,5 +391,5 @@ $(() => {
 
     $("#items").tabs();
 
-    view.initializeToggle(configuration.data);
+    view.initializeSetup(configuration.data);
 });

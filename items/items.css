@@ -306,3 +306,14 @@ div#setup {
     cursor: pointer;
     user-select: none;
 }
+
+div#setup.mirror {
+    transform: scaleX(-1);
+}
+
+div#configuration li > a {
+    display: inline-block;
+    width: 100%;
+    text-decoration: none;
+    color: #111;
+}
