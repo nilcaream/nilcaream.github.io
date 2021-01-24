@@ -1,12 +1,137 @@
 'use strict';
 
 $(() => {
+    const configuration = {
+        data: {
+            columns: {
+                name: "Columns",
+                type: "columns",
+                lists: [
+                    {
+                        id: "list-a",
+                        name: "List A",
+                        size: 1
+                    },
+                    {
+                        id: "list-b",
+                        name: "List B",
+                        size: 2
+                    },
+                    {
+                        id: "list-c",
+                        name: "List C",
+                        size: 3
+                    }
+                ]
+            },
+            rows: {
+                name: "Rows",
+                type: "rows",
+                lists: [
+                    {
+                        id: "list-a",
+                        name: "List A",
+                        size: 1
+                    },
+                    {
+                        id: "list-b",
+                        name: "List B",
+                        size: 2
+                    },
+                    {
+                        id: "list-c",
+                        name: "List C",
+                        size: 3
+                    }
+                ]
+            },
+            grid: {
+                name: "Grid",
+                type: "grid",
+                cells: [
+                    [{
+                        type: "columns",
+                        lists: [
+                            {
+                                id: "list-a",
+                                name: "List A - Top-Left",
+                                size: 1
+                            },
+                            {
+                                id: "list-b",
+                                name: "List B - Top-Left",
+                                size: 2
+                            }
+                        ]
+                    }, {
+                        type: "rows",
+                        lists: [
+                            {
+                                id: "list-a",
+                                name: "List A - Top-Right",
+                                size: 4
+                            },
+                            {
+                                id: "list-b",
+                                name: "List B - Top-Right",
+                                size: 5
+                            },
+                            {
+                                id: "list-c",
+                                name: "List C - Top-Right",
+                                size: 6
+                            }
+                        ]
+                    }],
+                    [{
+                        type: "rows",
+                        lists: [
+                            {
+                                id: "list-a",
+                                name: "List A - Bottom-Left",
+                                size: 2
+                            },
+                            {
+                                id: "list-b",
+                                name: "List B - Bottom-Left",
+                                size: 3
+                            }
+                        ]
+                    }, {
+                        type: "columns",
+                        lists: [
+                            {
+                                id: "list-a",
+                                name: "List A - Bottom-Right",
+                                size: 2
+                            },
+                            {
+                                id: "list-b",
+                                name: "List B - Bottom-Right",
+                                size: 1
+                            }
+                        ]
+                    }]
+                ]
+            }
+        },
+
+        load() {
+            this.data = JSON.parse(window.localStorage.getItem("nc.configuration") || JSON.stringify(this.data));
+        },
+
+        save() {
+            window.localStorage.setItem("nc.configuration", JSON.stringify(this.data));
+        }
+
+    }
+
     const storage = {
         data: {},
 
         modified: false,
 
-        startAutoSave: function () {
+        startAutoSave() {
             const that = this;
             setInterval(() => {
                 if (that.modified) {
@@ -15,24 +140,24 @@ $(() => {
             }, 2000);
         },
 
-        load: function () {
+        load() {
             this.data = JSON.parse(window.localStorage.getItem("nc.items") || "{}");
             this.modified = false;
             console.log(`Loaded ${Object.keys(this.data).length} items`);
         },
 
-        save: function () {
+        save() {
             window.localStorage.setItem("nc.items", JSON.stringify(this.data || {}));
             this.modified = false;
             console.log(`Saved ${Object.keys(this.data).length} items`);
         },
 
-        addToHistory: function (item, message) {
+        addToHistory(item, message) {
             item.history[new Date().getTime().toString()] = message;
             this.modified = true;
         },
 
-        createItem: function () {
+        createItem() {
             const item = {
                 id: new Date().getTime().toString(36) + Math.random().toString(36).substr(-4),
                 history: {},
@@ -46,39 +171,39 @@ $(() => {
             return item;
         },
 
-        getItems: function (listId) {
+        getItems(listId) {
             return Object.values(this.data)
                 .filter(item => item.order[listId])
                 .sort((i0, i1) => i0.order[listId] - i1.order[listId]);
         },
 
-        getOtherItems: function (listIds) {
+        getOtherItems(listIds) {
             return Object.values(this.data)
                 .filter(item => !Object.keys(item.order).some(r => listIds.indexOf(r) !== -1));
         },
 
-        setOrder: function (itemId, listId, order) {
+        setOrder(itemId, listId, order) {
             this.data[itemId].order[listId] = order;
             this.modified = true;
         },
 
-        removeOrder: function (itemId, listId) {
+        removeOrder(itemId, listId) {
             delete this.data[itemId].order[listId];
             this.modified = true;
         },
 
-        getItemIdToListIds: function () {
+        getItemIdToListIds() {
             // filter removes blanks
             return Object.values(this.data).map(item => ({itemId: item.id, listIds: Object.keys(item.order).filter(o => o).sort()}));
         },
 
-        log: function () {
+        log() {
             Object.values(this.data).forEach((item, i) => console.log(`storage.data[${i}] = ${JSON.stringify(item)}`));
         }
     };
 
     const view = {
-        renderItem: function (ul, item) {
+        renderItem(ul, item) {
             const setContent = (item, contentDiv) => {
                 contentDiv.attr("contenteditable", "false");
                 const content = contentDiv.text().trim();
@@ -110,12 +235,12 @@ $(() => {
             ul.append(li);
         },
 
-        createItem: function (ul) {
+        createItem(ul) {
             const item = storage.createItem();
             this.renderItem(ul, item);
         },
 
-        updateOrders: function (ul) {
+        updateOrders(ul) {
             const listId = ul.attr("data-list-id");
             ul.find("li").each((i, element) => {
                 const li = $(element);
@@ -126,7 +251,7 @@ $(() => {
             });
         },
 
-        renderOrders: function () {
+        renderOrders() {
             storage.getItemIdToListIds().forEach(entry => {
                 const itemId = entry.itemId;
                 const orders = entry.listIds.join(" | ");
@@ -134,7 +259,7 @@ $(() => {
             });
         },
 
-        initializeTabs: function (configuration) {
+        initializeTabs(configuration) {
             const root = $("#items");
             const ul = $("<ul></ul>");
             root.append(ul);
@@ -164,7 +289,7 @@ $(() => {
             }
         },
 
-        initializeContainers: function () {
+        initializeContainers() {
             const that = this;
 
             $(".items-container").each((i, element) => {
@@ -225,14 +350,33 @@ $(() => {
                     console.log(`Stop ${itemId} from ${listId || "(others)"}`);
                 }
             });//.disableSelection();
+        },
+
+        initializeToggle(data) {
+            const items = $("#items").toggle();
+            const configurationDiv = $("#configuration");
+            const json = configurationDiv.find(".json").text(JSON.stringify(data));
+            const setup = $("#setup").click(() => {
+                items.toggle();
+                configurationDiv.toggle();
+            });
+
+            configurationDiv.find(".format").click(() => json.text(JSON.stringify(JSON.parse(json.text()), null, 2))).click();
+            configurationDiv.find(".save").click(() => {
+                configuration.data = JSON.parse(json.text());
+                configuration.save();
+            });
         }
     };
 
     storage.load();
     storage.startAutoSave();
-    view.initializeTabs(configuration);
+    configuration.load();
+    view.initializeTabs(configuration.data);
     view.initializeContainers();
     view.renderOrders();
 
     $("#items").tabs();
+
+    view.initializeToggle(configuration.data);
 });
