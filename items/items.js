@@ -233,11 +233,16 @@ $(() => {
             infoDiv.append(ordersDiv).append(editDiv);
             li.append(contentDiv).append(infoDiv);
             ul.append(li);
+
+            return li;
         },
 
         createItem(ul) {
             const item = storage.createItem();
-            this.renderItem(ul, item);
+            const li = this.renderItem(ul, item);
+            this.updateOrders(ul);
+            this.renderOrders();
+            li.find(".edit").click();
         },
 
         updateOrders(ul) {
@@ -270,7 +275,7 @@ $(() => {
             for (const [tabId, tabDefinition] of Object.entries(configuration)) {
                 addLi(tabId, tabDefinition.name);
                 const div = $("<div></div>").attr("id", tabId);
-                div.addClass(tabDefinition.type);
+                div.addClass(tabDefinition.type).addClass("item-tab");
                 if (tabDefinition.lists) {
                     div.addClass("container");
                     tabDefinition.lists.forEach(list => addItemContainer(div, list.id, list.name, list.size));
@@ -293,21 +298,31 @@ $(() => {
             const that = this;
 
             $(".items-container").each((i, element) => {
+                const updateClass = (container, clsPrefix, min, max, delta) => {
+                    const classes = container.attr("class").split(" ").filter(c => c.indexOf(clsPrefix) === 0);
+                    container.removeClass(classes);
+                    const current = parseInt(classes.map(c => c.replace(clsPrefix, ""))[0] || "1");
+                    const updated = Math.max(min, Math.min(max, current + delta));
+                    container.addClass(clsPrefix + updated);
+                };
+
                 const container = $(element);
                 const listId = container.attr("data-list-id");
                 const ul = $("<ul></ul>").addClass("items").attr("data-list-id", listId);
                 const menu = $("<div></div>").addClass("menu");
-                const addMenu = $("<span></span>").text("+").addClass("add").click(() => that.createItem(ul));
-                const title = $("<span></span>").text(container.attr("data-list-name")).addClass("title");
+                const addMenu = $("<div></div>").text("+").addClass("add").click(() => that.createItem(ul));
+                const title = $("<div></div>").text(container.attr("data-list-name")).addClass("title");
+                const widthUp = $("<div></div>").text("W+").addClass("plus").click(() => updateClass(container, "size-", 1, 7, 1));
+                const widthDown = $("<div></div>").text("W-").addClass("minus").click(() => updateClass(container, "size-", 1, 7, -1));
 
                 const ulWrapper = $("<div></div>").addClass("wrapper").append(ul);
-                menu.append(addMenu).append(title);
+                menu.append(addMenu).append(title).append(widthUp).append(widthDown);
                 container.append(menu).append(ulWrapper);
 
                 if (listId) {
                     storage.getItems(listId).forEach(item => this.renderItem(ul, item));
                 } else {
-                    const orders = container.parent().find(".items-container").get().map(a => a.getAttribute("data-list-id")).filter(a => a);
+                    const orders = container.closest(".item-tab").find(".items-container").get().map(a => a.getAttribute("data-list-id")).filter(a => a);
                     storage.getOtherItems(orders).forEach(item => this.renderItem(ul, item));
                 }
             });

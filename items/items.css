@@ -22,24 +22,45 @@ ul.items {
     margin-inline-end: 0;
 }
 
-div.menu span.title {
+div.menu {
+    display: flex;
+    flex-direction: row;
+}
+
+div.menu > div {
     border-top-left-radius: 0.3rem;
     border-top-right-radius: 0.3rem;
+    margin: 0;
+}
+
+div.menu div.title {
     background-color: #ddd;
     color: #111;
     padding: 0 1rem;
-    margin: 0;
     user-select: none;
 }
 
-div.menu span.add {
-    border-top-left-radius: 0.3rem;
-    border-top-right-radius: 0.3rem;
+div.menu div.add {
     background-color: #888;
     color: #eee;
     padding: 0 0.4rem;
-    margin: 0;
     cursor: pointer;
+}
+
+div.menu div.plus {
+    background-color: #aaa;
+    color: #444;
+    padding: 0 0.4rem;
+    cursor: pointer;
+    user-select: none;
+}
+
+div.menu div.minus {
+    background-color: #bbb;
+    color: #333;
+    padding: 0 0.4rem;
+    cursor: pointer;
+    user-select: none;
 }
 
 li.item div.content {
