@@ -122,8 +122,22 @@ $(() => {
 
         save() {
             window.localStorage.setItem("nc.configuration", JSON.stringify(this.data));
-        }
+        },
 
+        updateSize(index, cls, value) {
+            const lists = [];
+
+            Object.values(this.data).forEach(container => {
+                if (container.lists) {
+                    container.lists.forEach(list => lists.push(list));
+                } else if (container.cells) {
+                    container.cells.forEach(row => row.forEach(cell => cell.lists.forEach(list => lists.push(list))));
+                }
+            });
+
+            lists[index][cls] = value;
+            this.save();
+        }
     }
 
     const storage = {
@@ -269,8 +283,10 @@ $(() => {
             const ul = $("<ul></ul>");
             root.append(ul);
 
+            let index = 0;
+
             const addLi = (id, name) => ul.append($("<li></li>").append($("<a></a>").attr("href", "#" + id).text(name)));
-            const addItemContainer = (parent, listId, listName, width, height) => parent.append($("<div></div>").addClass(["items-container", "width-" + width, "height-" + height]).attr("data-list-id", listId).attr("data-list-name", listName));
+            const addItemContainer = (parent, listId, listName, width, height) => parent.append($("<div></div>").addClass(["items-container", "width-" + width, "height-" + height]).attr("data-list-id", listId).attr("data-list-name", listName).attr("data-index", index++));
 
             for (const [tabId, tabDefinition] of Object.entries(configuration)) {
                 addLi(tabId, tabDefinition.name);
@@ -304,6 +320,9 @@ $(() => {
                     const current = parseInt(classes.map(c => c.replace(clsPrefix, ""))[0] || "1");
                     const updated = Math.max(min, Math.min(max, current + delta));
                     container.addClass(clsPrefix + updated);
+
+                    const index = parseInt(container.attr("data-index"));
+                    configuration.updateSize(index, clsPrefix.replace("-", ""), updated);
                 };
 
                 const container = $(element);
@@ -373,7 +392,7 @@ $(() => {
             const itemsDiv = $("#items").toggle();
             const configurationDiv = $("#configuration");
             const json = configurationDiv.find(".json").text(JSON.stringify(data));
-            const setupButton = $("#setup").click(() => {
+            const setupButton = $(".setup").click(() => {
                 setupButton.toggleClass("mirror");
                 itemsDiv.toggle();
                 configurationDiv.toggle();
@@ -383,6 +402,7 @@ $(() => {
             configurationDiv.find(".save").click(() => {
                 configuration.data = JSON.parse(json.text());
                 configuration.save();
+                location.reload();
             });
 
             const download = configurationDiv.find(".download a");

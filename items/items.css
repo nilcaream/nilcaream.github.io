@@ -100,7 +100,7 @@ div.info div.orders span {
     border-radius: 0.3rem;
     background-color: #eee;
     padding: 0 0.3rem;
-    margin-right: 0.1rem;
+    margin-right: 0.2rem;
     opacity: 0.7;
 }
 
@@ -274,7 +274,7 @@ div.container.rows > div.items-container > div.wrapper {
 }
 
 div.container.rows > div.items-container > div.wrapper > ul {
-    min-height: 6rem;
+    min-height: 3.8rem;
     display: flex;
     flex-wrap: wrap;
 }
@@ -353,20 +353,21 @@ div#configuration > div.json {
 
 /* - */
 
-div#setup {
+div.setup {
     position: absolute;
-    top: 0.1rem;
-    right: 0.2rem;
+    top: 0.6rem;
+    right: 0.6rem;
     margin: 0;
-    padding: 0.15rem 1rem;
-    font-size: 1.5rem;
     font-weight: bold;
     cursor: pointer;
     user-select: none;
+    border-radius: 0.3rem;
+    padding: 0 1rem;
+    background-color: #ddd;
 }
 
-div#setup.mirror {
-    transform: scaleX(-1);
+div.setup.mirror {
+    opacity: 0.5;
 }
 
 div#configuration li > a {
