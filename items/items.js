@@ -10,17 +10,17 @@ $(() => {
                     {
                         id: "list-a",
                         name: "List A",
-                        size: 1
+                        width: 1
                     },
                     {
                         id: "list-b",
                         name: "List B",
-                        size: 2
+                        width: 2
                     },
                     {
                         id: "list-c",
                         name: "List C",
-                        size: 3
+                        width: 3
                     }
                 ]
             },
@@ -31,17 +31,17 @@ $(() => {
                     {
                         id: "list-a",
                         name: "List A",
-                        size: 1
+                        width: 1
                     },
                     {
                         id: "list-b",
                         name: "List B",
-                        size: 2
+                        width: 2
                     },
                     {
                         id: "list-c",
                         name: "List C",
-                        size: 3
+                        width: 3
                     }
                 ]
             },
@@ -55,12 +55,12 @@ $(() => {
                             {
                                 id: "list-a",
                                 name: "List A - Top-Left",
-                                size: 1
+                                width: 1
                             },
                             {
                                 id: "list-b",
                                 name: "List B - Top-Left",
-                                size: 2
+                                width: 2
                             }
                         ]
                     }, {
@@ -69,17 +69,17 @@ $(() => {
                             {
                                 id: "list-a",
                                 name: "List A - Top-Right",
-                                size: 4
+                                width: 4
                             },
                             {
                                 id: "list-b",
                                 name: "List B - Top-Right",
-                                size: 5
+                                width: 5
                             },
                             {
                                 id: "list-c",
                                 name: "List C - Top-Right",
-                                size: 6
+                                width: 6
                             }
                         ]
                     }],
@@ -89,12 +89,12 @@ $(() => {
                             {
                                 id: "list-a",
                                 name: "List A - Bottom-Left",
-                                size: 2
+                                width: 2
                             },
                             {
                                 id: "list-b",
                                 name: "List B - Bottom-Left",
-                                size: 3
+                                width: 3
                             }
                         ]
                     }, {
@@ -103,12 +103,12 @@ $(() => {
                             {
                                 id: "list-a",
                                 name: "List A - Bottom-Right",
-                                size: 2
+                                width: 2
                             },
                             {
                                 id: "list-b",
                                 name: "List B - Bottom-Right",
-                                size: 1
+                                width: 1
                             }
                         ]
                     }]
@@ -221,7 +221,7 @@ $(() => {
                 .on("keydown", e => e.code === "Enter" ? setContent(item, contentDiv) : undefined);
             const infoDiv = $("<div></div>").addClass("info");
             const ordersDiv = $("<div></div>").addClass("orders");
-            const editDiv = $("<div></div>").addClass("edit").html("&crarr;").click(() => {
+            const editDiv = $("<div></div>").addClass("edit").html("e").click(() => {
                 if (contentDiv.attr("contenteditable") === "true") {
                     setContent(item, contentDiv);
                 } else {
@@ -259,8 +259,8 @@ $(() => {
         renderOrders() {
             storage.getItemIdToListIds().forEach(entry => {
                 const itemId = entry.itemId;
-                const orders = entry.listIds.join(" | ");
-                $(`li[data-item-id=${itemId}] div.orders`).text(orders);
+                const target = $(`li[data-item-id=${itemId}] div.orders`).empty();
+                entry.listIds.forEach(listId => target.append($("<span></span>").text(listId)));
             });
         },
 
@@ -270,7 +270,7 @@ $(() => {
             root.append(ul);
 
             const addLi = (id, name) => ul.append($("<li></li>").append($("<a></a>").attr("href", "#" + id).text(name)));
-            const addItemContainer = (parent, listId, listName, size) => parent.append($("<div></div>").addClass(["items-container", "size-" + size]).attr("data-list-id", listId).attr("data-list-name", listName));
+            const addItemContainer = (parent, listId, listName, width, height) => parent.append($("<div></div>").addClass(["items-container", "width-" + width, "height-" + height]).attr("data-list-id", listId).attr("data-list-name", listName));
 
             for (const [tabId, tabDefinition] of Object.entries(configuration)) {
                 addLi(tabId, tabDefinition.name);
@@ -278,13 +278,13 @@ $(() => {
                 div.addClass(tabDefinition.type).addClass("item-tab");
                 if (tabDefinition.lists) {
                     div.addClass("container");
-                    tabDefinition.lists.forEach(list => addItemContainer(div, list.id, list.name, list.size));
+                    tabDefinition.lists.forEach(list => addItemContainer(div, list.id, list.name, list.width || 1, list.height || 1));
                 } else if (tabDefinition.cells) {
                     tabDefinition.cells.forEach(row => {
-                        const container = $("<div></div>").addClass(`size-${row.length}`);
+                        const container = $("<div></div>").addClass(`width-${row.length}`);
                         row.forEach(column => {
                             const cell = $("<div></div>").addClass([column.type, "container"]);
-                            column.lists.forEach(list => addItemContainer(cell, list.id, list.name, list.size));
+                            column.lists.forEach(list => addItemContainer(cell, list.id, list.name, list.width || 1, list.height || 1));
                             container.append(cell);
                         });
                         div.append(container);
@@ -312,11 +312,13 @@ $(() => {
                 const menu = $("<div></div>").addClass("menu");
                 const addMenu = $("<div></div>").text("+").addClass("add").click(() => that.createItem(ul));
                 const title = $("<div></div>").text(container.attr("data-list-name")).addClass("title");
-                const widthUp = $("<div></div>").text("W+").addClass("plus").click(() => updateClass(container, "size-", 1, 7, 1));
-                const widthDown = $("<div></div>").text("W-").addClass("minus").click(() => updateClass(container, "size-", 1, 7, -1));
+                const widthUp = $("<div></div>").text("W").addClass("plus").click(() => updateClass(container, "width-", 1, 7, -1));
+                const widthDown = $("<div></div>").text("w").addClass("minus").click(() => updateClass(container, "width-", 1, 7, 1));
+                const heightUp = $("<div></div>").text("H").addClass("plus").click(() => updateClass(container, "height-", 1, 7, 1));
+                const heightDown = $("<div></div>").text("h").addClass("minus").click(() => updateClass(container, "height-", 1, 7, -1));
 
                 const ulWrapper = $("<div></div>").addClass("wrapper").append(ul);
-                menu.append(addMenu).append(title).append(widthUp).append(widthDown);
+                menu.append([addMenu, title, widthUp, widthDown, heightUp, heightDown]);
                 container.append(menu).append(ulWrapper);
 
                 if (listId) {
