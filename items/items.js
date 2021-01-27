@@ -118,13 +118,15 @@ $(() => {
 
         load() {
             this.data = JSON.parse(window.localStorage.getItem("nc.configuration") || JSON.stringify(this.data));
+            console.log(`Loaded ${Object.keys(this.data).length} configuration tabs`);
         },
 
         save() {
             window.localStorage.setItem("nc.configuration", JSON.stringify(this.data));
+            console.log(`Saved ${Object.keys(this.data).length} configuration tabs`);
         },
 
-        updateSize(index, cls, value) {
+        update(index, key, value) {
             const lists = [];
 
             Object.values(this.data).forEach(container => {
@@ -135,7 +137,7 @@ $(() => {
                 }
             });
 
-            lists[index][cls] = value;
+            lists[index][key] = value;
             this.save();
         }
     }
@@ -216,6 +218,53 @@ $(() => {
         }
     };
 
+    const colorPicker = {
+        picker: undefined,
+
+        visible: false,
+
+        container: undefined,
+
+        onFinish: undefined,
+
+        initialize(onFinish) {
+            const that = this;
+            const size = Math.round(0.5 * Math.min(window.innerWidth, window.innerHeight));
+            this.onFinish = onFinish;
+            this.picker = new iro.ColorPicker("#picker", {
+                width: size
+            });
+            this.picker.on("color:change", color => that.update(color.hexString));
+            this.picker.on("input:end", () => this.hide());
+        },
+
+        update(color) {
+            this.container.attr("data-background-color", color);
+            this.container.find("li.item").css("background-color", color);
+        },
+
+        hide(container) {
+            this.visible = false;
+            $("#picker").hide();
+            this.onFinish(container || this.container);
+        },
+
+        select(container) {
+            if (this.container && container.attr("data-index") !== this.container.attr("data-index") && this.visible) {
+                // change container
+            } else if (!this.visible) {
+                // show
+                this.visible = true;
+                $("#picker").show();
+            } else {
+                // hide
+                this.hide(container);
+            }
+            this.container = container;
+            this.picker.color.set(container.attr("data-background-color"));
+        }
+    };
+
     const view = {
         renderItem(ul, item) {
             const setContent = (item, contentDiv) => {
@@ -248,15 +297,21 @@ $(() => {
             li.append(contentDiv).append(infoDiv);
             ul.append(li);
 
+            this.updateColor(li);
             return li;
         },
 
         createItem(ul) {
+            const that = this;
+            const listId = ul.attr("data-list-id");
             const item = storage.createItem();
-            const li = this.renderItem(ul, item);
-            this.updateOrders(ul);
+            $(`ul[data-list-id=${listId}]`).each((i, element) => {
+                const ulPart = $(element);
+                that.renderItem(ulPart, item);
+                that.updateOrders(ulPart);
+            });
             this.renderOrders();
-            li.find(".edit").click();
+            ul.find(`li[data-item-id=${item.id}] .edit`).click();
         },
 
         updateOrders(ul) {
@@ -278,6 +333,11 @@ $(() => {
             });
         },
 
+        updateColor(li) {
+            const color = li.closest(".items-container").attr("data-background-color");
+            li.css("background-color", color);
+        },
+
         initializeTabs(configuration) {
             const root = $("#items");
             const ul = $("<ul></ul>");
@@ -286,7 +346,12 @@ $(() => {
             let index = 0;
 
             const addLi = (id, name) => ul.append($("<li></li>").append($("<a></a>").attr("href", "#" + id).text(name)));
-            const addItemContainer = (parent, listId, listName, width, height) => parent.append($("<div></div>").addClass(["items-container", "width-" + width, "height-" + height]).attr("data-list-id", listId).attr("data-list-name", listName).attr("data-index", index++));
+            const addItemContainer = (parent, list) => parent.append($("<div></div>")
+                .addClass(["items-container", "width-" + (list.width || 1), "height-" + (list.height || 1)])
+                .attr("data-list-id", list.id)
+                .attr("data-list-name", list.name)
+                .attr("data-index", index++)
+                .attr("data-background-color", (list.backgroundColor || "#cedaff")));
 
             for (const [tabId, tabDefinition] of Object.entries(configuration)) {
                 addLi(tabId, tabDefinition.name);
@@ -294,13 +359,13 @@ $(() => {
                 div.addClass(tabDefinition.type).addClass("item-tab");
                 if (tabDefinition.lists) {
                     div.addClass("container");
-                    tabDefinition.lists.forEach(list => addItemContainer(div, list.id, list.name, list.width || 1, list.height || 1));
+                    tabDefinition.lists.forEach(list => addItemContainer(div, list));
                 } else if (tabDefinition.cells) {
                     tabDefinition.cells.forEach(row => {
                         const container = $("<div></div>").addClass(`width-${row.length}`);
                         row.forEach(column => {
                             const cell = $("<div></div>").addClass([column.type, "container"]);
-                            column.lists.forEach(list => addItemContainer(cell, list.id, list.name, list.width || 1, list.height || 1));
+                            column.lists.forEach(list => addItemContainer(cell, list));
                             container.append(cell);
                         });
                         div.append(container);
@@ -322,7 +387,7 @@ $(() => {
                     container.addClass(clsPrefix + updated);
 
                     const index = parseInt(container.attr("data-index"));
-                    configuration.updateSize(index, clsPrefix.replace("-", ""), updated);
+                    configuration.update(index, clsPrefix.replace("-", ""), updated);
                 };
 
                 const container = $(element);
@@ -335,9 +400,10 @@ $(() => {
                 const widthDown = $("<div></div>").text("w").addClass("minus").click(() => updateClass(container, "width-", 1, 7, 1));
                 const heightUp = $("<div></div>").text("H").addClass("plus").click(() => updateClass(container, "height-", 1, 7, 1));
                 const heightDown = $("<div></div>").text("h").addClass("minus").click(() => updateClass(container, "height-", 1, 7, -1));
+                const picker = $("<div></div>").text("RGB").addClass("plus").click(() => colorPicker.select(container));
 
                 const ulWrapper = $("<div></div>").addClass("wrapper").append(ul);
-                menu.append([addMenu, title, widthUp, widthDown, heightUp, heightDown]);
+                menu.append([addMenu, title, widthUp, widthDown, heightUp, heightDown, picker]);
                 container.append(menu).append(ulWrapper);
 
                 if (listId) {
@@ -383,22 +449,24 @@ $(() => {
                     li.toggleClass("moved");
                     that.updateOrders(ul);
                     that.renderOrders();
+                    that.updateColor(li);
                     console.log(`Stop ${itemId} from ${listId || "(others)"}`);
                 }
             });//.disableSelection();
         },
 
-        initializeSetup(data) {
+        initializeSetup() {
             const itemsDiv = $("#items").toggle();
             const configurationDiv = $("#configuration");
-            const json = configurationDiv.find(".json").text(JSON.stringify(data));
+            const json = configurationDiv.find(".json");
             const setupButton = $(".setup").click(() => {
                 setupButton.toggleClass("mirror");
                 itemsDiv.toggle();
                 configurationDiv.toggle();
+                json.text(JSON.stringify(configuration.data, null, 2));
             });
 
-            configurationDiv.find(".format").click(() => json.text(JSON.stringify(JSON.parse(json.text()), null, 2))).click();
+            configurationDiv.find(".format").click(() => json.text(JSON.stringify(JSON.parse(json.text()), null, 2)));
             configurationDiv.find(".save").click(() => {
                 configuration.data = JSON.parse(json.text());
                 configuration.save();
@@ -428,5 +496,6 @@ $(() => {
 
     $("#items").tabs();
 
-    view.initializeSetup(configuration.data);
+    view.initializeSetup();
+    colorPicker.initialize((container) => configuration.update(parseInt(container.attr("data-index")), "backgroundColor", container.attr("data-background-color")));
 });
