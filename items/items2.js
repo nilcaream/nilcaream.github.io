@@ -108,6 +108,10 @@ $(() => {
             console.log(`Saved ${Object.keys(this.data).length} configuration tabs`);
         },
 
+        get(key) {
+            return this.data[key];
+        },
+
         updateList(index, key, value) {
             const lists = [];
 
@@ -233,6 +237,7 @@ $(() => {
     };
 
     const listUi = {
+
         createTabs(root, configurationData) {
             const ul = $("<ul></ul>");
             root.append(ul);
@@ -243,7 +248,7 @@ $(() => {
 
             const addItemContainer = (parent, list) => {
                 const div = $("<div></div>")
-                    .addClass(["container", "width-" + (list.width || 1), "height-" + (list.height || 1)])
+                    .addClass(["cell", "width-" + (list.width || 1), "height-" + (list.height || 1)])
                     .attr("data-list-id", list.id)
                     .attr("data-list-name", list.name)
                     .attr("data-list-excludes", (list.excludes || []).join(","))
@@ -253,10 +258,10 @@ $(() => {
             };
 
             for (const [tabId, tabDefinition] of Object.entries(configurationData)) {
-                const div = $("<div></div>").attr("id", tabId).addClass("item-tab");
+                const div = $("<div></div>").attr("id", tabId).addClass("tab");
                 addTabButton(tabId, tabDefinition.name);
                 tabDefinition.cells.forEach(row => {
-                    const container = $("<div></div>").addClass(`width-${row.length}`);
+                    const container = $("<div></div>").addClass(["line", `width-${row.length}`]);
                     row.forEach(column => {
                         const cell = $("<div></div>").addClass(column.type);
                         column.lists.forEach(list => addItemContainer(cell, list));
@@ -266,6 +271,25 @@ $(() => {
                 });
                 root.append(div);
             }
+
+            root.tabs();
+        },
+
+        createItemLists(titleText, updateClass, createItem) {
+            const ul = $("<ul></ul>").addClass("items");
+            const menu = $("<div></div>").addClass("menu");
+            const addMenu = $("<div></div>").text("+").addClass("add").click(() => createItem(ul));
+            const title = $("<div></div>").text(titleText).addClass("title");
+            const widthUp = $("<div></div>").text("W").addClass("plus").click(() => updateClass("width-", 1, 7, -1));
+            const widthDown = $("<div></div>").text("w").addClass("minus").click(() => updateClass("width-", 1, 7, 1));
+            const heightUp = $("<div></div>").text("H").addClass("plus").click(() => updateClass("height-", 1, 7, 1));
+            const heightDown = $("<div></div>").text("h").addClass("minus").click(() => updateClass("height-", 1, 7, -1));
+            const picker = $("<div></div>").text("RGB").addClass("plus"); //.click(() => colorPicker.select(container));
+
+            const ulWrapper = $("<div></div>").addClass("wrapper").append(ul);
+            menu.append([addMenu, title, widthUp, widthDown, heightUp, heightDown, picker]);
+
+            return [menu, ulWrapper];
         },
 
         renderItems(tabId, items) {
@@ -275,9 +299,26 @@ $(() => {
                 const excludes = (container.attr("data-list-excludes") || "").split(",");
 
             });
+        },
+
+        create2(updateClass, createItem) {
+            const that = this;
+            $("#items > div.tab").each((_, e) => {
+                const tabDiv = $(e);
+                tabDiv.find("div.cell").each((_, e) => {
+                    const containerDiv = $(e);
+                    const children = that.createItemLists(containerDiv.attr("data-list-name"), updateClass, createItem);
+                    containerDiv.append(children);
+                });
+            });
         }
     };
-    
+
     // ---------------------
+
     listUi.createTabs($("#items"), configuration.data);
+    listUi.create2(() => {
+    }, () => {
+    });
+
 });
