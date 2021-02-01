@@ -1,7 +1,9 @@
 'use strict';
 
 $(() => {
+
     const configuration = {
+
         data: {
             columns: {
                 name: "Columns 1x1",
@@ -112,7 +114,7 @@ $(() => {
             return this.data[key];
         },
 
-        updateList(index, key, value) {
+        _updateList(index, key, value) {
             const lists = [];
 
             Object.values(this.data).forEach(container => {
@@ -125,7 +127,8 @@ $(() => {
     };
 
     const items = {
-        data: {},
+
+        data: [],
 
         modified: false,
 
@@ -141,15 +144,15 @@ $(() => {
         },
 
         load() {
-            this.data = JSON.parse(window.localStorage.getItem(this.localKey) || "{}");
+            this.data = JSON.parse(window.localStorage.getItem(this.localKey) || "[]");
             this.modified = false;
-            console.log(`Loaded ${Object.keys(this.data).length} items`);
+            console.log(`Loaded ${this.data.length} items`);
         },
 
         save() {
             window.localStorage.setItem(this.localKey, JSON.stringify(this.data));
             this.modified = false;
-            console.log(`Saved ${Object.keys(this.data).length} items`);
+            console.log(`Saved ${this.data.length} items`);
         },
 
         addToHistory(item, message) {
@@ -161,31 +164,21 @@ $(() => {
             const item = {
                 id: new Date().getTime().toString(36) + Math.random().toString(36).substr(-4),
                 history: {},
-                order: {},
+                lists: {},
                 content: "New item"
             }
             this.addToHistory(item, "created");
-            this.data[item.id] = item;
+            this.data.push(item);
             console.log(`Created item ${item.id}`);
             this.modified = true;
             return item;
         },
 
-        getItems(listId, excludes = []) {
+        _getItems(listId, excludes = []) {
             return Object.values(this.data)
                 .filter(item => item.order[listId] > 0)
                 .filter(item => !Object.keys(item.order).some(o => excludes.includes(o)))
                 .sort((i0, i1) => i0.order[listId] - i1.order[listId]);
-        },
-
-        setOrder(itemId, listId, order) {
-            this.data[itemId].order[listId] = order;
-            this.modified = true;
-        },
-
-        removeOrder(itemId, listId) {
-            delete this.data[itemId].order[listId];
-            this.modified = true;
         }
     };
 
@@ -236,9 +229,11 @@ $(() => {
         }
     };
 
-    const listUi = {
+    const view = {
 
-        createTabs(root, configurationData) {
+        // OK
+        createTabs(configurationData) {
+            const root = $("#items");
             const ul = $("<ul></ul>");
             root.append(ul);
 
@@ -275,50 +270,123 @@ $(() => {
             root.tabs();
         },
 
-        createItemLists(titleText, updateClass, createItem) {
+        // OK
+        createItemList(containerDiv) {
             const ul = $("<ul></ul>").addClass("items");
             const menu = $("<div></div>").addClass("menu");
-            const addMenu = $("<div></div>").text("+").addClass("add").click(() => createItem(ul));
-            const title = $("<div></div>").text(titleText).addClass("title");
-            const widthUp = $("<div></div>").text("W").addClass("plus").click(() => updateClass("width-", 1, 7, -1));
-            const widthDown = $("<div></div>").text("w").addClass("minus").click(() => updateClass("width-", 1, 7, 1));
-            const heightUp = $("<div></div>").text("H").addClass("plus").click(() => updateClass("height-", 1, 7, 1));
-            const heightDown = $("<div></div>").text("h").addClass("minus").click(() => updateClass("height-", 1, 7, -1));
+            const addMenu = $("<div></div>").text("+").addClass("add"); //.click(() => createItem(ul));
+            const title = $("<div></div>").text(containerDiv.attr("data-list-name")).addClass("title");
+            const widthUp = $("<div></div>").text("W").addClass("plus"); //.click(() => updateClass("width-", 1, 7, -1));
+            const widthDown = $("<div></div>").text("w").addClass("minus"); //.click(() => updateClass("width-", 1, 7, 1));
+            const heightUp = $("<div></div>").text("H").addClass("plus"); //.click(() => updateClass("height-", 1, 7, 1));
+            const heightDown = $("<div></div>").text("h").addClass("minus"); //.click(() => updateClass("height-", 1, 7, -1));
             const picker = $("<div></div>").text("RGB").addClass("plus"); //.click(() => colorPicker.select(container));
 
             const ulWrapper = $("<div></div>").addClass("wrapper").append(ul);
             menu.append([addMenu, title, widthUp, widthDown, heightUp, heightDown, picker]);
 
-            return [menu, ulWrapper];
+            containerDiv.append([menu, ulWrapper]);
         },
 
-        renderItems(tabId, items) {
-            $(`#${tabId} div.items-container`).each((_, e) => {
-                const container = $(e).empty();
-                const listId = container.attr("data-list-id");
-                const excludes = (container.attr("data-list-excludes") || "").split(",");
-
-            });
-        },
-
-        create2(updateClass, createItem) {
-            const that = this;
+        // OK
+        createItemLists() {
             $("#items > div.tab").each((_, e) => {
                 const tabDiv = $(e);
                 tabDiv.find("div.cell").each((_, e) => {
                     const containerDiv = $(e);
-                    const children = that.createItemLists(containerDiv.attr("data-list-name"), updateClass, createItem);
-                    containerDiv.append(children);
+                    this.createItemList(containerDiv);
                 });
+            });
+        },
+
+        // OK
+        createItem(item) {
+            const li = $("<li></li>").addClass("item").attr("data-item-id", item.id);
+            const contentDiv = $("<div></div>").addClass("content").text(item.content);
+            const infoDiv = $("<div></div>").addClass("info");
+            const ordersDiv = $("<div></div>").addClass("orders");
+            const editDiv = $("<div></div>").addClass("edit").html("e");
+
+            infoDiv.append(ordersDiv).append(editDiv);
+            li.append(contentDiv).append(infoDiv);
+            return li;
+        },
+
+        // OK
+        renderItem(item) {
+            const listIds = Object.keys(item.lists);
+            $("div.cell").each((_, e) => {
+                const cell = $(e);
+                const listId = cell.attr("data-list-id");
+                const excludes = (cell.attr("data-list-excludes") || "").split(",");
+                if (listIds.indexOf(listId) >= 0 && !excludes.some(e => listIds.indexOf(e) >= 0)) {
+                    const ul = cell.find("ul.items");
+                    const li = this.createItem(item);
+                    ul.append(li);
+                }
             });
         }
     };
 
+    const ui = {
+
+        view: false,
+
+        configuration: false,
+
+        items: false,
+
+        initialize(view, configuration, items) {
+            this.view = view;
+            this.configuration = configuration;
+            this.items = items;
+        },
+
+        start() {
+            view.createTabs(this.configuration.data);
+            view.createItemLists();
+            this.items.data.forEach(item => view.renderItem(item));
+            $("div.menu > div.add").click((e) => {
+                const add = $(e.target);
+                const cell = add.closest("div.cell");
+                const listId = cell.attr("data-list-id");
+                const item = this.items.createItem();
+                item.lists[listId] = 1024;
+                view.renderItem(item);
+            });
+        },
+
+        _createItemX(ul) {
+            const tab = ul.closest(".tab");
+            const listId = ul.closest(".cell").attr("data-list-id");
+
+            const item = this.storage.createItem();
+
+            tab.find(`div.cell[data-list-id=${listId}] ul.items`).each((i, element) => {
+                const ulPart = $(element);
+                that.renderItem(ulPart, item);
+                that.updateOrders(ulPart);
+            });
+
+        },
+
+        _createItem(ul) {
+            const that = this;
+            const listId = ul.attr("data-list-id");
+            const item = storage.createItem();
+            $(`ul[data-list-id=${listId}]`).each((i, element) => {
+                const ulPart = $(element);
+                that.renderItem(ulPart, item);
+                that.updateOrders(ulPart);
+            });
+            this.renderOrders();
+            ul.find(`li[data-item-id=${item.id}] .edit`).click();
+        },
+    };
+
     // ---------------------
 
-    listUi.createTabs($("#items"), configuration.data);
-    listUi.create2(() => {
-    }, () => {
-    });
+    ui.initialize(view, configuration, items);
+    ui.start();
 
 });
