@@ -114,7 +114,7 @@ $(() => {
             return this.data[key];
         },
 
-        _updateList(index, key, value) {
+        updateList(index, key, value) {
             const lists = [];
 
             Object.values(this.data).forEach(container => {
@@ -122,6 +122,7 @@ $(() => {
             });
 
             lists[index][key] = value;
+            console.log(`Updated property id:${listId} index:${index} ${key}:${value}`);
             this.save();
         }
     };
@@ -135,10 +136,9 @@ $(() => {
         localKey: "nc.items.2",
 
         startAutoSave() {
-            const that = this;
             setInterval(() => {
-                if (that.modified) {
-                    that.save();
+                if (this.modified) {
+                    this.save();
                 }
             }, 2000);
         },
@@ -274,13 +274,13 @@ $(() => {
         createItemList(containerDiv) {
             const ul = $("<ul></ul>").addClass("items");
             const menu = $("<div></div>").addClass("menu");
-            const addMenu = $("<div></div>").text("+").addClass("add"); //.click(() => createItem(ul));
+            const addMenu = $("<div></div>").text("+").addClass("add");
             const title = $("<div></div>").text(containerDiv.attr("data-list-name")).addClass("title");
-            const widthUp = $("<div></div>").text("W").addClass("plus"); //.click(() => updateClass("width-", 1, 7, -1));
-            const widthDown = $("<div></div>").text("w").addClass("minus"); //.click(() => updateClass("width-", 1, 7, 1));
-            const heightUp = $("<div></div>").text("H").addClass("plus"); //.click(() => updateClass("height-", 1, 7, 1));
-            const heightDown = $("<div></div>").text("h").addClass("minus"); //.click(() => updateClass("height-", 1, 7, -1));
-            const picker = $("<div></div>").text("RGB").addClass("plus"); //.click(() => colorPicker.select(container));
+            const widthUp = $("<div></div>").text("W").addClass("plus").attr("data-change-key", "width").attr("data-change-value", "+1");
+            const widthDown = $("<div></div>").text("w").addClass("minus").attr("data-change-key", "width").attr("data-change-value", "-1");
+            const heightUp = $("<div></div>").text("H").addClass("plus").attr("data-change-key", "height").attr("data-change-value", "+1");
+            const heightDown = $("<div></div>").text("h").addClass("minus").attr("data-change-key", "height").attr("data-change-value", "-1");
+            const picker = $("<div></div>").text("RGB").addClass(["plus", "rgb"]);
 
             const ulWrapper = $("<div></div>").addClass("wrapper").append(ul);
             menu.append([addMenu, title, widthUp, widthDown, heightUp, heightDown, picker]);
@@ -318,10 +318,12 @@ $(() => {
             $("div.cell").each((_, e) => {
                 const cell = $(e);
                 const listId = cell.attr("data-list-id");
+                const backgroundColor = cell.attr("data-background-color");
                 const excludes = (cell.attr("data-list-excludes") || "").split(",");
                 if (listIds.indexOf(listId) >= 0 && !excludes.some(e => listIds.indexOf(e) >= 0)) {
                     const ul = cell.find("ul.items");
                     const li = this.createItem(item);
+                    li.css("background-color", backgroundColor);
                     ul.append(li);
                 }
             });
@@ -336,23 +338,61 @@ $(() => {
 
         items: false,
 
-        initialize(view, configuration, items) {
+        colorPicker: false,
+
+        initialize(view, configuration, items, colorPicker) {
             this.view = view;
             this.configuration = configuration;
             this.items = items;
+            this.colorPicker = colorPicker;
         },
 
         start() {
-            view.createTabs(this.configuration.data);
-            view.createItemLists();
-            this.items.data.forEach(item => view.renderItem(item));
-            $("div.menu > div.add").click((e) => {
-                const add = $(e.target);
-                const cell = add.closest("div.cell");
+            this.configuration.load();
+
+            this.items.load();
+            this.items.startAutoSave();
+
+            this.colorPicker.initialize(cell => {
+                const index = parseInt(cell.attr("data-index"));
+                const value = cell.attr("data-background-color");
+                this.configuration.updateList(index, "background-color", value);
+            });
+
+            this.view.createTabs(this.configuration.data);
+            this.view.createItemLists();
+            this.items.data.forEach(item => this.view.renderItem(item));
+
+            $("div.menu > div.add").click(e => {
+                const button = $(e.target);
+                const cell = button.closest("div.cell");
                 const listId = cell.attr("data-list-id");
                 const item = this.items.createItem();
                 item.lists[listId] = 1024;
-                view.renderItem(item);
+                this.view.renderItem(item);
+            });
+
+            $("div.menu > div.rgb").click(e => {
+                const button = $(e.target);
+                const cell = button.closest("div.cell");
+                this.colorPicker.select(cell);
+            });
+
+            $("div.menu > div[data-change-key]").click(e => {
+                const button = $(e.target);
+                const changeKey = button.attr("data-change-key");
+                const changeValue = button.attr("data-change-value");
+                const cell = button.closest("div.cell");
+                const listId = cell.attr("data-list-id");
+                const index = parseInt(cell.attr("data-index"));
+
+                const clsPrefix = changeKey + "-";
+                const classes = cell.attr("class").split(" ").filter(c => c.indexOf(clsPrefix) === 0);
+                const current = parseInt(classes.map(c => c.replace(clsPrefix, ""))[0] || "1");
+                const updated = Math.max(1, Math.min(5, current + parseInt(changeValue)));
+                cell.removeClass(classes).addClass(clsPrefix + updated);
+
+                this.configuration.updateList(index, changeKey, updated);
             });
         },
 
@@ -386,7 +426,7 @@ $(() => {
 
     // ---------------------
 
-    ui.initialize(view, configuration, items);
+    ui.initialize(view, configuration, items, colorPicker);
     ui.start();
 
 });
