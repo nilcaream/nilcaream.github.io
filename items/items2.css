@@ -28,7 +28,11 @@ li {
     border: 0.1rem solid #888;
 }
 
-/* */
+[contenteditable] {
+    outline: 0 solid transparent;
+}
+
+/* items */
 
 #items > ul {
     display: flex;
@@ -48,7 +52,7 @@ li {
     display: inline-block;
 }
 
-/* */
+/* tab */
 
 div.tab {
     display: flex;
@@ -68,7 +72,7 @@ div.tab > div.line.width-2 > div {
     flex: 0 1 calc(1 / 2 * 100%);
 }
 
-/* */
+/* line */
 
 div.line > div.rows {
     display: flex;
@@ -80,7 +84,55 @@ div.line > div.columns {
     flex-direction: column;
 }
 
-/* */
+/* item */
+
+li.item {
+    display: flex;
+    flex-direction: column;
+}
+
+li.item.editing {
+    border: 0.1rem dashed #333;
+}
+
+li.item > div.content {
+    flex: 1 0 0;
+}
+
+li.item > div.info {
+    display: flex;
+    flex-direction: row;
+    font-size: 0.7rem;
+    margin-top: 0.1rem;
+}
+
+li.item > div.info > div.orders {
+    flex: 1 0 0;
+    display: flex;
+    flex-direction: row;
+}
+
+li.item > div.info > div.orders > div {
+    border-radius: 0.3rem;
+    background-color: #fff;
+    padding: 0 0.3rem;
+    opacity: 0.8;
+}
+
+li.item > div.info > div.edit {
+    border-radius: 0.3rem;
+    background-color: #fff;
+    padding: 0 0.5rem;
+    cursor: pointer;
+    user-select: none;
+    opacity: 0.6;
+}
+
+li.item > div.info > div.edit:hover {
+    opacity: 1;
+}
+
+/* cell */
 
 div.cell {
     width: 100%;
@@ -152,6 +204,30 @@ div.cell > div.wrapper > ul > li {
 
 }
 
+/* min height (height + 0.8) */
+
+div.cell.height-1 > div.wrapper > ul {
+    min-height: 3.6rem;
+}
+
+div.cell.height-2 > div.wrapper > ul {
+    min-height: 5.2rem;
+}
+
+div.cell.height-3 > div.wrapper > ul {
+    min-height: 6.8rem;
+}
+
+div.cell.height-4 > div.wrapper > ul {
+    min-height: 8.4rem;
+}
+
+div.cell.height-5 > div.wrapper > ul {
+    min-height: 10.0rem;
+}
+
+/* cell height (1.6 increment) */
+
 div.cell.height-1 > div.wrapper > ul > li {
     height: 2.8rem;
 }
@@ -171,6 +247,8 @@ div.cell.height-4 > div.wrapper > ul > li {
 div.cell.height-5 > div.wrapper > ul > li {
     height: 9.2rem;
 }
+
+/* cell width */
 
 div.cell.width-1 > div.wrapper > ul > li {
     flex: 0 1 calc(1 / 1 * 100% - 2 * 0.2rem);
@@ -192,7 +270,7 @@ div.cell.width-5 > div.wrapper > ul > li {
     flex: 0 1 calc(1 / 5 * 100% - 2 * 0.2rem);
 }
 
-/* */
+/* color picker */
 
 div#picker {
     position: fixed;

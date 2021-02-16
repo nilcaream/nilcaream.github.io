@@ -122,7 +122,7 @@ $(() => {
             });
 
             lists[index][key] = value;
-            console.log(`Updated property id:${listId} index:${index} ${key}:${value}`);
+            console.log(`Updated property index:${index} ${key}:${value}`);
             this.save();
         }
     };
@@ -172,6 +172,11 @@ $(() => {
             console.log(`Created item ${item.id}`);
             this.modified = true;
             return item;
+        },
+
+        updateItem(item) {
+            console.log(`Updated item ${item.id}`);
+            this.modified = true;
         },
 
         _getItems(listId, excludes = []) {
@@ -299,13 +304,37 @@ $(() => {
             });
         },
 
+        updateContent(item, contentDiv, onUpdate) {
+            contentDiv.closest("li.item").removeClass("editing");
+            contentDiv.attr("contenteditable", "false");
+            const content = contentDiv.text().trim();
+            if (content !== item.content) {
+                item.content = content;
+                $(`li[data-item-id=${item.id}] div.content`).text(item.content);
+                onUpdate(item);
+            }
+        },
+
         // OK
-        createItem(item) {
+        createItem(item, onUpdate) {
             const li = $("<li></li>").addClass("item").attr("data-item-id", item.id);
-            const contentDiv = $("<div></div>").addClass("content").text(item.content);
+            const contentDiv = $("<div></div>").addClass("content")
+                .text(item.content)
+                .focusout(() => this.updateContent(item, contentDiv, onUpdate))
+                .on("keydown", e => e.code === "Enter" ? this.updateContent(item, contentDiv, onUpdate) : undefined);
             const infoDiv = $("<div></div>").addClass("info");
             const ordersDiv = $("<div></div>").addClass("orders");
-            const editDiv = $("<div></div>").addClass("edit").html("e");
+            const editDiv = $("<div></div>").addClass("edit").text("e").click(_ => {
+                if (contentDiv.attr("contenteditable") === "true") {
+                    this.updateContent(item, contentDiv, onUpdate);
+                } else {
+                    contentDiv.closest("li.item").addClass("editing");
+                    contentDiv.attr("contenteditable", "true");
+                    contentDiv.focus();
+                }
+            });
+
+            Object.keys(item.lists).sort().forEach(o => ordersDiv.append($("<div></div>").text(o)));
 
             infoDiv.append(ordersDiv).append(editDiv);
             li.append(contentDiv).append(infoDiv);
@@ -313,7 +342,7 @@ $(() => {
         },
 
         // OK
-        renderItem(item) {
+        renderItem(item, onUpdate) {
             const listIds = Object.keys(item.lists);
             $("div.cell").each((_, e) => {
                 const cell = $(e);
@@ -322,7 +351,7 @@ $(() => {
                 const excludes = (cell.attr("data-list-excludes") || "").split(",");
                 if (listIds.indexOf(listId) >= 0 && !excludes.some(e => listIds.indexOf(e) >= 0)) {
                     const ul = cell.find("ul.items");
-                    const li = this.createItem(item);
+                    const li = this.createItem(item, onUpdate);
                     li.css("background-color", backgroundColor);
                     ul.append(li);
                 }
@@ -356,12 +385,12 @@ $(() => {
             this.colorPicker.initialize(cell => {
                 const index = parseInt(cell.attr("data-index"));
                 const value = cell.attr("data-background-color");
-                this.configuration.updateList(index, "background-color", value);
+                this.configuration.updateList(index, "backgroundColor", value);
             });
 
             this.view.createTabs(this.configuration.data);
             this.view.createItemLists();
-            this.items.data.forEach(item => this.view.renderItem(item));
+            this.items.data.forEach(item => this.view.renderItem(item, i => this.items.updateItem(i)));
 
             $("div.menu > div.add").click(e => {
                 const button = $(e.target);
@@ -369,7 +398,7 @@ $(() => {
                 const listId = cell.attr("data-list-id");
                 const item = this.items.createItem();
                 item.lists[listId] = 1024;
-                this.view.renderItem(item);
+                this.view.renderItem(item, i => this.items.updateItem(i));
             });
 
             $("div.menu > div.rgb").click(e => {
