@@ -110,10 +110,6 @@ $(() => {
             console.log(`Saved ${Object.keys(this.data).length} configuration tabs`);
         },
 
-        get(key) {
-            return this.data[key];
-        },
-
         updateList(index, key, value) {
             const lists = [];
 
@@ -155,7 +151,8 @@ $(() => {
             console.log(`Saved ${this.data.length} items`);
         },
 
-        addToHistory(item, message) {
+        addToHistory(itemOrId, message) {
+            const item = itemOrId.history === undefined ? this.data.filter(i => i.id === itemOrId)[0] : itemOrId;
             item.history[new Date().getTime().toString()] = message;
             this.modified = true;
         },
@@ -179,15 +176,23 @@ $(() => {
             this.modified = true;
         },
 
-        _getItems(listId, excludes = []) {
-            return Object.values(this.data)
-                .filter(item => item.order[listId] > 0)
-                .filter(item => !Object.keys(item.order).some(o => excludes.includes(o)))
-                .sort((i0, i1) => i0.order[listId] - i1.order[listId]);
+        updateLists(listId, itemIds) {
+            // set list index on each item present on the list
+            itemIds.map(id => this.data.filter(item => item.id === id)[0]).forEach((item, index) => {
+                item.lists[listId] = index + 100;
+                console.log(`Updated list ${listId}: item ${item.id} index ${item.lists[listId]}`);
+            });
+            // remove list index on items not present on the list
+            this.data.filter(item => itemIds.indexOf(item.id) === -1).filter(item => item.lists[listId]).forEach(item => {
+                delete item.lists[listId];
+                console.log(`Updated list ${listId}: item ${item.id} index (removed)`);
+            });
+            this.modified = true;
         }
     };
 
     const colorPicker = {
+
         picker: undefined,
 
         visible: false,
@@ -197,13 +202,12 @@ $(() => {
         onFinish: undefined,
 
         initialize(onFinish) {
-            const that = this;
             const size = Math.round(0.5 * Math.min(window.innerWidth, window.innerHeight));
             this.onFinish = onFinish;
             this.picker = new iro.ColorPicker("#picker", {
                 width: size
             });
-            this.picker.on("color:change", color => that.update(color.hexString));
+            this.picker.on("color:change", color => this.update(color.hexString));
             this.picker.on("input:end", () => this.hide());
         },
 
@@ -304,6 +308,7 @@ $(() => {
             });
         },
 
+        // OK
         updateContent(item, contentDiv, onUpdate) {
             contentDiv.closest("li.item").removeClass("editing");
             contentDiv.attr("contenteditable", "false");
@@ -361,19 +366,81 @@ $(() => {
 
     const ui = {
 
-        view: false,
+        view: undefined,
 
-        configuration: false,
+        configuration: undefined,
 
-        items: false,
+        items: undefined,
 
-        colorPicker: false,
+        colorPicker: undefined,
 
         initialize(view, configuration, items, colorPicker) {
             this.view = view;
             this.configuration = configuration;
             this.items = items;
             this.colorPicker = colorPicker;
+        },
+
+        initializeSortable() {
+            const resolve = (event, ui) => {
+                const ul = $(event.target);
+                const li = ui.item.first();
+                const cell = ul.closest("div.cell");
+                return {
+                    ul: ul,
+                    li: li,
+                    cell: cell,
+                    listId: cell.attr("data-list-id"),
+                    itemId: li.attr("data-item-id")
+                }
+            };
+
+            const that = this;
+
+            $(".items").sortable({
+                connectWith: ".items",
+                dropOnEmpty: true,
+                placeholder: "placeholder",
+                containment: "#items",
+                cursor: "move",
+                tolerance: "pointer",
+                remove: (event, ui) => {
+                    const change = resolve(event, ui);
+                    console.log(`Removed ${change.itemId} from ${change.listId}`);
+                    that.data.addToHistory(change.itemId, `Removed from ${change.listId}`);
+                },
+                receive: (event, ui) => {
+                    const change = resolve(event, ui);
+                    console.log(`Added ${change.itemId} to ${change.listId}`);
+                    that.data.addToHistory(change.itemId, `Added to ${change.listId}`);
+                },
+                start: (event, ui) => {
+                    resolve(event, ui).li.toggleClass("moved");
+                },
+                update(event, ui) {
+                    const change = resolve(event, ui);
+                    const itemIds = change.ul.find("li.item").toArray().map(x => x.getAttribute("data-item-id"));
+                    console.log(`Updated ${change.itemId} on ${change.listId} [${itemIds}]`);
+                    that.items.updateLists(change.listId, itemIds);
+                    that.renderItems(change.listId);
+                },
+                stop: (event, ui) => {
+                    resolve(event, ui).li.toggleClass("moved");
+                }
+            });//.disableSelection();
+        },
+
+        renderItems(listId) {
+            if (listId) {
+                $(`div.cell[data-list-id=${listId}] ul.items`).empty();
+                this.items.data
+                    .filter(item => item.lists[listId])
+                    .sort((i1, i2) => i1.lists[listId] - i2.lists[listId])
+                    .forEach(item => this.view.renderItem(item, i => this.items.updateItem(i)));
+            } else {
+                // set of list ids
+                Array.from(new Set(this.items.data.map(item => Object.keys(item.lists)))).forEach(listId => this.renderItems(listId));
+            }
         },
 
         start() {
@@ -390,7 +457,9 @@ $(() => {
 
             this.view.createTabs(this.configuration.data);
             this.view.createItemLists();
-            this.items.data.forEach(item => this.view.renderItem(item, i => this.items.updateItem(i)));
+            this.renderItems();
+
+            this.initializeSortable();
 
             $("div.menu > div.add").click(e => {
                 const button = $(e.target);
@@ -423,33 +492,6 @@ $(() => {
 
                 this.configuration.updateList(index, changeKey, updated);
             });
-        },
-
-        _createItemX(ul) {
-            const tab = ul.closest(".tab");
-            const listId = ul.closest(".cell").attr("data-list-id");
-
-            const item = this.storage.createItem();
-
-            tab.find(`div.cell[data-list-id=${listId}] ul.items`).each((i, element) => {
-                const ulPart = $(element);
-                that.renderItem(ulPart, item);
-                that.updateOrders(ulPart);
-            });
-
-        },
-
-        _createItem(ul) {
-            const that = this;
-            const listId = ul.attr("data-list-id");
-            const item = storage.createItem();
-            $(`ul[data-list-id=${listId}]`).each((i, element) => {
-                const ulPart = $(element);
-                that.renderItem(ulPart, item);
-                that.updateOrders(ulPart);
-            });
-            this.renderOrders();
-            ul.find(`li[data-item-id=${item.id}] .edit`).click();
         },
     };
 

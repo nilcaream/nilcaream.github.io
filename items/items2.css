@@ -32,10 +32,46 @@ li {
     outline: 0 solid transparent;
 }
 
+/* configuration */
+
+#configuration > ul {
+    display: flex;
+    flex-direction: row;
+    padding: 0;
+}
+
+#configuration > ul > li {
+    flex: 1 0 0;
+    color: #111;
+    font-weight: bold;
+    text-align: center;
+    background-color: #f8f8f8;
+    cursor: pointer;
+}
+
+#configuration > ul > li > a {
+    color: #111;
+    text-decoration: none;
+}
+
+div.setup {
+    position: absolute;
+    top: 0.6rem;
+    right: 0.6rem;
+    margin: 0;
+    font-weight: bold;
+    cursor: pointer;
+    user-select: none;
+    border-radius: 0.3rem;
+    padding: 0 1rem;
+    background-color: #ddd;
+}
+
 /* items */
 
 #items > ul {
     display: flex;
+    padding: 0;
 }
 
 #items > ul > li {
@@ -93,6 +129,15 @@ li.item {
 
 li.item.editing {
     border: 0.1rem dashed #333;
+}
+
+li.item.placeholder {
+    border: 0.1rem dashed darkslategray;
+    background-color: lightyellow;
+}
+
+li.item.moved {
+    border: 0.1rem dashed darkslategray;
 }
 
 li.item > div.content {
