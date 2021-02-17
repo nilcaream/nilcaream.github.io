@@ -34,6 +34,10 @@ li {
 
 /* configuration */
 
+#configuration {
+    display: none;
+}
+
 #configuration > ul {
     display: flex;
     flex-direction: row;
@@ -52,7 +56,21 @@ li {
 #configuration > ul > li > a {
     color: #111;
     text-decoration: none;
+    display: inline-block;
+    width: 100%;
 }
+
+#configuration > div.json {
+    margin: 0.2rem;
+    padding: 0.4rem;
+    border: 0.1rem solid #888;
+    border-radius: 0.3rem;
+    color: #111;
+    background-color: #f8f8f8;
+    white-space: pre;
+}
+
+/* setup */
 
 div.setup {
     position: absolute;
@@ -66,6 +84,7 @@ div.setup {
     padding: 0 1rem;
     background-color: #ddd;
 }
+
 
 /* items */
 
@@ -271,6 +290,14 @@ div.cell.height-5 > div.wrapper > ul {
     min-height: 10.0rem;
 }
 
+div.cell.height-6 > div.wrapper > ul {
+    min-height: 11.6rem;
+}
+
+div.cell.height-7 > div.wrapper > ul {
+    min-height: 13.2rem;
+}
+
 /* cell height (1.6 increment) */
 
 div.cell.height-1 > div.wrapper > ul > li {
@@ -293,6 +320,14 @@ div.cell.height-5 > div.wrapper > ul > li {
     height: 9.2rem;
 }
 
+div.cell.height-6 > div.wrapper > ul > li {
+    height: 10.8rem;
+}
+
+div.cell.height-7 > div.wrapper > ul > li {
+    height: 12.4rem;
+}
+
 /* cell width */
 
 div.cell.width-1 > div.wrapper > ul > li {
@@ -313,6 +348,14 @@ div.cell.width-4 > div.wrapper > ul > li {
 
 div.cell.width-5 > div.wrapper > ul > li {
     flex: 0 1 calc(1 / 5 * 100% - 2 * 0.2rem);
+}
+
+div.cell.width-6 > div.wrapper > ul > li {
+    flex: 0 1 calc(1 / 6 * 100% - 2 * 0.2rem);
+}
+
+div.cell.width-7 > div.wrapper > ul > li {
+    flex: 0 1 calc(1 / 7 * 100% - 2 * 0.2rem);
 }
 
 /* color picker */

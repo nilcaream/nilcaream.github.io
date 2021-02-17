@@ -285,11 +285,11 @@ $(() => {
             const menu = $("<div></div>").addClass("menu");
             const addMenu = $("<div></div>").text("+").addClass("add");
             const title = $("<div></div>").text(containerDiv.attr("data-list-name")).addClass("title");
-            const widthUp = $("<div></div>").text("W").addClass("plus").attr("data-change-key", "width").attr("data-change-value", "+1");
-            const widthDown = $("<div></div>").text("w").addClass("minus").attr("data-change-key", "width").attr("data-change-value", "-1");
+            const widthUp = $("<div></div>").text("W").addClass("plus").attr("data-change-key", "width").attr("data-change-value", "-1");
+            const widthDown = $("<div></div>").text("w").addClass("minus").attr("data-change-key", "width").attr("data-change-value", "+1");
             const heightUp = $("<div></div>").text("H").addClass("plus").attr("data-change-key", "height").attr("data-change-value", "+1");
             const heightDown = $("<div></div>").text("h").addClass("minus").attr("data-change-key", "height").attr("data-change-value", "-1");
-            const picker = $("<div></div>").text("RGB").addClass(["plus", "rgb"]);
+            const picker = $("<div></div>").text("C").addClass(["plus", "rgb"]);
 
             const ulWrapper = $("<div></div>").addClass("wrapper").append(ul);
             menu.append([addMenu, title, widthUp, widthDown, heightUp, heightDown, picker]);
@@ -404,17 +404,17 @@ $(() => {
                 containment: "#items",
                 cursor: "move",
                 tolerance: "pointer",
-                remove: (event, ui) => {
+                remove(event, ui) {
                     const change = resolve(event, ui);
                     console.log(`Removed ${change.itemId} from ${change.listId}`);
-                    that.data.addToHistory(change.itemId, `Removed from ${change.listId}`);
+                    that.items.addToHistory(change.itemId, `Removed from ${change.listId}`);
                 },
-                receive: (event, ui) => {
+                receive(event, ui) {
                     const change = resolve(event, ui);
                     console.log(`Added ${change.itemId} to ${change.listId}`);
-                    that.data.addToHistory(change.itemId, `Added to ${change.listId}`);
+                    that.items.addToHistory(change.itemId, `Added to ${change.listId}`);
                 },
-                start: (event, ui) => {
+                start(event, ui) {
                     resolve(event, ui).li.toggleClass("moved");
                 },
                 update(event, ui) {
@@ -428,6 +428,37 @@ $(() => {
                     resolve(event, ui).li.toggleClass("moved");
                 }
             });//.disableSelection();
+        },
+
+        initializeSetup() {
+            const itemsDiv = $("#items");
+            const configurationDiv = $("#configuration");
+            const json = configurationDiv.find(".json");
+
+            $(".setup").click(() => {
+                itemsDiv.toggle();
+                configurationDiv.toggle();
+                json.text(JSON.stringify(this.configuration.data, null, 2));
+            });
+
+            configurationDiv.find(".format").click(() => json.text(JSON.stringify(JSON.parse(json.text()), null, 2)));
+            configurationDiv.find(".save").click(() => {
+                this.configuration.data = JSON.parse(json.text());
+                this.configuration.save();
+                location.reload();
+            });
+
+            const download = configurationDiv.find(".download a");
+            download.click(() => {
+                const content = {
+                    "version": 2,
+                    "configuration": JSON.parse(json.text()),
+                    "items": this.items.data
+                }
+                const href = URL.createObjectURL(new Blob([JSON.stringify(content, null, 2)], {type: "application/json"}));
+                download.attr("href", href);
+                setTimeout(() => URL.revokeObjectURL(href), 1000);
+            });
         },
 
         renderItems(listId) {
@@ -459,6 +490,7 @@ $(() => {
             this.view.createItemLists();
             this.renderItems();
 
+            this.initializeSetup();
             this.initializeSortable();
 
             $("div.menu > div.add").click(e => {
@@ -487,7 +519,7 @@ $(() => {
                 const clsPrefix = changeKey + "-";
                 const classes = cell.attr("class").split(" ").filter(c => c.indexOf(clsPrefix) === 0);
                 const current = parseInt(classes.map(c => c.replace(clsPrefix, ""))[0] || "1");
-                const updated = Math.max(1, Math.min(5, current + parseInt(changeValue)));
+                const updated = Math.max(1, Math.min(7, current + parseInt(changeValue)));
                 cell.removeClass(classes).addClass(clsPrefix + updated);
 
                 this.configuration.updateList(index, changeKey, updated);
