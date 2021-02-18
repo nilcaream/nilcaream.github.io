@@ -337,6 +337,18 @@ $(() => {
                     contentDiv.closest("li.item").addClass("editing");
                     contentDiv.attr("contenteditable", "true");
                     contentDiv.focus();
+
+                    const length = contentDiv.text().trim().length;
+                    if (length) {
+                        // based on https://stackoverflow.com/a/6249440
+                        const range = document.createRange();
+                        range.setStart(contentDiv[0].childNodes[0], length);
+                        range.collapse(true)
+
+                        const selection = window.getSelection();
+                        selection.removeAllRanges();
+                        selection.addRange(range);
+                    }
                 }
             });
 
