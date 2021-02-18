@@ -162,7 +162,7 @@ $(() => {
                 id: new Date().getTime().toString(36) + Math.random().toString(36).substr(-4),
                 history: {},
                 lists: {},
-                content: "New item"
+                content: ""
             }
             this.addToHistory(item, "created");
             this.data.push(item);
@@ -255,6 +255,7 @@ $(() => {
                     .addClass(["cell", "width-" + (list.width || 1), "height-" + (list.height || 1)])
                     .attr("data-list-id", list.id)
                     .attr("data-list-name", list.name)
+                    .attr("data-list-includes", (list.includes || [list.id]).join(","))
                     .attr("data-list-excludes", (list.excludes || []).join(","))
                     .attr("data-index", index++)
                     .attr("data-background-color", (list.backgroundColor || "#cedaff"));
@@ -339,7 +340,8 @@ $(() => {
                 }
             });
 
-            Object.keys(item.lists).sort().forEach(o => ordersDiv.append($("<div></div>").text(o)));
+            // lists with ids prefixed with hyphen (-) will not be displayed as orders badges
+            Object.keys(item.lists).sort().filter(o => o[0] !== "-").forEach(o => ordersDiv.append($("<div></div>").text(o)));
 
             infoDiv.append(ordersDiv).append(editDiv);
             li.append(contentDiv).append(infoDiv);
@@ -351,14 +353,24 @@ $(() => {
             const listIds = Object.keys(item.lists);
             $("div.cell").each((_, e) => {
                 const cell = $(e);
-                const listId = cell.attr("data-list-id");
                 const backgroundColor = cell.attr("data-background-color");
-                const excludes = (cell.attr("data-list-excludes") || "").split(",");
-                if (listIds.indexOf(listId) >= 0 && !excludes.some(e => listIds.indexOf(e) >= 0)) {
-                    const ul = cell.find("ul.items");
-                    const li = this.createItem(item, onUpdate);
-                    li.css("background-color", backgroundColor);
-                    ul.append(li);
+                const includes = cell.attr("data-list-includes").split(",");
+                const excludes = cell.attr("data-list-excludes").split(",");
+
+                // when item belongs to multiple lists, then it will be added multiple times
+                if (cell.find(`li[data-item-id=${item.id}`).length === 0) {
+                    const matchesAny = (regExpTexts, texts) => {
+                        const regExps = regExpTexts.map(r => new RegExp(`^${r}$`));
+                        const matches = texts.map(t => regExps.map(r => r.test(t)).filter(x => x).length > 0).filter(x => x);
+                        return matches.length > 0;
+                    };
+
+                    if (matchesAny(includes, listIds) && !matchesAny(excludes, listIds)) {
+                        const ul = cell.find("ul.items");
+                        const li = this.createItem(item, onUpdate);
+                        li.css("background-color", backgroundColor);
+                        ul.append(li);
+                    }
                 }
             });
         }
@@ -470,7 +482,7 @@ $(() => {
                     .forEach(item => this.view.renderItem(item, i => this.items.updateItem(i)));
             } else {
                 // set of list ids
-                Array.from(new Set(this.items.data.map(item => Object.keys(item.lists)))).forEach(listId => this.renderItems(listId));
+                Array.from(new Set(this.items.data.map(item => Object.keys(item.lists)).flat())).forEach(listId => this.renderItems(listId));
             }
         },
 
@@ -500,6 +512,8 @@ $(() => {
                 const item = this.items.createItem();
                 item.lists[listId] = 1024;
                 this.view.renderItem(item, i => this.items.updateItem(i));
+
+                button.closest("div.cell").find(`li.item[data-item-id=${item.id}] div.edit`).click();
             });
 
             $("div.menu > div.rgb").click(e => {

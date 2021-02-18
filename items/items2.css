@@ -181,6 +181,7 @@ li.item > div.info > div.orders > div {
     background-color: #fff;
     padding: 0 0.3rem;
     opacity: 0.8;
+    margin-right: 0.2rem;
 }
 
 li.item > div.info > div.edit {
