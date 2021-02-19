@@ -11,354 +11,56 @@ body {
     box-sizing: border-box;
 }
 
-/* */
-
-@media (orientation: portrait) {
-    html {
-        font-size: 13px;
-    }
-
-    div.ui-tabs > ul.ui-tabs-nav, div#configuration > ul {
-        flex-direction: column;
-    }
-}
-
-/* */
-
-ul.items {
-    border: 0.1rem solid #888;
-    border-radius: 0 0.3rem 0.3rem 0.3rem;
-    margin: 0;
-    padding: 0.2rem;
-    background-color: #f8f8f8;
+ul {
     list-style-type: none;
-
+    margin: 0.2rem;
+    padding: 0.2rem;
     margin-block-start: 0;
     margin-block-end: 0;
     margin-inline-start: 0;
     margin-inline-end: 0;
 }
 
-div.menu {
-    display: flex;
-    flex-direction: row;
-}
-
-div.menu > div {
-    border-top-left-radius: 0.3rem;
-    border-top-right-radius: 0.3rem;
-    margin: 0;
-}
-
-div.menu div.title {
-    background-color: #ddd;
-    color: #111;
-    padding: 0 1rem;
-    user-select: none;
-    flex: 1 0 0;
-}
-
-div.menu div.add {
-    background-color: #888;
-    color: #eee;
-    padding: 0 0.4rem;
-    cursor: pointer;
-}
-
-div.menu div.plus {
-    background-color: #eee;
-    color: #444;
-    padding: 0 0.4rem;
-    cursor: pointer;
-    user-select: none;
-}
-
-div.menu div.minus {
-    background-color: #f0f0f0;
-    color: #333;
-    padding: 0 0.4rem;
-    cursor: pointer;
-    user-select: none;
-}
-
-li.item div.content {
-    height: 100%;
+li {
+    margin: 0.2rem;
     padding: 0.2rem;
-    border-radius: 0.3rem;
-    overflow: hidden;
-    line-height: 0.9rem;
-}
-
-li.item div.content[contenteditable=true] {
-    /* border + padding should equal padding in contenteditable=false */
-    border: 0.1rem dashed #333;
-    padding: 0.1rem;
+    border-radius: 0.2rem;
+    border: 0.1rem solid #888;
 }
 
 [contenteditable] {
     outline: 0 solid transparent;
 }
 
-div.info {
-    font-size: 0.7rem;
-    display: flex;
-    flex-flow: row;
-    margin-top: 0.1rem;
-}
-
-div.info div.orders {
-    width: 100%;
-    overflow: hidden;
-    white-space: nowrap;
-    letter-spacing: -0.05rem;
-}
-
-div.info div.orders span {
-    border-radius: 0.3rem;
-    background-color: #fff;
-    padding: 0 0.3rem;
-    margin-right: 0.2rem;
-    opacity: 0.6;
-}
-
-div.info div.edit {
-    border-radius: 0.3rem;
-    background-color: #fff;
-    padding: 0 0.5rem;
-    cursor: pointer;
-    user-select: none;
-    opacity: 0.6;
-    align-self: flex-end;
-}
-
-div.info div.edit:hover {
-    opacity: 1;
-}
-
-.items li {
-    margin: 0.2rem;
-    padding: 0.2rem;
-    border-radius: 0.2rem;
-
-    display: flex;
-    flex-flow: column;
-}
-
-li.item {
-    border: 0.1rem solid #444;
-    background-color: #cedaff;
-}
-
-li.placeholder {
-    border: 0.1rem dashed darkslategray;
-    background-color: lightyellow;
-}
-
-li.moved {
-    border: 0.1rem dashed darkslategray;
-}
-
-/* */
-
-div.items-container.width-1 li {
-    flex: 0 1 calc(1 / 1 * 100% - 2 * 0.2rem);
-}
-
-div.items-container.width-2 li {
-    flex: 0 1 calc(1 / 2 * 100% - 2 * 0.2rem);
-}
-
-div.items-container.width-3 li {
-    flex: 0 1 calc(1 / 3 * 100% - 2 * 0.2rem);
-}
-
-div.items-container.width-4 li {
-    flex: 0 1 calc(1 / 4 * 100% - 2 * 0.2rem);
-}
-
-div.items-container.width-5 li {
-    flex: 0 1 calc(1 / 5 * 100% - 2 * 0.2rem);
-}
-
-div.items-container.width-6 li {
-    flex: 0 1 calc(1 / 6 * 100% - 2 * 0.2rem);
-}
-
-div.items-container.width-7 li {
-    flex: 0 1 calc(1 / 7 * 100% - 2 * 0.2rem);
-}
-
-/* grid */
-
-div.grid {
-    display: flex;
-    flex-direction: column;
-}
-
-div.grid > div {
-    display: flex;
-    flex-direction: row;
-}
-
-div.grid > div.width-1 > div {
-    flex: 0 1 calc(1 / 1 * 100%);
-}
-
-div.grid > div.width-2 > div {
-    flex: 0 1 calc(1 / 2 * 100%);
-}
-
-div.grid > div.width-3 > div {
-    flex: 0 1 calc(1 / 3 * 100%);
-}
-
-div.grid > div.width-4 > div {
-    flex: 0 1 calc(1 / 4 * 100%);
-}
-
-/* columns */
-
-div.container.columns {
-    display: flex;
-    flex-direction: row;
-}
-
-div.container.columns > div.items-container {
-    width: 100%;
-    padding: 0.2rem;
-    display: flex;
-    flex-direction: column;
-}
-
-div.container.columns > div.items-container > div.wrapper {
-    height: 100%;
-}
-
-div.container.columns > div.items-container > div.wrapper > ul {
-    height: 100%;
-    display: flex;
-    flex-wrap: wrap;
-    flex-direction: row;
-    align-items: flex-start;
-    align-content: flex-start;
-}
-
-/* height */
-
-div.items-container.height-1 > div.wrapper > ul > li {
-    height: 2.8rem;
-}
-
-div.items-container.height-2 > div.wrapper > ul > li {
-    height: 4.4rem;
-}
-
-div.items-container.height-3 > div.wrapper > ul > li {
-    height: 6rem;
-}
-
-div.items-container.height-4 > div.wrapper > ul > li {
-    height: 7.6rem;
-}
-
-div.items-container.height-5 > div.wrapper > ul > li {
-    height: 9.2rem;
-}
-
-div.items-container.height-6 > div.wrapper > ul > li {
-    height: 10.8rem;
-}
-
-div.items-container.height-7 > div.wrapper > ul > li {
-    height: 12.4rem;
-}
-
-/* rows */
-
-div.container.rows {
-    display: flex;
-    flex-direction: column;
-}
-
-div.container.rows > div.items-container {
-    padding: 0.2rem;
-    display: flex;
-    flex-direction: column;
-}
-
-div.container.rows > div.items-container > div.wrapper {
-    width: 100%;
-}
-
-div.container.rows > div.items-container > div.wrapper > ul {
-    min-height: 3.8rem;
-    display: flex;
-    flex-wrap: wrap;
-}
-
-div.container.rows > div.items-container > div.wrapper > ul > li {
-    /*height: 5rem;*/
-}
-
-/*  */
-
-div.ui-tabs > ul.ui-tabs-nav {
-    margin: 0;
-    padding: 0.2rem;
-    list-style-type: none;
-
-    margin-block-start: 0;
-    margin-block-end: 0;
-    margin-inline-start: 0;
-    margin-inline-end: 0;
-
-    display: flex;
-}
-
-ul.ui-tabs-nav > li.ui-tabs-tab {
-    border: 0.1rem solid #888;
-    border-radius: 0.3rem;
-    margin: 0;
-    padding: 0.2rem;
-    background-color: #f8f8f8;
-    flex: 1 0 0;
-    text-align: center;
-}
-
-ul.ui-tabs-nav > li.ui-tabs-tab > a {
-    text-decoration: none;
-    color: #111;
-    font-weight: bold;
-    width: 100%;
-    display: inline-block;
-}
-
 /* configuration */
 
-div#configuration, div#items {
+#configuration {
     display: none;
 }
 
-div#configuration > ul {
-    list-style-type: none;
-    padding: 0.2rem;
-    margin: 0;
+#configuration > ul {
     display: flex;
+    flex-direction: row;
+    padding: 0;
 }
 
-div#configuration > ul > li {
-    padding: 0.2rem;
-    border: 0.1rem solid #888;
-    border-radius: 0.3rem;
-    color: #111;
-    background-color: #f8f8f8;
-    text-align: center;
-    font-weight: bold;
+#configuration > ul > li {
     flex: 1 0 0;
+    color: #111;
+    font-weight: bold;
+    text-align: center;
+    background-color: #f8f8f8;
     cursor: pointer;
 }
 
-div#configuration > div.json {
+#configuration > ul > li > a {
+    color: #111;
+    text-decoration: none;
+    display: inline-block;
+    width: 100%;
+}
+
+#configuration > div.json {
     margin: 0.2rem;
     padding: 0.4rem;
     border: 0.1rem solid #888;
@@ -368,7 +70,7 @@ div#configuration > div.json {
     white-space: pre;
 }
 
-/* - */
+/* setup */
 
 div.setup {
     position: absolute;
@@ -383,18 +85,276 @@ div.setup {
     background-color: #ddd;
 }
 
-div.setup.mirror {
-    opacity: 0.5;
+/* items */
+
+#items > ul {
+    display: flex;
+    padding: 0;
 }
 
-div#configuration li > a {
-    display: inline-block;
-    width: 100%;
+#items > ul > li {
+    flex: 1 0 0;
+    text-align: center;
+    background-color: #f8f8f8;
+}
+
+#items > ul > li > a {
     text-decoration: none;
     color: #111;
+    font-weight: bold;
+    width: 100%;
+    display: inline-block;
 }
 
-/* picker */
+/* tab */
+
+div.tab {
+    display: flex;
+    flex-direction: column;
+}
+
+div.tab > div.line {
+    display: flex;
+    flex-direction: row;
+}
+
+div.tab > div.line.width-1 > div {
+    flex: 0 1 calc(1 / 1 * 100%);
+}
+
+div.tab > div.line.width-2 > div {
+    flex: 0 1 calc(1 / 2 * 100%);
+}
+
+/* line */
+
+div.line > div.rows {
+    display: flex;
+    flex-direction: row;
+}
+
+div.line > div.columns {
+    display: flex;
+    flex-direction: column;
+}
+
+/* item */
+
+li.item {
+    display: flex;
+    flex-direction: column;
+}
+
+li.item.editing {
+    border: 0.1rem dashed #333;
+}
+
+li.item.placeholder {
+    border: 0.1rem dashed darkslategray;
+    background-color: lightyellow;
+}
+
+li.item.moved {
+    border: 0.1rem dashed darkslategray;
+}
+
+li.item > div.content {
+    flex: 1 0 0;
+}
+
+li.item > div.info {
+    display: flex;
+    flex-direction: row;
+    font-size: 0.7rem;
+    margin-top: 0.1rem;
+}
+
+li.item > div.info > div.orders {
+    flex: 1 0 0;
+    display: flex;
+    flex-direction: row;
+}
+
+li.item > div.info > div.orders > div {
+    border-radius: 0.3rem;
+    background-color: #fff;
+    padding: 0 0.3rem;
+    opacity: 0.8;
+    margin-right: 0.2rem;
+}
+
+li.item > div.info > div.edit {
+    border-radius: 0.3rem;
+    background-color: #fff;
+    padding: 0 0.5rem;
+    cursor: pointer;
+    user-select: none;
+    opacity: 0.6;
+}
+
+li.item > div.info > div.edit:hover {
+    opacity: 1;
+}
+
+/* cell */
+
+div.cell {
+    width: 100%;
+    padding: 0.2rem;
+    display: flex;
+    flex-direction: column;
+}
+
+div.cell > div.menu {
+    display: flex;
+    flex-direction: row;
+}
+
+div.cell > div.menu > div {
+    border-top-left-radius: 0.3rem;
+    border-top-right-radius: 0.3rem;
+    margin: 0;
+}
+
+div.cell > div.menu > div.add {
+    background-color: #888;
+    color: #eee;
+    padding: 0 0.4rem;
+    cursor: pointer;
+}
+
+div.cell > div.menu > div.title {
+    background-color: #ddd;
+    color: #111;
+    padding: 0 1rem;
+    user-select: none;
+    flex: 1 0 0;
+}
+
+div.cell > div.menu > div.plus {
+    background-color: #eee;
+    color: #444;
+    padding: 0 0.4rem;
+    cursor: pointer;
+    user-select: none;
+}
+
+div.cell > div.menu > div.minus {
+    background-color: #f0f0f0;
+    color: #333;
+    padding: 0 0.4rem;
+    cursor: pointer;
+    user-select: none;
+}
+
+div.cell > div.wrapper {
+    height: 100%;
+    border: 0.1rem solid #888;
+    border-bottom-left-radius: 0.3rem;
+    border-bottom-right-radius: 0.3rem;
+    background-color: #f8f8f8;
+}
+
+div.cell > div.wrapper > ul {
+    height: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    align-items: flex-start;
+    align-content: flex-start;
+}
+
+/* min height (height + 0.8) */
+
+div.cell.height-1 > div.wrapper > ul {
+    min-height: 3.6rem;
+}
+
+div.cell.height-2 > div.wrapper > ul {
+    min-height: 5.2rem;
+}
+
+div.cell.height-3 > div.wrapper > ul {
+    min-height: 6.8rem;
+}
+
+div.cell.height-4 > div.wrapper > ul {
+    min-height: 8.4rem;
+}
+
+div.cell.height-5 > div.wrapper > ul {
+    min-height: 10.0rem;
+}
+
+div.cell.height-6 > div.wrapper > ul {
+    min-height: 11.6rem;
+}
+
+div.cell.height-7 > div.wrapper > ul {
+    min-height: 13.2rem;
+}
+
+/* cell height (1.6 increment) */
+
+div.cell.height-1 > div.wrapper > ul > li {
+    height: 2.8rem;
+}
+
+div.cell.height-2 > div.wrapper > ul > li {
+    height: 4.4rem;
+}
+
+div.cell.height-3 > div.wrapper > ul > li {
+    height: 6.0rem;
+}
+
+div.cell.height-4 > div.wrapper > ul > li {
+    height: 7.6rem;
+}
+
+div.cell.height-5 > div.wrapper > ul > li {
+    height: 9.2rem;
+}
+
+div.cell.height-6 > div.wrapper > ul > li {
+    height: 10.8rem;
+}
+
+div.cell.height-7 > div.wrapper > ul > li {
+    height: 12.4rem;
+}
+
+/* cell width */
+
+div.cell.width-1 > div.wrapper > ul > li {
+    flex: 0 1 calc(1 / 1 * 100% - 2 * 0.2rem);
+}
+
+div.cell.width-2 > div.wrapper > ul > li {
+    flex: 0 1 calc(1 / 2 * 100% - 2 * 0.2rem);
+}
+
+div.cell.width-3 > div.wrapper > ul > li {
+    flex: 0 1 calc(1 / 3 * 100% - 2 * 0.2rem);
+}
+
+div.cell.width-4 > div.wrapper > ul > li {
+    flex: 0 1 calc(1 / 4 * 100% - 2 * 0.2rem);
+}
+
+div.cell.width-5 > div.wrapper > ul > li {
+    flex: 0 1 calc(1 / 5 * 100% - 2 * 0.2rem);
+}
+
+div.cell.width-6 > div.wrapper > ul > li {
+    flex: 0 1 calc(1 / 6 * 100% - 2 * 0.2rem);
+}
+
+div.cell.width-7 > div.wrapper > ul > li {
+    flex: 0 1 calc(1 / 7 * 100% - 2 * 0.2rem);
+}
+
+/* color picker */
 
 div#picker {
     position: fixed;

@@ -1,174 +1,158 @@
 'use strict';
 
 $(() => {
+
     const configuration = {
+
         data: {
             columns: {
-                name: "Columns",
-                type: "columns",
-                lists: [
-                    {
-                        id: "list-a",
-                        name: "List A",
-                        width: 1
-                    },
-                    {
-                        id: "list-b",
-                        name: "List B",
-                        width: 2
-                    },
-                    {
-                        id: "list-c",
-                        name: "List C",
-                        width: 3
-                    }
-                ]
+                name: "Columns 1x1",
+                cells: [[{
+                    type: "columns",
+                    lists: [
+                        {
+                            id: "list-a",
+                            name: "List A",
+                            excludes: ["list-d"]
+                        }, {
+                            id: "list-b",
+                            name: "List B"
+                        }
+                    ]
+                }]]
             },
             rows: {
-                name: "Rows",
-                type: "rows",
-                lists: [
-                    {
-                        id: "list-a",
-                        name: "List A",
-                        width: 1
-                    },
-                    {
-                        id: "list-b",
-                        name: "List B",
-                        width: 2
-                    },
-                    {
-                        id: "list-c",
-                        name: "List C",
-                        width: 3
-                    }
-                ]
+                name: "Rows 1x1",
+                cells: [[{
+                    type: "rows",
+                    lists: [
+                        {
+                            id: "list-c",
+                            name: "List C",
+                            excludes: ["list-d"]
+                        }, {
+                            id: "list-d",
+                            name: "List D"
+                        }
+                    ]
+                }]]
             },
             grid: {
                 name: "Grid",
-                type: "grid",
                 cells: [
-                    [{
-                        type: "columns",
-                        lists: [
-                            {
-                                id: "list-a",
-                                name: "List A - Top-Left",
-                                width: 1
-                            },
-                            {
-                                id: "list-b",
-                                name: "List B - Top-Left",
-                                width: 2
-                            }
-                        ]
-                    }, {
-                        type: "rows",
-                        lists: [
-                            {
-                                id: "list-a",
-                                name: "List A - Top-Right",
-                                width: 4
-                            },
-                            {
-                                id: "list-b",
-                                name: "List B - Top-Right",
-                                width: 5
-                            },
-                            {
-                                id: "list-c",
-                                name: "List C - Top-Right",
-                                width: 6
-                            }
-                        ]
-                    }],
-                    [{
-                        type: "rows",
-                        lists: [
-                            {
-                                id: "list-a",
-                                name: "List A - Bottom-Left",
-                                width: 2
-                            },
-                            {
-                                id: "list-b",
-                                name: "List B - Bottom-Left",
-                                width: 3
-                            }
-                        ]
-                    }, {
-                        type: "columns",
-                        lists: [
-                            {
-                                id: "list-a",
-                                name: "List A - Bottom-Right",
-                                width: 2
-                            },
-                            {
-                                id: "list-b",
-                                name: "List B - Bottom-Right",
-                                width: 1
-                            }
-                        ]
-                    }]
+                    [
+                        {
+                            type: "columns",
+                            lists: [
+                                {
+                                    id: "list-a",
+                                    name: "List A - Top-Left",
+                                }, {
+                                    id: "list-b",
+                                    name: "List B - Top-Left",
+                                }
+                            ]
+                        },
+                        {
+                            type: "rows",
+                            lists: [
+                                {
+                                    id: "list-a",
+                                    name: "List A - Top-Right",
+                                }, {
+                                    id: "list-b",
+                                    name: "List B - Top-Right",
+                                }, {
+                                    id: "list-c",
+                                    name: "List C - Top-Right",
+                                }
+                            ]
+                        }
+                    ], [
+                        {
+                            type: "rows",
+                            lists: [
+                                {
+                                    id: "list-a",
+                                    name: "List A - Bottom-Left",
+                                }, {
+                                    id: "list-b",
+                                    name: "List B - Bottom-Left",
+                                }
+                            ]
+                        }, {
+                            type: "columns",
+                            lists: [
+                                {
+                                    id: "list-a",
+                                    name: "List A - Bottom-Right",
+                                }, {
+                                    id: "list-b",
+                                    name: "List B - Bottom-Right",
+                                }
+                            ]
+                        }
+                    ]
                 ]
             }
         },
 
+        localKey: "nc.configuration.2",
+
         load() {
-            this.data = JSON.parse(window.localStorage.getItem("nc.configuration") || JSON.stringify(this.data));
+            this.data = JSON.parse(window.localStorage.getItem(this.localKey)) || this.data;
             console.log(`Loaded ${Object.keys(this.data).length} configuration tabs`);
+            return this.data;
         },
 
         save() {
-            window.localStorage.setItem("nc.configuration", JSON.stringify(this.data));
+            window.localStorage.setItem(this.localKey, JSON.stringify(this.data));
             console.log(`Saved ${Object.keys(this.data).length} configuration tabs`);
         },
 
-        update(index, key, value) {
+        updateList(index, key, value) {
             const lists = [];
 
             Object.values(this.data).forEach(container => {
-                if (container.lists) {
-                    container.lists.forEach(list => lists.push(list));
-                } else if (container.cells) {
-                    container.cells.forEach(row => row.forEach(cell => cell.lists.forEach(list => lists.push(list))));
-                }
+                container.cells.forEach(row => row.forEach(cell => cell.lists.forEach(list => lists.push(list))));
             });
 
             lists[index][key] = value;
+            console.log(`Updated property index:${index} ${key}:${value}`);
             this.save();
         }
-    }
+    };
 
-    const storage = {
-        data: {},
+    const items = {
+
+        data: [],
 
         modified: false,
 
+        localKey: "nc.items.2",
+
         startAutoSave() {
-            const that = this;
             setInterval(() => {
-                if (that.modified) {
-                    that.save();
+                if (this.modified) {
+                    this.save();
                 }
             }, 2000);
         },
 
         load() {
-            this.data = JSON.parse(window.localStorage.getItem("nc.items") || "{}");
+            this.data = JSON.parse(window.localStorage.getItem(this.localKey) || "[]");
             this.modified = false;
-            console.log(`Loaded ${Object.keys(this.data).length} items`);
+            console.log(`Loaded ${this.data.length} items`);
         },
 
         save() {
-            window.localStorage.setItem("nc.items", JSON.stringify(this.data || {}));
+            window.localStorage.setItem(this.localKey, JSON.stringify(this.data));
             this.modified = false;
-            console.log(`Saved ${Object.keys(this.data).length} items`);
+            console.log(`Saved ${this.data.length} items`);
         },
 
-        addToHistory(item, message) {
+        addToHistory(itemOrId, message) {
+            const item = itemOrId.history === undefined ? this.data.filter(i => i.id === itemOrId)[0] : itemOrId;
             item.history[new Date().getTime().toString()] = message;
             this.modified = true;
         },
@@ -177,48 +161,38 @@ $(() => {
             const item = {
                 id: new Date().getTime().toString(36) + Math.random().toString(36).substr(-4),
                 history: {},
-                order: {},
-                content: "New item"
+                lists: {},
+                content: ""
             }
             this.addToHistory(item, "created");
-            this.data[item.id] = item;
+            this.data.push(item);
             console.log(`Created item ${item.id}`);
             this.modified = true;
             return item;
         },
 
-        getItems(listId) {
-            return Object.values(this.data)
-                .filter(item => item.order[listId])
-                .sort((i0, i1) => i0.order[listId] - i1.order[listId]);
-        },
-
-        getOtherItems(listIds) {
-            return Object.values(this.data)
-                .filter(item => !Object.keys(item.order).some(r => listIds.indexOf(r) !== -1));
-        },
-
-        setOrder(itemId, listId, order) {
-            this.data[itemId].order[listId] = order;
+        updateItem(item) {
+            console.log(`Updated item ${item.id}`);
             this.modified = true;
         },
 
-        removeOrder(itemId, listId) {
-            delete this.data[itemId].order[listId];
+        updateLists(listId, itemIds) {
+            // set list index on each item present on the list
+            itemIds.map(id => this.data.filter(item => item.id === id)[0]).forEach((item, index) => {
+                item.lists[listId] = index + 100;
+                console.log(`Updated list ${listId}: item ${item.id} index ${item.lists[listId]}`);
+            });
+            // remove list index on items not present on the list
+            this.data.filter(item => itemIds.indexOf(item.id) === -1).filter(item => item.lists[listId]).forEach(item => {
+                delete item.lists[listId];
+                console.log(`Updated list ${listId}: item ${item.id} index (removed)`);
+            });
             this.modified = true;
-        },
-
-        getItemIdToListIds() {
-            // filter removes blanks
-            return Object.values(this.data).map(item => ({itemId: item.id, listIds: Object.keys(item.order).filter(o => o).sort()}));
-        },
-
-        log() {
-            Object.values(this.data).forEach((item, i) => console.log(`storage.data[${i}] = ${JSON.stringify(item)}`));
         }
     };
 
     const colorPicker = {
+
         picker: undefined,
 
         visible: false,
@@ -228,13 +202,12 @@ $(() => {
         onFinish: undefined,
 
         initialize(onFinish) {
-            const that = this;
             const size = Math.round(0.5 * Math.min(window.innerWidth, window.innerHeight));
             this.onFinish = onFinish;
             this.picker = new iro.ColorPicker("#picker", {
                 width: size
             });
-            this.picker.on("color:change", color => that.update(color.hexString));
+            this.picker.on("color:change", color => this.update(color.hexString));
             this.picker.on("input:end", () => this.hide());
         },
 
@@ -266,153 +239,187 @@ $(() => {
     };
 
     const view = {
-        renderItem(ul, item) {
-            const setContent = (item, contentDiv) => {
-                contentDiv.attr("contenteditable", "false");
-                const content = contentDiv.text().trim();
-                if (content !== item.content) {
-                    storage.addToHistory(item, "modified: " + item.content);
-                    item.content = content;
-                    $(`li[data-item-id=${item.id}] div.content`).text(item.content);
-                    storage.modified = true;
-                }
-            };
 
-            const li = $("<li></li>").addClass("item").attr("data-item-id", item.id);
-            const contentDiv = $("<div></div>").addClass("content").text(item.content)
-                .focusout(() => setContent(item, contentDiv))
-                .on("keydown", e => e.code === "Enter" ? setContent(item, contentDiv) : undefined);
-            const infoDiv = $("<div></div>").addClass("info");
-            const ordersDiv = $("<div></div>").addClass("orders");
-            const editDiv = $("<div></div>").addClass("edit").html("e").click(() => {
-                if (contentDiv.attr("contenteditable") === "true") {
-                    setContent(item, contentDiv);
-                } else {
-                    contentDiv.attr("contenteditable", "true");
-                    contentDiv.focus();
-                }
-            });
-
-            infoDiv.append(ordersDiv).append(editDiv);
-            li.append(contentDiv).append(infoDiv);
-            ul.append(li);
-
-            this.updateColor(li);
-            return li;
-        },
-
-        createItem(ul) {
-            const that = this;
-            const listId = ul.attr("data-list-id");
-            const item = storage.createItem();
-            $(`ul[data-list-id=${listId}]`).each((i, element) => {
-                const ulPart = $(element);
-                that.renderItem(ulPart, item);
-                that.updateOrders(ulPart);
-            });
-            this.renderOrders();
-            ul.find(`li[data-item-id=${item.id}] .edit`).click();
-        },
-
-        updateOrders(ul) {
-            const listId = ul.attr("data-list-id");
-            ul.find("li").each((i, element) => {
-                const li = $(element);
-                const itemId = li.attr("data-item-id");
-                if (listId) {
-                    storage.setOrder(itemId, listId, 100 + i);
-                }
-            });
-        },
-
-        renderOrders() {
-            storage.getItemIdToListIds().forEach(entry => {
-                const itemId = entry.itemId;
-                const target = $(`li[data-item-id=${itemId}] div.orders`).empty();
-                entry.listIds.forEach(listId => target.append($("<span></span>").text(listId)));
-            });
-        },
-
-        updateColor(li) {
-            const color = li.closest(".items-container").attr("data-background-color");
-            li.css("background-color", color);
-        },
-
-        initializeTabs(configuration) {
+        // OK
+        createTabs(configurationData) {
             const root = $("#items");
             const ul = $("<ul></ul>");
             root.append(ul);
 
             let index = 0;
 
-            const addLi = (id, name) => ul.append($("<li></li>").append($("<a></a>").attr("href", "#" + id).text(name)));
-            const addItemContainer = (parent, list) => parent.append($("<div></div>")
-                .addClass(["items-container", "width-" + (list.width || 1), "height-" + (list.height || 1)])
-                .attr("data-list-id", list.id)
-                .attr("data-list-name", list.name)
-                .attr("data-index", index++)
-                .attr("data-background-color", (list.backgroundColor || "#cedaff")));
+            const addTabButton = (id, name) => ul.append($("<li></li>").append($("<a></a>").attr("href", "#" + id).text(name)));
 
-            for (const [tabId, tabDefinition] of Object.entries(configuration)) {
-                addLi(tabId, tabDefinition.name);
-                const div = $("<div></div>").attr("id", tabId);
-                div.addClass(tabDefinition.type).addClass("item-tab");
-                if (tabDefinition.lists) {
-                    div.addClass("container");
-                    tabDefinition.lists.forEach(list => addItemContainer(div, list));
-                } else if (tabDefinition.cells) {
-                    tabDefinition.cells.forEach(row => {
-                        const container = $("<div></div>").addClass(`width-${row.length}`);
-                        row.forEach(column => {
-                            const cell = $("<div></div>").addClass([column.type, "container"]);
-                            column.lists.forEach(list => addItemContainer(cell, list));
-                            container.append(cell);
-                        });
-                        div.append(container);
+            const addItemContainer = (parent, list) => {
+                const div = $("<div></div>")
+                    .addClass(["cell", "width-" + (list.width || 1), "height-" + (list.height || 1)])
+                    .attr("data-list-id", list.id)
+                    .attr("data-list-name", list.name)
+                    .attr("data-list-includes", (list.includes || [list.id]).join(","))
+                    .attr("data-list-excludes", (list.excludes || []).join(","))
+                    .attr("data-index", index++)
+                    .attr("data-background-color", (list.backgroundColor || "#cedaff"));
+                parent.append(div);
+            };
+
+            for (const [tabId, tabDefinition] of Object.entries(configurationData)) {
+                const div = $("<div></div>").attr("id", tabId).addClass("tab");
+                addTabButton(tabId, tabDefinition.name);
+                tabDefinition.cells.forEach(row => {
+                    const container = $("<div></div>").addClass(["line", `width-${row.length}`]);
+                    row.forEach(column => {
+                        const cell = $("<div></div>").addClass(column.type);
+                        column.lists.forEach(list => addItemContainer(cell, list));
+                        container.append(cell);
                     });
-                }
+                    div.append(container);
+                });
                 root.append(div);
+            }
+
+            root.tabs();
+        },
+
+        // OK
+        createItemList(containerDiv) {
+            const ul = $("<ul></ul>").addClass("items");
+            const menu = $("<div></div>").addClass("menu");
+            const addMenu = $("<div></div>").text("+").addClass("add");
+            const title = $("<div></div>").text(containerDiv.attr("data-list-name")).addClass("title");
+            const widthUp = $("<div></div>").text("W").addClass("plus").attr("data-change-key", "width").attr("data-change-value", "-1");
+            const widthDown = $("<div></div>").text("w").addClass("minus").attr("data-change-key", "width").attr("data-change-value", "+1");
+            const heightUp = $("<div></div>").text("H").addClass("plus").attr("data-change-key", "height").attr("data-change-value", "+1");
+            const heightDown = $("<div></div>").text("h").addClass("minus").attr("data-change-key", "height").attr("data-change-value", "-1");
+            const picker = $("<div></div>").text("C").addClass(["plus", "rgb"]);
+
+            const ulWrapper = $("<div></div>").addClass("wrapper").append(ul);
+            menu.append([addMenu, title, widthUp, widthDown, heightUp, heightDown, picker]);
+
+            containerDiv.append([menu, ulWrapper]);
+        },
+
+        // OK
+        createItemLists() {
+            $("#items > div.tab").each((_, e) => {
+                const tabDiv = $(e);
+                tabDiv.find("div.cell").each((_, e) => {
+                    const containerDiv = $(e);
+                    this.createItemList(containerDiv);
+                });
+            });
+        },
+
+        // OK
+        updateContent(item, contentDiv, onUpdate) {
+            contentDiv.closest("li.item").removeClass("editing");
+            contentDiv.attr("contenteditable", "false");
+            const content = contentDiv.text().trim();
+            if (content !== item.content) {
+                item.content = content;
+                $(`li[data-item-id=${item.id}] div.content`).text(item.content);
+                onUpdate(item);
             }
         },
 
-        initializeContainers() {
-            const that = this;
-
-            $(".items-container").each((i, element) => {
-                const updateClass = (container, clsPrefix, min, max, delta) => {
-                    const classes = container.attr("class").split(" ").filter(c => c.indexOf(clsPrefix) === 0);
-                    container.removeClass(classes);
-                    const current = parseInt(classes.map(c => c.replace(clsPrefix, ""))[0] || "1");
-                    const updated = Math.max(min, Math.min(max, current + delta));
-                    container.addClass(clsPrefix + updated);
-
-                    const index = parseInt(container.attr("data-index"));
-                    configuration.update(index, clsPrefix.replace("-", ""), updated);
-                };
-
-                const container = $(element);
-                const listId = container.attr("data-list-id");
-                const ul = $("<ul></ul>").addClass("items").attr("data-list-id", listId);
-                const menu = $("<div></div>").addClass("menu");
-                const addMenu = $("<div></div>").text("+").addClass("add").click(() => that.createItem(ul));
-                const title = $("<div></div>").text(container.attr("data-list-name")).addClass("title");
-                const widthUp = $("<div></div>").text("W").addClass("plus").click(() => updateClass(container, "width-", 1, 7, -1));
-                const widthDown = $("<div></div>").text("w").addClass("minus").click(() => updateClass(container, "width-", 1, 7, 1));
-                const heightUp = $("<div></div>").text("H").addClass("plus").click(() => updateClass(container, "height-", 1, 7, 1));
-                const heightDown = $("<div></div>").text("h").addClass("minus").click(() => updateClass(container, "height-", 1, 7, -1));
-                const picker = $("<div></div>").text("RGB").addClass("plus").click(() => colorPicker.select(container));
-
-                const ulWrapper = $("<div></div>").addClass("wrapper").append(ul);
-                menu.append([addMenu, title, widthUp, widthDown, heightUp, heightDown, picker]);
-                container.append(menu).append(ulWrapper);
-
-                if (listId) {
-                    storage.getItems(listId).forEach(item => this.renderItem(ul, item));
+        // OK
+        createItem(item, onUpdate) {
+            const li = $("<li></li>").addClass("item").attr("data-item-id", item.id);
+            const contentDiv = $("<div></div>").addClass("content")
+                .text(item.content)
+                .focusout(() => this.updateContent(item, contentDiv, onUpdate))
+                .on("keydown", e => e.code === "Enter" ? this.updateContent(item, contentDiv, onUpdate) : undefined);
+            const infoDiv = $("<div></div>").addClass("info");
+            const ordersDiv = $("<div></div>").addClass("orders");
+            const editDiv = $("<div></div>").addClass("edit").text("e").click(_ => {
+                if (contentDiv.attr("contenteditable") === "true") {
+                    this.updateContent(item, contentDiv, onUpdate);
                 } else {
-                    const orders = container.closest(".item-tab").find(".items-container").get().map(a => a.getAttribute("data-list-id")).filter(a => a);
-                    storage.getOtherItems(orders).forEach(item => this.renderItem(ul, item));
+                    contentDiv.closest("li.item").addClass("editing");
+                    contentDiv.attr("contenteditable", "true");
+                    contentDiv.focus();
+
+                    const length = contentDiv.text().trim().length;
+                    if (length) {
+                        // based on https://stackoverflow.com/a/6249440
+                        const range = document.createRange();
+                        range.setStart(contentDiv[0].childNodes[0], length);
+                        range.collapse(true)
+
+                        const selection = window.getSelection();
+                        selection.removeAllRanges();
+                        selection.addRange(range);
+                    }
                 }
             });
+
+            // lists with ids prefixed with hyphen (-) will not be displayed as orders badges
+            Object.keys(item.lists).sort().filter(o => o[0] !== "-").forEach(o => ordersDiv.append($("<div></div>").text(o)));
+
+            infoDiv.append(ordersDiv).append(editDiv);
+            li.append(contentDiv).append(infoDiv);
+            return li;
+        },
+
+        // OK
+        renderItem(item, onUpdate) {
+            const listIds = Object.keys(item.lists);
+            $("div.cell").each((_, e) => {
+                const cell = $(e);
+                const backgroundColor = cell.attr("data-background-color");
+                const includes = cell.attr("data-list-includes").split(",");
+                const excludes = cell.attr("data-list-excludes").split(",");
+
+                // when item belongs to multiple lists, then it will be added multiple times
+                if (cell.find(`li[data-item-id=${item.id}`).length === 0) {
+                    const matchesAny = (regExpTexts, texts) => {
+                        const regExps = regExpTexts.map(r => new RegExp(`^${r}$`));
+                        const matches = texts.map(t => regExps.map(r => r.test(t)).filter(x => x).length > 0).filter(x => x);
+                        return matches.length > 0;
+                    };
+
+                    if (matchesAny(includes, listIds) && !matchesAny(excludes, listIds)) {
+                        const ul = cell.find("ul.items");
+                        const li = this.createItem(item, onUpdate);
+                        li.css("background-color", backgroundColor);
+                        ul.append(li);
+                    }
+                }
+            });
+        }
+    };
+
+    const ui = {
+
+        view: undefined,
+
+        configuration: undefined,
+
+        items: undefined,
+
+        colorPicker: undefined,
+
+        initialize(view, configuration, items, colorPicker) {
+            this.view = view;
+            this.configuration = configuration;
+            this.items = items;
+            this.colorPicker = colorPicker;
+        },
+
+        initializeSortable() {
+            const resolve = (event, ui) => {
+                const ul = $(event.target);
+                const li = ui.item.first();
+                const cell = ul.closest("div.cell");
+                return {
+                    ul: ul,
+                    li: li,
+                    cell: cell,
+                    listId: cell.attr("data-list-id"),
+                    itemId: li.attr("data-item-id")
+                }
+            };
+
+            const that = this;
 
             $(".items").sortable({
                 connectWith: ".items",
@@ -421,81 +428,133 @@ $(() => {
                 containment: "#items",
                 cursor: "move",
                 tolerance: "pointer",
-                remove: (event, ui) => {
-                    const ul = $(event.target);
-                    const li = ui.item.first();
-                    const listId = ul.attr("data-list-id");
-                    const itemId = li.attr("data-item-id");
-                    storage.removeOrder(itemId, listId);
-                    console.log(`Removed ${itemId} from ${listId}`);
+                remove(event, ui) {
+                    const change = resolve(event, ui);
+                    console.log(`Removed ${change.itemId} from ${change.listId}`);
+                    that.items.addToHistory(change.itemId, `Removed from ${change.listId}`);
                 },
-                receive: (event, ui) => {
-                    const ul = $(event.target);
-                    const li = ui.item.first();
-                    const listId = ul.attr("data-list-id");
-                    const itemId = li.attr("data-item-id");
-                    that.updateOrders(ul);
-                    console.log(`Added ${itemId} to ${listId}`);
+                receive(event, ui) {
+                    const change = resolve(event, ui);
+                    console.log(`Added ${change.itemId} to ${change.listId}`);
+                    that.items.addToHistory(change.itemId, `Added to ${change.listId}`);
                 },
-                start: (event, ui) => {
-                    const li = ui.item.first();
-                    li.toggleClass("moved");
+                start(event, ui) {
+                    resolve(event, ui).li.toggleClass("moved");
+                },
+                update(event, ui) {
+                    const change = resolve(event, ui);
+                    const itemIds = change.ul.find("li.item").toArray().map(x => x.getAttribute("data-item-id"));
+                    console.log(`Updated ${change.itemId} on ${change.listId} [${itemIds}]`);
+                    that.items.updateLists(change.listId, itemIds);
+                    that.renderItems(change.listId);
                 },
                 stop: (event, ui) => {
-                    const ul = $(event.target);
-                    const li = ui.item.first();
-                    const listId = ul.attr("data-list-id");
-                    const itemId = li.attr("data-item-id");
-                    li.toggleClass("moved");
-                    that.updateOrders(ul);
-                    that.renderOrders();
-                    that.updateColor(li);
-                    console.log(`Stop ${itemId} from ${listId || "(others)"}`);
+                    resolve(event, ui).li.toggleClass("moved");
                 }
             });//.disableSelection();
         },
 
         initializeSetup() {
-            const itemsDiv = $("#items").toggle();
+            const itemsDiv = $("#items");
             const configurationDiv = $("#configuration");
             const json = configurationDiv.find(".json");
-            const setupButton = $(".setup").click(() => {
-                setupButton.toggleClass("mirror");
+
+            $(".setup").click(() => {
                 itemsDiv.toggle();
                 configurationDiv.toggle();
-                json.text(JSON.stringify(configuration.data, null, 2));
+                json.text(JSON.stringify(this.configuration.data, null, 2));
             });
 
             configurationDiv.find(".format").click(() => json.text(JSON.stringify(JSON.parse(json.text()), null, 2)));
             configurationDiv.find(".save").click(() => {
-                configuration.data = JSON.parse(json.text());
-                configuration.save();
+                this.configuration.data = JSON.parse(json.text());
+                this.configuration.save();
                 location.reload();
             });
 
             const download = configurationDiv.find(".download a");
             download.click(() => {
                 const content = {
-                    "version": 1,
+                    "version": 2,
                     "configuration": JSON.parse(json.text()),
-                    "items": storage.data
+                    "items": this.items.data
                 }
                 const href = URL.createObjectURL(new Blob([JSON.stringify(content, null, 2)], {type: "application/json"}));
                 download.attr("href", href);
                 setTimeout(() => URL.revokeObjectURL(href), 1000);
             });
-        }
+        },
+
+        renderItems(listId) {
+            if (listId) {
+                $(`div.cell[data-list-id=${listId}] ul.items`).empty();
+                this.items.data
+                    .filter(item => item.lists[listId])
+                    .sort((i1, i2) => i1.lists[listId] - i2.lists[listId])
+                    .forEach(item => this.view.renderItem(item, i => this.items.updateItem(i)));
+            } else {
+                // set of list ids
+                Array.from(new Set(this.items.data.map(item => Object.keys(item.lists)).flat())).forEach(listId => this.renderItems(listId));
+            }
+        },
+
+        start() {
+            this.configuration.load();
+
+            this.items.load();
+            this.items.startAutoSave();
+
+            this.colorPicker.initialize(cell => {
+                const index = parseInt(cell.attr("data-index"));
+                const value = cell.attr("data-background-color");
+                this.configuration.updateList(index, "backgroundColor", value);
+            });
+
+            this.view.createTabs(this.configuration.data);
+            this.view.createItemLists();
+            this.renderItems();
+
+            this.initializeSetup();
+            this.initializeSortable();
+
+            $("div.menu > div.add").click(e => {
+                const button = $(e.target);
+                const cell = button.closest("div.cell");
+                const listId = cell.attr("data-list-id");
+                const item = this.items.createItem();
+                item.lists[listId] = 1024;
+                this.view.renderItem(item, i => this.items.updateItem(i));
+
+                button.closest("div.cell").find(`li.item[data-item-id=${item.id}] div.edit`).click();
+            });
+
+            $("div.menu > div.rgb").click(e => {
+                const button = $(e.target);
+                const cell = button.closest("div.cell");
+                this.colorPicker.select(cell);
+            });
+
+            $("div.menu > div[data-change-key]").click(e => {
+                const button = $(e.target);
+                const changeKey = button.attr("data-change-key");
+                const changeValue = button.attr("data-change-value");
+                const cell = button.closest("div.cell");
+                const index = parseInt(cell.attr("data-index"));
+
+                const clsPrefix = changeKey + "-";
+                const classes = cell.attr("class").split(" ").filter(c => c.indexOf(clsPrefix) === 0);
+                const current = parseInt(classes.map(c => c.replace(clsPrefix, ""))[0] || "1");
+                const updated = Math.max(1, Math.min(7, current + parseInt(changeValue)));
+                cell.removeClass(classes).addClass(clsPrefix + updated);
+
+                this.configuration.updateList(index, changeKey, updated);
+            });
+        },
     };
 
-    storage.load();
-    storage.startAutoSave();
-    configuration.load();
-    view.initializeTabs(configuration.data);
-    view.initializeContainers();
-    view.renderOrders();
+    // ---------------------
 
-    $("#items").tabs();
+    ui.initialize(view, configuration, items, colorPicker);
+    ui.start();
 
-    view.initializeSetup();
-    colorPicker.initialize((container) => configuration.update(parseInt(container.attr("data-index")), "backgroundColor", container.attr("data-background-color")));
 });
