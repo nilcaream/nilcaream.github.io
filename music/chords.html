@@ -36,6 +36,11 @@
                 flat: ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"],
             }
 
+            const spaces = {
+                "major": [0, 2, 4, 5, 7, 9, 11],
+                "minor": [0, 2, 3, 5, 7, 8, 10]
+            };
+
             const types = {
                 "037": "min",
                 "036": "dim",
@@ -44,8 +49,8 @@
 
             const roman = ["I", "II", "III", "IV", "V", "VI", "VII"];
 
-            const createHeptatonic = (offset, allNotes) => {
-                const spaces = [0, 2, 4, 5, 7, 9, 11];
+            const createHeptatonic = (tonic, allNotes, spaces) => {
+                const offset = allNotes.indexOf(tonic);
                 const notes = spaces.map(n => allNotes[(offset + n) % allNotes.length]);
                 const accidentals = notes.filter(n => n.indexOf("#") > 0 || n.indexOf("b") > 0).sort();
 
@@ -63,22 +68,24 @@
                         return base.toLowerCase();
                     } else if (type === "dim") {
                         return base.toLowerCase() + "o";
-                    } else {
+                    } else if (type === "Maj") {
                         return base;
+                    } else {
+                        return base + "?";
                     }
                 };
 
                 const createTriad = (index) => {
                     const result = {
-                        triad: []
+                        notes: []
                     };
                     for (let i = 0; i < 3; i++) {
-                        result.triad[i] = notes[(index + 2 * i) % notes.length];
+                        result.notes[i] = notes[(index + 2 * i) % notes.length];
                     }
 
-                    result.differenes = difference(result.triad);
-                    result.root = result.triad[0];
-                    result.type = types[result.differenes];
+                    result.differenes = difference(result.notes);
+                    result.root = result.notes[0];
+                    result.type = types[result.differenes] || "Oth";
                     result.roman = resolveRoman(index, result.type);
 
                     return result;
@@ -86,24 +93,86 @@
 
                 const triads = spaces.map((_, i) => createTriad(i));
 
-                const result = {
+                return {
                     notes: notes,
                     accidentals: accidentals,
                     triads: triads
-                }
-                log(JSON.stringify(result, null, 2));
+                };
             }
 
-            createHeptatonic(0, notes.sharp);
-            createHeptatonic(7, notes.sharp);
-            createHeptatonic(2, notes.sharp);
-            createHeptatonic(9, notes.sharp);
-            createHeptatonic(4, notes.sharp);
+            const options = [
+                {
+                    tonic: "C",
+                    notes: notes.sharp,
+                    spaces: spaces.major
+                },
+                {
+                    tonic: "G",
+                    notes: notes.sharp,
+                    spaces: spaces.major
+                },
+                {
+                    tonic: "D",
+                    notes: notes.sharp,
+                    spaces: spaces.major
+                },
+                {
+                    tonic: "A",
+                    notes: notes.sharp,
+                    spaces: spaces.major
+                },
+                {
+                    tonic: "E",
+                    notes: notes.sharp,
+                    spaces: spaces.major
+                },
+                {
+                    tonic: "A",
+                    notes: notes.flat,
+                    spaces: spaces.minor
+                },
+                {
+                    tonic: "D",
+                    notes: notes.flat,
+                    spaces: spaces.minor
+                },
+                {
+                    tonic: "G",
+                    notes: notes.flat,
+                    spaces: spaces.minor
+                },
+                {
+                    tonic: "C",
+                    notes: notes.flat,
+                    spaces: spaces.minor
+                },
+                {
+                    tonic: "F",
+                    notes: notes.flat,
+                    spaces: spaces.minor
+                }
+            ];
 
+            const render = (heptatonic) => {
+                const target = $("#main").empty();
+                target.text(JSON.stringify(heptatonic, null, 2));
+            };
+
+            options.forEach(option => {
+                const root = $("#options");
+                const button = $("<div></div>");
+                const heptatonic = createHeptatonic(option.tonic, option.notes, option.spaces);
+                const label = (heptatonic.accidentals.join(" ") || "-") + " (" + heptatonic.notes.join(" ") + ")";
+                button.text(label).click(() => render(heptatonic));
+                root.append(button);
+
+            });
         });
     </script>
 </head>
 <body>
+<div id="options"></div>
+<div id="main"></div>
 <div id="log"></div>
 </body>
 </html>
