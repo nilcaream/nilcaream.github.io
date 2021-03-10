@@ -61,6 +61,10 @@
             cursor: pointer;
         }
 
+        .currentTriad {
+            background-color: #333;
+        }
+
     </style>
     <script>
         $(() => {
@@ -69,6 +73,7 @@
             };
 
             let synth = undefined;
+            let current = undefined;
 
             const getSynth = () => {
                 if (synth === undefined) {
@@ -76,7 +81,7 @@
                     synth.set({
                         volume: -10,
                         envelope: {
-                            attack: 0.3,
+                            attack: 0.1,
                             attackCurve: "linear",
                             decay: 1,
                             decayCurve: "exponential",
@@ -97,14 +102,17 @@
             }
 
             const spaces = {
-                "major": [0, 2, 4, 5, 7, 9, 11],
-                "minor": [0, 2, 3, 5, 7, 8, 10]
+                major: [0, 2, 4, 5, 7, 9, 11],
+                minor: [0, 2, 3, 5, 7, 8, 10],
+                harmonicMinor: [0, 2, 3, 5, 7, 8, 11],
+                ascMelodicMinor: [0, 2, 3, 5, 7, 9, 11],
             };
 
             const types = {
                 "037": "min",
                 "036": "dim",
                 "047": "Maj",
+                "048": "aug",
             }
 
             const roman = ["I", "II", "III", "IV", "V", "VI", "VII"];
@@ -153,6 +161,8 @@
                         return base.toLowerCase();
                     } else if (type === "dim") {
                         return base.toLowerCase() + "o";
+                    } else if (type === "aug") {
+                        return base + "+";
                     } else if (type === "Maj") {
                         return base;
                     } else {
@@ -206,7 +216,13 @@
                 return keys;
             };
 
+            const notesToClass = (notes) => {
+                return "notes" + notes.join("").replaceAll("#", "s").toLowerCase();
+            };
+
             const play = (notes) => {
+                $(".play").removeClass("currentTriad");
+                $("." + notesToClass(notes)).addClass("currentTriad");
                 const keys = toKeys(notes, 4);
                 getSynth().releaseAll();
                 getSynth().triggerAttackRelease(keys, 1);
@@ -214,7 +230,7 @@
             };
 
             const renderTriad = (triad) => {
-                const wrapper = $("<div></div>").addClass("play");
+                const wrapper = $("<div></div>").addClass("play").addClass(notesToClass(triad.notes));
                 const label = $("<div></div>").addClass("name").text(triad.roman + " " + triad.root + "-" + triad.type);
                 const button = $("<div></div>").addClass("notes").text(triad.notes.join(" "));
                 wrapper.append(label).append(button).click(() => play(triad.notes));
@@ -255,6 +271,18 @@
                     tonics: ["A", "D", "G", "C", "F"],
                     notes: notes.flat,
                     spaces: spaces.minor
+                },
+                {
+                    label: "minor (harmonic)",
+                    tonics: ["A", "D", "G", "C", "F"],
+                    notes: notes.flat,
+                    spaces: spaces.harmonicMinor
+                },
+                {
+                    label: "minor (ascending melodic)",
+                    tonics: ["A", "D", "G", "C", "F"],
+                    notes: notes.flat,
+                    spaces: spaces.ascMelodicMinor
                 }
             ];
 
@@ -265,7 +293,10 @@
                 group.tonics.forEach(tonic => {
                     const heptatonic = createHeptatonic(tonic, group.notes, group.spaces);
                     const button = $("<div></div>").addClass("button").text(tonic);
-                    button.click(() => render(heptatonic, tonic + "-" + group.label));
+                    button.click(() => {
+                        render(heptatonic, tonic + "-" + group.label);
+                        current = heptatonic;
+                    });
                     buttons.append(button);
                 });
                 section.append(buttons);
@@ -273,6 +304,12 @@
             });
 
             $("#options .button").first().click();
+            $(document).keypress(function (event) {
+                const key = parseInt(event.key);
+                if (!isNaN(key) && key >= 1 && key <= 7) {
+                    play(current.triads[key - 1].notes);
+                }
+            });
         });
     </script>
 </head>
