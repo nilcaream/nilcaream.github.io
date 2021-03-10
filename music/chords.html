@@ -5,6 +5,7 @@
     <title>Chords</title>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha256-4+XzXVhsDmqanXGHaHvgh1gMQKX40OUvDEBTu8JcmNs=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.13/Tone.js" integrity="sha512-SAB2YrHeaZfb6W1w+tAMm+IUICzUMyf7TJ8upY+NjLYl8jseufUW4yYzoSHfNL9N2rzDlw5PWJrf7rPIQ6VhNw==" crossorigin="anonymous"></script>
     <style>
         html, body {
             background-color: black;
@@ -24,11 +25,70 @@
         #log {
             white-space: pre;
         }
+
+        .scale {
+            text-align: center;
+            font-size: 2rem;
+        }
+
+        .notes {
+            text-align: center;
+            font-size: 1.5rem;
+        }
+
+        .chords {
+            display: flex;
+            justify-content: center;
+        }
+
+        .chords > div {
+            display: block;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .label {
+            padding: 1rem;
+            text-align: center;
+            font-size: 1.3rem;
+        }
+
+        .notes {
+            font-size: 1.4rem;
+        }
+
+        .play {
+            cursor: pointer;
+        }
+
     </style>
     <script>
         $(() => {
             const log = (text) => {
                 $("#log").append(text + "\n");
+            };
+
+            let synth = undefined;
+
+            const getSynth = () => {
+                if (synth === undefined) {
+                    synth = new Tone.PolySynth().toDestination();
+                    synth.set({
+                        volume: -10,
+                        envelope: {
+                            attack: 0.3,
+                            attackCurve: "linear",
+                            decay: 1,
+                            decayCurve: "exponential",
+                            release: 1,
+                            releaseCurve: "exponential",
+                            sustain: 1
+                        }
+                    });
+                    synth.debug = true;
+                    synth.maxPolyphony = 32;
+                }
+                return synth;
             };
 
             const notes = {
@@ -48,6 +108,31 @@
             }
 
             const roman = ["I", "II", "III", "IV", "V", "VI", "VII"];
+
+            const progressions = [
+                // major
+                ["I", "IV", "V"],
+                ["I", "V", "vi", "IV"],
+                ["ii", "V", "I"],
+                ["I", "V", "vi", "iii", "IV", "I", "IV", "V"],
+                ["I", "vi", "IV", "V"],
+                ["I", "IV", "V", "IV"],
+                ["vi", "IV", "I", "V"],
+                ["I", "IV", "ii", "V"],
+                ["I", "IV", "I", "V"],
+                ["I", "ii", "iii", "IV", "V"],
+                ["I", "III", "IV", "iv"],
+                ["i", "V", "i", "iv"],
+                ["vi", "V", "IV", "III"],
+                // minor
+                ["i", "iv", "v"],
+                ["i", "iio", "V", "i"],
+                ["i", "VI", "III", "VII"],
+                ["ii", "V", "i"],
+                ["i", "VII", "VI", "V"],
+                ["i", "VII", "VI"]
+            ];
+
 
             const createHeptatonic = (tonic, allNotes, spaces) => {
                 const offset = allNotes.indexOf(tonic);
@@ -75,6 +160,13 @@
                     }
                 };
 
+                const resolveProgressions = (triads) => {
+                    const romans = triads.map(t => t.roman);
+                    return progressions
+                        .filter(p => p.every(x => romans.includes(x)))
+                        .map(progression => progression.map(p => triads.filter(t => t.roman === p)[0]));
+                };
+
                 const createTriad = (index) => {
                     const result = {
                         notes: []
@@ -96,83 +188,102 @@
                 return {
                     notes: notes,
                     accidentals: accidentals,
-                    triads: triads
+                    triads: triads,
+                    progressions: resolveProgressions(triads)
                 };
             }
 
-            const options = [
+            const toKeys = (chord, baseOctave, inversion = 0) => {
+                const keys = [];
+                const indices = chord.map(n => notes.sharp.indexOf(n) === -1 ? notes.flat.indexOf(n) : notes.sharp.indexOf(n));
+                let octave = baseOctave;
+                for (let i = 0; i < chord.length; i++) {
+                    if (i > 0 && indices[i] < indices[i - 1]) {
+                        octave++;
+                    }
+                    keys.push(chord[i] + octave.toString());
+                }
+                return keys;
+            };
+
+            const play = (notes) => {
+                const keys = toKeys(notes, 4);
+                getSynth().releaseAll();
+                getSynth().triggerAttackRelease(keys, 1);
+                console.log(keys);
+            };
+
+            const renderTriad = (triad) => {
+                const wrapper = $("<div></div>").addClass("play");
+                const label = $("<div></div>").addClass("name").text(triad.roman + " " + triad.root + "-" + triad.type);
+                const button = $("<div></div>").addClass("notes").text(triad.notes.join(" "));
+                wrapper.append(label).append(button).click(() => play(triad.notes));
+                return wrapper;
+            };
+
+            const render = (heptatonic, scale) => {
+                $("#log").empty().text(JSON.stringify(heptatonic, null, 2));
+                const main = $("#main");
+                main.find(".scale").text(scale);
+                main.find(".notes").text(heptatonic.notes.join(" "));
+
+                const chords = main.find(".chords").empty();
+                heptatonic.triads.forEach(triad => {
+                    chords.append(renderTriad(triad));
+                });
+
+                const progressions = main.find(".progressions").empty();
+                heptatonic.progressions.forEach(progression => {
+                    const label = $("<div></div>").addClass("label").text("Progression " + progression.map(p => p.roman).join("-"));
+                    const chords = $("<div></div>").addClass("chords");
+                    progression.forEach(triad => {
+                        chords.append(renderTriad(triad));
+                    });
+                    progressions.append(label).append(chords);
+                });
+            };
+
+            const groups = [
                 {
-                    tonic: "C",
+                    label: "Major",
+                    tonics: ["C", "G", "D", "A", "E"],
                     notes: notes.sharp,
                     spaces: spaces.major
                 },
                 {
-                    tonic: "G",
-                    notes: notes.sharp,
-                    spaces: spaces.major
-                },
-                {
-                    tonic: "D",
-                    notes: notes.sharp,
-                    spaces: spaces.major
-                },
-                {
-                    tonic: "A",
-                    notes: notes.sharp,
-                    spaces: spaces.major
-                },
-                {
-                    tonic: "E",
-                    notes: notes.sharp,
-                    spaces: spaces.major
-                },
-                {
-                    tonic: "A",
-                    notes: notes.flat,
-                    spaces: spaces.minor
-                },
-                {
-                    tonic: "D",
-                    notes: notes.flat,
-                    spaces: spaces.minor
-                },
-                {
-                    tonic: "G",
-                    notes: notes.flat,
-                    spaces: spaces.minor
-                },
-                {
-                    tonic: "C",
-                    notes: notes.flat,
-                    spaces: spaces.minor
-                },
-                {
-                    tonic: "F",
+                    label: "minor",
+                    tonics: ["A", "D", "G", "C", "F"],
                     notes: notes.flat,
                     spaces: spaces.minor
                 }
             ];
 
-            const render = (heptatonic) => {
-                const target = $("#main").empty();
-                target.text(JSON.stringify(heptatonic, null, 2));
-            };
-
-            options.forEach(option => {
-                const root = $("#options");
-                const button = $("<div></div>");
-                const heptatonic = createHeptatonic(option.tonic, option.notes, option.spaces);
-                const label = (heptatonic.accidentals.join(" ") || "-") + " (" + heptatonic.notes.join(" ") + ")";
-                button.text(label).click(() => render(heptatonic));
-                root.append(button);
-
+            groups.forEach(group => {
+                const section = $("<div></div>").addClass("section");
+                section.append($("<div></div>").addClass("group").text(group.label));
+                const buttons = $("<div></div>").addClass("buttons");
+                group.tonics.forEach(tonic => {
+                    const heptatonic = createHeptatonic(tonic, group.notes, group.spaces);
+                    const button = $("<div></div>").addClass("button").text(tonic);
+                    button.click(() => render(heptatonic, tonic + "-" + group.label));
+                    buttons.append(button);
+                });
+                section.append(buttons);
+                $("#options").append(section);
             });
+
+            $("#options .button").first().click();
         });
     </script>
 </head>
 <body>
 <div id="options"></div>
-<div id="main"></div>
+<div id="main">
+    <div class="scale"></div>
+    <div class="notes"></div>
+    <div class="chords"></div>
+    <div class="progressions"></div>
+</div>
 <div id="log"></div>
 </body>
 </html>
