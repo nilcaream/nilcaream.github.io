@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Chords</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha256-4+XzXVhsDmqanXGHaHvgh1gMQKX40OUvDEBTu8JcmNs=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.13/Tone.js" integrity="sha512-SAB2YrHeaZfb6W1w+tAMm+IUICzUMyf7TJ8upY+NjLYl8jseufUW4yYzoSHfNL9N2rzDlw5PWJrf7rPIQ6VhNw==" crossorigin="anonymous"></script>
+    <style>
+        html, body {
+            background-color: black;
+            color: white;
+            font-family: monospace;
+            font-size: 13px;
+        }
+
+        #log {
+            white-space: pre;
+        }
+
+        .scale {
+            text-align: center;
+            font-size: 2rem;
+        }
+
+        .notes {
+            text-align: center;
+            font-size: 1.5rem;
+        }
+
+        .chords {
+            display: flex;
+            justify-content: center;
+        }
+
+        .chords > div {
+            display: block;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .label {
+            padding: 1rem;
+            text-align: center;
+            font-size: 1.3rem;
+        }
+
+        .notes {
+            font-size: 1.4rem;
+        }
+
+        .play {
+            cursor: pointer;
+        }
+
+        .currentTriad {
+            background-color: #333;
+        }
+
+        /*input[type="range"] {*/
+        /*    !*position: absolute;*!*/
+        /*    !*top: 40%;*!*/
+        /*    !*transform: rotate(270deg);*!*/
+        /*}*/
+
+        /*#synth * {*/
+        /*    border: 1px solid white;*/
+        /*}*/
+
+        #synth .group {
+            display: flex;
+        }
+
+        /*#synth .group > div {*/
+        /*    width: 3rem;*/
+        /*}*/
+
+    </style>
+    <script>
+        $(() => {
+            window.AudioContext = window.AudioContext || window.webkitAudioContext;
+
+            const configuration = {
+                notes: {
+                    sharp: ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"],
+                    flat: ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"],
+                },
+
+                spaces: {
+                    major: [0, 2, 4, 5, 7, 9, 11],
+                    minor: [0, 2, 3, 5, 7, 8, 10],
+                    harmonicMinor: [0, 2, 3, 5, 7, 8, 11],
+                    ascMelodicMinor: [0, 2, 3, 5, 7, 9, 11],
+                },
+
+                types: {
+                    "037": "min",
+                    "036": "dim",
+                    "047": "Maj",
+                    "048": "aug",
+                },
+
+                roman: ["I", "II", "III", "IV", "V", "VI", "VII"],
+
+                progressions: [
+                    // major
+                    ["I", "IV", "V"],
+                    ["I", "V", "vi", "IV"],
+                    ["ii", "V", "I"],
+                    ["I", "V", "vi", "iii", "IV", "I", "IV", "V"],
+                    ["I", "vi", "IV", "V"],
+                    ["I", "IV", "V", "IV"],
+                    ["vi", "IV", "I", "V"],
+                    ["I", "IV", "ii", "V"],
+                    ["I", "IV", "I", "V"],
+                    ["I", "ii", "iii", "IV", "V"],
+                    ["I", "III", "IV", "iv"],
+                    ["i", "V", "i", "iv"],
+                    ["vi", "V", "IV", "III"],
+                    // minor
+                    ["i", "iv", "v"],
+                    ["i", "iio", "V", "i"],
+                    ["i", "VI", "III", "VII"],
+                    ["ii", "V", "i"],
+                    ["i", "VII", "VI", "V"],
+                    ["i", "VII", "VI"]
+                ]
+            };
+
+            const groups = [
+                {
+                    label: "Major",
+                    tonics: ["C", "G", "D", "A", "E"],
+                    notes: configuration.notes.sharp,
+                    spaces: configuration.spaces.major
+                },
+                {
+                    label: "minor",
+                    tonics: ["A", "D", "G", "C", "F"],
+                    notes: configuration.notes.flat,
+                    spaces: configuration.spaces.minor
+                },
+                {
+                    label: "minor (harmonic)",
+                    tonics: ["A", "D", "G", "C", "F"],
+                    notes: configuration.notes.flat,
+                    spaces: configuration.spaces.harmonicMinor
+                },
+                {
+                    label: "minor (ascending melodic)",
+                    tonics: ["A", "D", "G", "C", "F"],
+                    notes: configuration.notes.flat,
+                    spaces: configuration.spaces.ascMelodicMinor
+                }
+            ];
+
+            const heptationic = {
+                difference(allNotes, triad) {
+                    const first = allNotes.indexOf(triad[0]);
+                    return triad.map(t => allNotes.indexOf(t))
+                        .map(t => t < first ? t + allNotes.length : t)
+                        .map(t => t - first)
+                        .join("");
+                },
+
+                roman(index, type) {
+                    const base = configuration.roman[index];
+                    if (type === "min") {
+                        return base.toLowerCase();
+                    } else if (type === "dim") {
+                        return base.toLowerCase() + "o";
+                    } else if (type === "aug") {
+                        return base + "+";
+                    } else if (type === "Maj") {
+                        return base;
+                    } else {
+                        return base + "?";
+                    }
+                },
+
+                progressions(triads) {
+                    const romans = triads.map(t => t.roman);
+                    return configuration.progressions
+                        .filter(p => p.every(x => romans.includes(x)))
+                        .map(progression => progression.map(p => triads.filter(t => t.roman === p)[0]));
+                },
+
+                triad(index, allNotes, notes) {
+                    const result = {
+                        notes: []
+                    };
+                    for (let i = 0; i < 3; i++) {
+                        result.notes[i] = notes[(index + 2 * i) % notes.length];
+                    }
+
+                    result.differenes = this.difference(allNotes, result.notes);
+                    result.root = result.notes[0];
+                    result.type = configuration.types[result.differenes] || "Oth";
+                    result.roman = this.roman(index, result.type);
+
+                    return result;
+                },
+
+                create(tonic, allNotes, spaces) {
+                    const offset = allNotes.indexOf(tonic);
+                    const notes = spaces.map(n => allNotes[(offset + n) % allNotes.length]);
+                    const accidentals = notes.filter(n => n.indexOf("#") > 0 || n.indexOf("b") > 0).sort();
+                    const triads = spaces.map((_, i) => this.triad(i, allNotes, notes));
+                    const progressions = this.progressions(triads);
+
+                    return {
+                        notes: notes,
+                        accidentals: accidentals,
+                        triads: triads,
+                        progressions: progressions
+                    };
+                }
+            };
+
+            const sound = {
+                play(notes) {
+                    console.log("Play " + notes.join(" "));
+                }
+            };
+
+            const ui = {
+                triadWrapper(triad) {
+                    const wrapper = $("<div></div>").addClass("play");
+                    const label = $("<div></div>").addClass("name").text(triad.roman + " " + triad.root + "-" + triad.type);
+                    const button = $("<div></div>").addClass("notes").text(triad.notes.join(" "));
+                    wrapper.append(label).append(button).click(() => sound.play(triad.notes));
+                    return wrapper;
+                },
+
+                showHeptatonic(heptatonic, scale) {
+                    $("#log").empty().text(JSON.stringify(heptatonic, null, 2));
+
+                    const main = $("#main");
+                    main.find(".scale").text(scale);
+                    main.find(".notes").text(heptatonic.notes.join(" "));
+
+                    const chords = main.find(".chords").empty();
+                    heptatonic.triads.forEach(triad => {
+                        chords.append(this.triadWrapper(triad));
+                    });
+
+                    const progressions = main.find(".progressions").empty();
+                    heptatonic.progressions.forEach(progression => {
+                        const label = $("<div></div>").addClass("label").text("Progression " + progression.map(p => p.roman).join("-"));
+                        const chords = $("<div></div>").addClass("chords");
+                        progression.forEach(triad => {
+                            chords.append(this.triadWrapper(triad));
+                        });
+                        progressions.append(label).append(chords);
+                    });
+                },
+
+                render(groups) {
+                    groups.forEach(group => {
+                        const section = $("<div></div>").addClass("section");
+                        section.append($("<div></div>").addClass("group").text(group.label));
+                        const buttons = $("<div></div>").addClass("buttons");
+
+                        group.tonics.forEach(tonic => {
+                            const heptatonic = heptationic.create(tonic, group.notes, group.spaces);
+                            const button = $("<div></div>").addClass("button").text(tonic);
+                            button.click(() => {
+                                this.showHeptatonic(heptatonic, tonic + "-" + group.label);
+                            });
+                            buttons.append(button);
+                        });
+                        section.append(buttons);
+                        $("#options").append(section);
+                    });
+
+                    $("#options .button").first().click();
+                }
+            };
+
+            const synth = {
+                complexTerms: [[0, 0, 0, 0, 0], [0, 0, 1, 0, 1]],
+
+                render() {
+                    const width = 500;
+                    const height = 200;
+
+                    const root = $("#synth");
+                    const controls = $("#synth .controls");
+                    const canvas = $("<canvas></canvas>").attr("width", width).attr("height", height);
+                    const context = canvas[0].getContext("2d");
+
+                    $("#synth .waveform").append(canvas);
+
+                    this.complexTerms.forEach((terms, i) => {
+                        const termsDiv = $("<div></div>").addClass("terms");
+                        terms.forEach((term, j) => {
+                            if (j > 0) {
+                                const input = $("<input/>")
+                                    .addClass("slider")
+                                    .attr("type", "range").attr("min", "0").attr("max", "100").attr("value", term * 100)
+                                    .on("input", () => {
+                                        this.complexTerms[i][j] = input.val() / 100.0;
+                                        console.log(this.complexTerms);
+                                        this.draw(context);
+                                    });
+                                termsDiv.append(input);
+                            }
+                        });
+                        controls.append(termsDiv);
+                    });
+
+                    this.draw(context);
+                },
+
+                draw(ctx) {
+                    const width = ctx.canvas.width;
+                    const height = ctx.canvas.height;
+
+                    ctx.clearRect(0, 0, width, height);
+                    ctx.save();
+                    ctx.translate(0, height / 2);
+
+                    ctx.strokeStyle = "#0f0";
+
+                    const values = [];
+                    for (let w = 0; w < width; w++) {
+                        const a = 4 * Math.PI * w / width;
+                        const b = height / 4;
+                        values.push(-(this.sine(a) + this.cosine(a)) * b);
+                    }
+
+                    const scale = 0.5 * height / Math.max(Math.abs(Math.max(...values)), Math.abs(Math.min(...values)));
+
+                    values.forEach((v, i) => {
+                        ctx.beginPath();
+                        ctx.moveTo(i, 0);
+                        ctx.lineTo(i, v * scale);
+                        ctx.stroke();
+                    });
+
+                    ctx.restore();
+                },
+
+                sine(x, width, height) {
+                    const terms = this.complexTerms[1];
+                    let result = terms[0];
+                    for (let i = 1; i < terms.length; i++) {
+                        result += Math.sin(x * i) * terms[i];
+                    }
+                    return result;
+                },
+
+                cosine(x, width, height) {
+                    const terms = this.complexTerms[0];
+                    let result = terms[0];
+                    for (let i = 1; i < terms.length; i++) {
+                        result += Math.cos(x * i) * terms[i];
+                    }
+                    return result;
+                }
+
+            };
+            // ------------
+
+            ui.render(groups);
+            synth.render();
+        });
+    </script>
+</head>
+<body>
+<div id="synth">
+    <div class="controls"></div>
+    <div class="waveform"></div>
+</div>
+<div id="options"></div>
+<div id="main">
+    <div class="scale"></div>
+    <div class="notes"></div>
+    <div class="chords"></div>
+    <div class="progressions"></div>
+</div>
+<div id="log"></div>
+</body>
+</html>

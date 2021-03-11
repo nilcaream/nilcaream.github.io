@@ -65,9 +65,29 @@
             background-color: #333;
         }
 
+        /*input[type="range"] {*/
+        /*    !*position: absolute;*!*/
+        /*    !*top: 40%;*!*/
+        /*    !*transform: rotate(270deg);*!*/
+        /*}*/
+
+        /*#synth * {*/
+        /*    border: 1px solid white;*/
+        /*}*/
+
+        #synth .group {
+            display: flex;
+        }
+
+        /*#synth .group > div {*/
+        /*    width: 3rem;*/
+        /*}*/
+
     </style>
     <script>
         $(() => {
+            window.AudioContext = window.AudioContext || window.webkitAudioContext;
+
             const log = (text) => {
                 $("#log").append(text + "\n");
             };
@@ -310,10 +330,44 @@
                     play(current.triads[key - 1].notes);
                 }
             });
+
+            const synthDiv = $("#synth");
+            const synthValues = [[0, 0, 1, 0, 1], [0, 0, 0, 0, 0]];
+            const canvas = $("<canvas></canvas>").attr("width", 800).attr("height", 400);
+            const context = canvas[0].getContext("2d");
+
+
+            synthValues.forEach((array, i) => {
+                const group = $("<div></div>").addClass("group");
+                array.forEach((e, j) => {
+                    if (j > 0) {
+                        const holder = $("<div></div>");
+                        const slider = $("<div></div>");
+                        const input = $("<input/>").addClass("slider")
+                            .attr("type", "range").attr("min", "0").attr("max", "100").attr("value", e * 100);
+                        const value = $("<div></div>");
+                        input.on("input", () => {
+                            value.text(input.val());
+                            synthValues[i][j] = input.val() / 100.0;
+                            console.log(synthValues);
+                        }).trigger("input");
+                        slider.append(input);
+                        holder.append(slider, value);
+                        group.append(holder);
+                    }
+                });
+                synthDiv.append(group);
+            });
+
+            synthDiv.append(canvas);
+
         });
     </script>
 </head>
 <body>
+<div id="synth">
+    <div class="run">Start</div>
+</div>
 <div id="options"></div>
 <div id="main">
     <div class="scale"></div>
