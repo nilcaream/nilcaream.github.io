@@ -5,7 +5,6 @@
     <title>Chords</title>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha256-4+XzXVhsDmqanXGHaHvgh1gMQKX40OUvDEBTu8JcmNs=" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.13/Tone.js" integrity="sha512-SAB2YrHeaZfb6W1w+tAMm+IUICzUMyf7TJ8upY+NjLYl8jseufUW4yYzoSHfNL9N2rzDlw5PWJrf7rPIQ6VhNw==" crossorigin="anonymous"></script>
     <style>
         html, body {
             background-color: black;
@@ -49,6 +48,14 @@
             font-size: 1.4rem;
         }
 
+        .section {
+            display: flex;
+        }
+
+        .buttons {
+            display: flex;
+        }
+
         .play {
             cursor: pointer;
         }
@@ -56,16 +63,6 @@
         .currentTriad {
             background-color: #333;
         }
-
-        /*input[type="range"] {*/
-        /*    !*position: absolute;*!*/
-        /*    !*top: 40%;*!*/
-        /*    !*transform: rotate(270deg);*!*/
-        /*}*/
-
-        /*#synth * {*/
-        /*    border: 1px solid white;*/
-        /*}*/
 
         #synth .group {
             display: flex;
@@ -78,7 +75,7 @@
     </style>
     <script>
         $(() => {
-            window.AudioContext = window.AudioContext || window.webkitAudioContext;
+            // window.AudioContext = window.AudioContext || window.webkitAudioContext;
 
             const configuration = {
                 notes: {
@@ -278,7 +275,7 @@
             };
 
             const synth = {
-                complexTerms: [[0, 0, 0, 0, 0], [0, 0, 1, 0, 1]],
+                complexTerms: [[0, 0, 0, 0, 0, 0, 0], [0, 1, 0, 0, 0, 0, 0]],
 
                 render() {
                     const width = 500;
@@ -300,8 +297,9 @@
                                     .attr("type", "range").attr("min", "0").attr("max", "100").attr("value", term * 100)
                                     .on("input", () => {
                                         this.complexTerms[i][j] = input.val() / 100.0;
-                                        console.log(this.complexTerms);
+                                        // console.log(this.complexTerms);
                                         this.draw(context);
+                                        this.update();
                                     });
                                 termsDiv.append(input);
                             }
@@ -324,17 +322,28 @@
 
                     const values = [];
                     for (let w = 0; w < width; w++) {
-                        const a = 4 * Math.PI * w / width;
+                        const a = 2 * Math.PI * w / width;
                         const b = height / 4;
                         values.push(-(this.sine(a) + this.cosine(a)) * b);
                     }
 
                     const scale = 0.5 * height / Math.max(Math.abs(Math.max(...values)), Math.abs(Math.min(...values)));
 
+                    let offset = 0;
+                    for (let i = values.length; i > 0; i--) {
+                        const current = values[(i + 1) % values.length];
+                        const previous = values[i];
+                        if ((Math.sign(current) <= 0 && Math.sign(previous) >= 0)) {
+                            offset = values.length - i - 1;
+                            break;
+                        }
+                    }
+
                     values.forEach((v, i) => {
+                        const x = (values.length + i + offset) % values.length;
                         ctx.beginPath();
-                        ctx.moveTo(i, 0);
-                        ctx.lineTo(i, v * scale);
+                        ctx.moveTo(x, 0);
+                        ctx.lineTo(x, v * scale);
                         ctx.stroke();
                     });
 
@@ -357,6 +366,75 @@
                         result += Math.cos(x * i) * terms[i];
                     }
                     return result;
+                },
+
+                audioContext: undefined,
+
+                gainNodes: [],
+
+                oscillators: [],
+
+                voices: 3,
+
+                update() {
+                    this.initAudio();
+                    const real = new Float32Array(this.complexTerms[0]);
+                    const imag = new Float32Array(this.complexTerms[1]);
+                    const wave = this.audioContext.createPeriodicWave(real, imag, {disableNormalization: false});
+
+                    const oscillators = [];
+                    for (let i = 0; i < this.voices; i++) {
+
+                        const oscillator = this.audioContext.createOscillator();
+                        oscillator.connect(this.gainNodes[i]);
+                        oscillator.setPeriodicWave(wave);
+                        oscillator.frequency.value = this.oscillators[i].frequency.value;
+
+                        this.oscillators[i].stop();
+                        oscillator.start(0);
+                        oscillators.push(oscillator);
+                    }
+
+                    this.oscillators = oscillators;
+                },
+
+                initAudio() {
+                    if (this.audioContext === undefined) {
+                        this.audioContext = new AudioContext();
+
+                        const real = new Float32Array(this.complexTerms[0]);
+                        const imag = new Float32Array(this.complexTerms[1]);
+                        const wave = this.audioContext.createPeriodicWave(real, imag, {disableNormalization: false});
+
+                        for (let i = 0; i < this.voices; i++) {
+                            const gainNode = this.audioContext.createGain();
+                            gainNode.connect(this.audioContext.destination);
+
+                            const oscillator = this.audioContext.createOscillator();
+                            oscillator.setPeriodicWave(wave);
+                            oscillator.connect(gainNode);
+
+                            this.oscillators.push(oscillator);
+                            this.gainNodes.push(gainNode);
+                            gainNode.gain.value = 0.000001;
+                            oscillator.start(0);
+                        }
+
+                        console.log("Audio initialized");
+                    }
+                },
+
+                play(frequencies) {
+                    this.initAudio();
+
+                    this.gainNodes.forEach(gainNode => {
+                        gainNode.gain.exponentialRampToValueAtTime(0.0001, this.audioContext.currentTime + 0.1);
+                    });
+
+                    frequencies.forEach((frequency, i) => {
+                        this.oscillators[i].frequency.value = frequency;
+                        this.gainNodes[i].gain.exponentialRampToValueAtTime(1 / frequencies.length, this.audioContext.currentTime + 0.2);
+                    });
                 }
 
             };
@@ -364,10 +442,13 @@
 
             ui.render(groups);
             synth.render();
+
+            $("#test").click(() => synth.play([440, 1.5 * 440, 880]));
         });
     </script>
 </head>
 <body>
+<button id="test">Test</button>
 <div id="synth">
     <div class="controls"></div>
     <div class="waveform"></div>
