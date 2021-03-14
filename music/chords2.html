@@ -5,6 +5,7 @@
     <title>Chords</title>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha256-4+XzXVhsDmqanXGHaHvgh1gMQKX40OUvDEBTu8JcmNs=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.13/Tone.js" integrity="sha512-SAB2YrHeaZfb6W1w+tAMm+IUICzUMyf7TJ8upY+NjLYl8jseufUW4yYzoSHfNL9N2rzDlw5PWJrf7rPIQ6VhNw==" crossorigin="anonymous"></script>
     <style>
         html, body {
             background-color: black;
@@ -58,25 +59,68 @@
 
         .play {
             cursor: pointer;
+            user-select: none;
         }
 
-        .currentTriad {
-            background-color: #333;
-        }
-
-        #synth .group {
+        .play > .notes {
             display: flex;
         }
 
-        /*#synth .group > div {*/
-        /*    width: 3rem;*/
-        /*}*/
+        .play > .notes > div {
+            flex: 1 0 0;
+        }
+
+        .highlight {
+            background-color: #333;
+        }
+
+        .octave3 {
+            color: #859;
+        }
+
+        .octave4 {
+            color: #98b;
+        }
+
+        .octave5 {
+            color: #abd;
+        }
+
+        .octave6 {
+            color: #cef;
+        }
+
+        .inversion-3 {
+            background-color: #633;
+        }
+
+        .inversion-2 {
+            background-color: #533;
+        }
+
+        .inversion-1 {
+            background-color: #433;
+        }
+
+        .inversion0 {
+            background-color: #333;
+        }
+
+        .inversion1 {
+            background-color: #343;
+        }
+
+        .inversion2 {
+            background-color: #353;
+        }
+
+        .inversion3 {
+            background-color: #363;
+        }
 
     </style>
     <script>
         $(() => {
-            // window.AudioContext = window.AudioContext || window.webkitAudioContext;
-
             const configuration = {
                 notes: {
                     sharp: ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"],
@@ -214,18 +258,75 @@
                 }
             };
 
-            const sound = {
-                play(notes) {
-                    console.log("Play " + notes.join(" "));
+            const keys = {
+                // len = 12
+                // positions = [5,6,7]
+                // inv -2: [6-12,7-12,5]
+                // inv -1: [7-12,5,6]
+                // inv 0: [5,6,7]
+                // inv 1: [6,7,5+12]
+                // inv 2: [7,5+12,6+12]
+
+                // https://stackoverflow.com/a/33451102
+                rotate(array, count) {
+                    count -= array.length * Math.floor(count / array.length);
+                    array.push.apply(array, array.splice(0, count));
+                },
+
+                dasdsa(notes, inversion = 0, offset = 4) {
+                    const base = notes.some(n => n.indexOf("#") > 0) ? configuration.notes.sharp : configuration.notes.flat;
+                    const positions = notes.map(i => base.indexOf(i)).map((i, index, array) => index > 0 && i < array[0] ? i + base.length : i);
+
+                    for (let i = 1; i <= inversion; i++) { // positive
+                        this.rotate(positions, 1);
+                        positions[positions.length - 1] += base.length;
+                    }
+                    for (let i = -1; i >= inversion; i--) { // negative
+                        this.rotate(positions, -1);
+                        positions[0] -= base.length;
+                    }
+
+                    const label = positions.map(p => base[(p + 8 * base.length) % base.length]);
+
+                    const keys = positions
+                        .map(p => {
+                            if (p >= 0) {
+                                return (offset + (p - (p % base.length)) / 12);
+                            } else {
+                                return (offset + (-11 + p - ((-11 + p) % base.length)) / 12);
+                            }
+                        })
+                        .map((o, i) => label[i] + o);
+
+                    return {
+                        positions: positions,
+                        label: label,
+                        keys: keys
+                    };
                 }
             };
 
             const ui = {
                 triadWrapper(triad) {
-                    const wrapper = $("<div></div>").addClass("play");
+                    const inversions = [-3, -2, -1, 0, 1, 2, 3];
+                    const attribute = triad.notes.join("-").replaceAll("#", "s");
+                    const wrapper = $("<div></div>").addClass("play").attr("data-notes", attribute);
                     const label = $("<div></div>").addClass("name").text(triad.roman + " " + triad.root + "-" + triad.type);
-                    const button = $("<div></div>").addClass("notes").text(triad.notes.join(" "));
-                    wrapper.append(label).append(button).click(() => sound.play(triad.notes));
+                    wrapper.append(label);
+
+                    inversions.forEach((inversion => {
+                        const res = keys.dasdsa(triad.notes, inversion);
+                        const button = $("<div></div>").addClass(["notes", "inversion" + inversion])
+                            .click(() => {
+                                $(".play").removeClass("highlight");
+                                $(`.play[data-notes=${attribute}]`).addClass("highlight");
+                                this.play(res.keys);
+                            });
+
+                        res.keys.forEach(k => button.append($("<div></div>").text(k.replace(/\d+/, "")).addClass("octave" + k.replaceAll(/[^\d]+/g, ""))))
+                        wrapper.append(button);
+                    }));
+
                     return wrapper;
                 },
 
@@ -275,184 +376,44 @@
             };
 
             const synth = {
-                complexTerms: [[0, 0, 0, 0, 0, 0, 0], [0, 1, 0, 0, 0, 0, 0]],
-
-                render() {
-                    const width = 500;
-                    const height = 200;
-
-                    const root = $("#synth");
-                    const controls = $("#synth .controls");
-                    const canvas = $("<canvas></canvas>").attr("width", width).attr("height", height);
-                    const context = canvas[0].getContext("2d");
-
-                    $("#synth .waveform").append(canvas);
-
-                    this.complexTerms.forEach((terms, i) => {
-                        const termsDiv = $("<div></div>").addClass("terms");
-                        terms.forEach((term, j) => {
-                            if (j > 0) {
-                                const input = $("<input/>")
-                                    .addClass("slider")
-                                    .attr("type", "range").attr("min", "0").attr("max", "100").attr("value", term * 100)
-                                    .on("input", () => {
-                                        this.complexTerms[i][j] = input.val() / 100.0;
-                                        // console.log(this.complexTerms);
-                                        this.draw(context);
-                                        this.update();
-                                    });
-                                termsDiv.append(input);
+                get() {
+                    if (this.sound === undefined) {
+                        this.sound = new Tone.PolySynth().toDestination();
+                        this.sound.set({
+                            volume: -32,
+                            envelope: {
+                                attack: 0.5,
+                                attackCurve: "exponential",
+                                decay: 1,
+                                decayCurve: "exponential",
+                                release: 0.5,
+                                releaseCurve: "exponential",
+                                sustain: 1
                             }
                         });
-                        controls.append(termsDiv);
-                    });
-
-                    this.draw(context);
+                        this.sound.debug = true;
+                        this.sound.maxPolyphony = 32;
+                    }
+                    return this.sound;
                 },
 
-                draw(ctx) {
-                    const width = ctx.canvas.width;
-                    const height = ctx.canvas.height;
-
-                    ctx.clearRect(0, 0, width, height);
-                    ctx.save();
-                    ctx.translate(0, height / 2);
-
-                    ctx.strokeStyle = "#0f0";
-
-                    const values = [];
-                    for (let w = 0; w < width; w++) {
-                        const a = 2 * Math.PI * w / width;
-                        const b = height / 4;
-                        values.push(-(this.sine(a) + this.cosine(a)) * b);
-                    }
-
-                    const scale = 0.5 * height / Math.max(Math.abs(Math.max(...values)), Math.abs(Math.min(...values)));
-
-                    let offset = 0;
-                    for (let i = values.length; i > 0; i--) {
-                        const current = values[(i + 1) % values.length];
-                        const previous = values[i];
-                        if ((Math.sign(current) <= 0 && Math.sign(previous) >= 0)) {
-                            offset = values.length - i - 1;
-                            break;
-                        }
-                    }
-
-                    values.forEach((v, i) => {
-                        const x = (values.length + i + offset) % values.length;
-                        ctx.beginPath();
-                        ctx.moveTo(x, 0);
-                        ctx.lineTo(x, v * scale);
-                        ctx.stroke();
-                    });
-
-                    ctx.restore();
+                play(keys) {
+                    console.log(keys);
+                    this.stop();
+                    this.get().triggerAttack(keys);
                 },
 
-                sine(x, width, height) {
-                    const terms = this.complexTerms[1];
-                    let result = terms[0];
-                    for (let i = 1; i < terms.length; i++) {
-                        result += Math.sin(x * i) * terms[i];
-                    }
-                    return result;
-                },
-
-                cosine(x, width, height) {
-                    const terms = this.complexTerms[0];
-                    let result = terms[0];
-                    for (let i = 1; i < terms.length; i++) {
-                        result += Math.cos(x * i) * terms[i];
-                    }
-                    return result;
-                },
-
-                audioContext: undefined,
-
-                gainNodes: [],
-
-                oscillators: [],
-
-                voices: 3,
-
-                update() {
-                    this.initAudio();
-                    const real = new Float32Array(this.complexTerms[0]);
-                    const imag = new Float32Array(this.complexTerms[1]);
-                    const wave = this.audioContext.createPeriodicWave(real, imag, {disableNormalization: false});
-
-                    const oscillators = [];
-                    for (let i = 0; i < this.voices; i++) {
-
-                        const oscillator = this.audioContext.createOscillator();
-                        oscillator.connect(this.gainNodes[i]);
-                        oscillator.setPeriodicWave(wave);
-                        oscillator.frequency.value = this.oscillators[i].frequency.value;
-
-                        this.oscillators[i].stop();
-                        oscillator.start(0);
-                        oscillators.push(oscillator);
-                    }
-
-                    this.oscillators = oscillators;
-                },
-
-                initAudio() {
-                    if (this.audioContext === undefined) {
-                        this.audioContext = new AudioContext();
-
-                        const real = new Float32Array(this.complexTerms[0]);
-                        const imag = new Float32Array(this.complexTerms[1]);
-                        const wave = this.audioContext.createPeriodicWave(real, imag, {disableNormalization: false});
-
-                        for (let i = 0; i < this.voices; i++) {
-                            const gainNode = this.audioContext.createGain();
-                            gainNode.connect(this.audioContext.destination);
-
-                            const oscillator = this.audioContext.createOscillator();
-                            oscillator.setPeriodicWave(wave);
-                            oscillator.connect(gainNode);
-
-                            this.oscillators.push(oscillator);
-                            this.gainNodes.push(gainNode);
-                            gainNode.gain.value = 0.000001;
-                            oscillator.start(0);
-                        }
-
-                        console.log("Audio initialized");
-                    }
-                },
-
-                play(frequencies) {
-                    this.initAudio();
-
-                    this.gainNodes.forEach(gainNode => {
-                        gainNode.gain.exponentialRampToValueAtTime(0.0001, this.audioContext.currentTime + 0.1);
-                    });
-
-                    frequencies.forEach((frequency, i) => {
-                        this.oscillators[i].frequency.value = frequency;
-                        this.gainNodes[i].gain.exponentialRampToValueAtTime(1 / frequencies.length, this.audioContext.currentTime + 0.2);
-                    });
+                stop() {
+                    this.get().releaseAll();
                 }
-
             };
-            // ------------
 
             ui.render(groups);
-            synth.render();
-
-            $("#test").click(() => synth.play([440, 1.5 * 440, 880]));
+            ui.play = (notes) => synth.play(notes);
         });
     </script>
 </head>
 <body>
-<button id="test">Test</button>
-<div id="synth">
-    <div class="controls"></div>
-    <div class="waveform"></div>
-</div>
 <div id="options"></div>
 <div id="main">
     <div class="scale"></div>
