@@ -20,12 +20,8 @@
 
         .scale {
             text-align: center;
-            font-size: 2rem;
-        }
-
-        .notes {
-            text-align: center;
-            font-size: 1.5rem;
+            font-size: 2.5rem;
+            padding-top: 1rem;
         }
 
         .chords {
@@ -35,7 +31,7 @@
 
         .chords > div {
             display: block;
-            padding: 1rem;
+            padding: 0.5rem;
             text-align: center;
         }
 
@@ -45,16 +41,27 @@
             font-size: 1.3rem;
         }
 
-        .notes {
-            font-size: 1.4rem;
-        }
-
         .section {
             display: flex;
+            flex-direction: column;
+        }
+
+        .section > .group {
+            font-size: 1.3rem;
+            text-align: center;
         }
 
         .buttons {
             display: flex;
+        }
+
+        .buttons > .button {
+            flex: 1 0 0;
+            margin: 0.5rem;
+            padding: 0.5rem;
+            background-color: #111;
+            text-align: center;
+            cursor: pointer;
         }
 
         .play {
@@ -64,15 +71,21 @@
 
         .play > .notes {
             display: flex;
+            margin: 0.1rem;
         }
 
         .play > .notes > div {
             flex: 1 0 0;
             width: 3rem;
+            font-size: 1.4rem;
         }
 
-        .highlight {
+        .play.highlight {
             background-color: #111;
+        }
+
+        .notes.highlight {
+            background-color: #444;
         }
 
         .octave3 {
@@ -92,7 +105,7 @@
         }
 
         .inversion-3 {
-            background-color: #1c1010;
+            background-color: #141414;
         }
 
         .inversion-2 {
@@ -116,9 +129,18 @@
         }
 
         .inversion3 {
-            background-color: #10101c;
+            background-color: #141414;
         }
 
+        #status {
+            position: fixed;
+            bottom: 1rem;
+            right: 1rem;
+            cursor: pointer;
+            padding: 1rem;
+            background-color: #111;
+            display: none;
+        }
     </style>
     <script>
         $(() => {
@@ -196,7 +218,7 @@
                 }
             ];
 
-            const heptationic = {
+            const heptatonic = {
                 difference(allNotes, triad) {
                     const first = allNotes.indexOf(triad[0]);
                     return triad.map(t => allNotes.indexOf(t))
@@ -274,7 +296,7 @@
                     array.push.apply(array, array.splice(0, count));
                 },
 
-                dasdsa(notes, inversion = 0, offset = 4) {
+                create(notes, inversion = 0, offset = 4) {
                     const base = notes.some(n => n.indexOf("#") > 0) ? configuration.notes.sharp : configuration.notes.flat;
                     const positions = notes.map(i => base.indexOf(i)).map((i, index, array) => index > 0 && i < array[0] ? i + base.length : i);
 
@@ -310,21 +332,24 @@
             const ui = {
                 triadWrapper(triad) {
                     const inversions = [-3, -2, -1, 0, 1, 2, 3];
-                    const attribute = triad.notes.join("-").replaceAll("#", "s");
-                    const wrapper = $("<div></div>").addClass("play").attr("data-notes", attribute);
+                    const notesAttribute = triad.notes.join("-").replaceAll("#", "s");
+                    const wrapper = $("<div></div>").addClass("play").attr("data-notes", notesAttribute);
                     const label = $("<div></div>").addClass("name").text(triad.roman + " " + triad.root + "-" + triad.type);
                     wrapper.append(label);
 
                     inversions.forEach((inversion => {
-                        const res = keys.dasdsa(triad.notes, inversion);
+                        const resolved = keys.create(triad.notes, inversion);
+                        const keysAttribute = resolved.keys.join("-").replaceAll("#", "s");
                         const button = $("<div></div>").addClass(["notes", "inversion" + inversion])
+                            .attr("data-notes", keysAttribute)
                             .click(() => {
-                                $(".play").removeClass("highlight");
-                                $(`.play[data-notes=${attribute}]`).addClass("highlight");
-                                this.play(res.keys);
+                                $("*").removeClass("highlight");
+                                $(`[data-notes=${notesAttribute}]`).addClass("highlight");
+                                $(`[data-notes=${keysAttribute}]`).addClass("highlight");
+                                this.play(resolved.keys);
                             });
 
-                        res.keys.forEach(k => button.append($("<div></div>").text(k.replace(/\d+/, "")).addClass("octave" + k.replaceAll(/[^\d]+/g, ""))))
+                        resolved.keys.forEach(k => button.append($("<div></div>").text(k.replace(/\d+/, "")).addClass("octave" + k.replaceAll(/[^\d]+/g, ""))))
                         wrapper.append(button);
                     }));
 
@@ -332,11 +357,11 @@
                 },
 
                 showHeptatonic(heptatonic, scale) {
-                    $("#log").empty().text(JSON.stringify(heptatonic, null, 2));
+                    // $("#log").empty().text(JSON.stringify(heptatonic, null, 2));
 
                     const main = $("#main");
                     main.find(".scale").text(scale);
-                    main.find(".notes").text(heptatonic.notes.join(" "));
+                    main.find(".label").text(heptatonic.notes.join(" "));
 
                     const chords = main.find(".chords").empty();
                     heptatonic.triads.forEach(triad => {
@@ -361,10 +386,11 @@
                         const buttons = $("<div></div>").addClass("buttons");
 
                         group.tonics.forEach(tonic => {
-                            const heptatonic = heptationic.create(tonic, group.notes, group.spaces);
-                            const button = $("<div></div>").addClass("button").text(tonic);
+                            const hepta = heptatonic.create(tonic, group.notes, group.spaces);
+                            const buttonText = hepta.accidentals.length > 0 ? `${tonic} (${hepta.accidentals})` : tonic;
+                            const button = $("<div></div>").addClass("button").text(buttonText);
                             button.click(() => {
-                                this.showHeptatonic(heptatonic, tonic + "-" + group.label);
+                                this.showHeptatonic(hepta, tonic + "-" + group.label);
                             });
                             buttons.append(button);
                         });
@@ -379,7 +405,26 @@
             const synth = {
                 get() {
                     if (this.sound === undefined) {
-                        this.sound = new Tone.PolySynth().toDestination();
+
+                        const stereo = new Tone.StereoWidener(0.8).toDestination();
+
+                        const phaser = new Tone.Phaser({
+                            frequency: 0.1,
+                            octaves: 2,
+                            baseFrequency: 1000
+                        }).connect(stereo);
+
+                        const filter = new Tone.BiquadFilter({
+                            Q: 5,
+                            frequency: 1880
+                        }).toDestination();
+
+                        this.sound = new Tone.PolySynth(Tone.Synth, {
+                            oscillator: {
+                                type: "sawtooth"
+                            }
+                        }).connect(phaser);
+
                         this.sound.set({
                             volume: -32,
                             envelope: {
@@ -392,14 +437,13 @@
                                 sustain: 1
                             }
                         });
-                        this.sound.debug = true;
+                        // this.sound.debug = true;
                         this.sound.maxPolyphony = 32;
                     }
                     return this.sound;
                 },
 
                 play(keys) {
-                    console.log(keys);
                     this.stop();
                     this.get().triggerAttack(keys);
                 },
@@ -409,16 +453,49 @@
                 }
             };
 
+            const status = {
+                show(notes) {
+                    $("#status").text("Stop " + notes.join(" ")).show();
+                },
+
+                hide() {
+                    $("#status").hide();
+                },
+
+                init(synthStop) {
+                    const onStop = () => {
+                        synthStop();
+                        $(".highlight").removeClass("highlight");
+                        this.hide();
+                    };
+
+                    $("#status").click(() => onStop());
+                    $(document).keydown(e => {
+                        if (e.key === "Escape") {
+                            onStop();
+                        }
+                    });
+                }
+            };
+
+            // -------------
+
             ui.render(groups);
-            ui.play = (notes) => synth.play(notes);
+            ui.play = (notes) => {
+                synth.play(notes);
+                status.show(notes);
+            };
+            ui.stop = () => synth.stop();
+            status.init(() => synth.stop());
         });
     </script>
 </head>
 <body>
+<div id="status"></div>
 <div id="options"></div>
 <div id="main">
     <div class="scale"></div>
-    <div class="notes"></div>
+    <div class="label"></div>
     <div class="chords"></div>
     <div class="progressions"></div>
 </div>
