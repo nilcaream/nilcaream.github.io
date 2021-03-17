@@ -141,6 +141,26 @@
             background-color: #111;
             display: none;
         }
+
+        #synth {
+            margin: auto;
+            /* this is shit, I know */
+            width: 70rem;
+        }
+
+        #synth > .group {
+            display: flex;
+            text-align: center;
+        }
+
+        #synth > .group > div {
+            padding: 0.5rem 1rem;
+        }
+
+        #synth input {
+            width: 15rem;
+        }
+
     </style>
     <script>
         $(() => {
@@ -296,7 +316,21 @@
                     array.push.apply(array, array.splice(0, count));
                 },
 
-                create(notes, inversion = 0, offset = 4) {
+                // for synth / Tone.js API compatibility
+                get() {
+                    return {
+                        baseOffset: this.baseOffset
+                    }
+                },
+
+                // for synth / Tone.js API compatibility
+                set(options) {
+                    this.baseOffset = options.baseOffset;
+                },
+
+                baseOffset: 4,
+
+                create(notes, inversion = 0, offset) {
                     const base = notes.some(n => n.indexOf("#") > 0) ? configuration.notes.sharp : configuration.notes.flat;
                     const positions = notes.map(i => base.indexOf(i)).map((i, index, array) => index > 0 && i < array[0] ? i + base.length : i);
 
@@ -314,9 +348,9 @@
                     const keys = positions
                         .map(p => {
                             if (p >= 0) {
-                                return (offset + (p - (p % base.length)) / 12);
+                                return ((offset || this.baseOffset) + (p - (p % base.length)) / 12);
                             } else {
-                                return (offset + (-11 + p - ((-11 + p) % base.length)) / 12);
+                                return ((offset || this.baseOffset) + (-11 + p - ((-11 + p) % base.length)) / 12);
                             }
                         })
                         .map((o, i) => label[i] + o);
@@ -338,7 +372,7 @@
                     wrapper.append(label);
 
                     inversions.forEach((inversion => {
-                        const resolved = keys.create(triad.notes, inversion);
+                        const resolved = keys.create(triad.notes, inversion, 4);
                         const keysAttribute = resolved.keys.join("-").replaceAll("#", "s");
                         const button = $("<div></div>").addClass(["notes", "inversion" + inversion])
                             .attr("data-notes", keysAttribute)
@@ -346,7 +380,7 @@
                                 $("*").removeClass("highlight");
                                 $(`[data-notes=${notesAttribute}]`).addClass("highlight");
                                 $(`[data-notes=${keysAttribute}]`).addClass("highlight");
-                                this.play(resolved.keys);
+                                this.play(keys.create(triad.notes, inversion).keys);
                             });
 
                         resolved.keys.forEach(k => button.append($("<div></div>").text(k.replace(/\d+/, "")).addClass("octave" + k.replaceAll(/[^\d]+/g, ""))))
@@ -357,8 +391,6 @@
                 },
 
                 showHeptatonic(heptatonic, scale) {
-                    // $("#log").empty().text(JSON.stringify(heptatonic, null, 2));
-
                     const main = $("#main");
                     main.find(".scale").text(scale);
                     main.find(".label").text(heptatonic.notes.join(" "));
@@ -406,27 +438,35 @@
                 get() {
                     if (this.sound === undefined) {
 
-                        const stereo = new Tone.StereoWidener(0.8).toDestination();
+                        this.volume = new Tone.Volume({
+                            volume: -10
+                        }).toDestination();
 
-                        const phaser = new Tone.Phaser({
+                        this.reverb = new Tone.Reverb({
+                            decay: 1,
+                            wet: 0.5
+                        }).connect(this.volume);
+
+                        this.stereo = new Tone.StereoWidener({
+                            width: 0.8
+                        }).connect(this.reverb);
+
+                        this.phaser = new Tone.Phaser({
                             frequency: 0.1,
                             octaves: 2,
                             baseFrequency: 1000
-                        }).connect(stereo);
+                        }).connect(this.stereo);
 
-                        const filter = new Tone.BiquadFilter({
+                        this.filter = new Tone.BiquadFilter({
                             Q: 5,
                             frequency: 1880
-                        }).toDestination();
+                        }).connect(this.phaser)
 
                         this.sound = new Tone.PolySynth(Tone.Synth, {
+                            volume: -32,
                             oscillator: {
                                 type: "sawtooth"
-                            }
-                        }).connect(phaser);
-
-                        this.sound.set({
-                            volume: -32,
+                            },
                             envelope: {
                                 attack: 0.5,
                                 attackCurve: "exponential",
@@ -436,7 +476,8 @@
                                 releaseCurve: "exponential",
                                 sustain: 1
                             }
-                        });
+                        }).connect(this.filter);
+
                         // this.sound.debug = true;
                         this.sound.maxPolyphony = 32;
                     }
@@ -478,15 +519,123 @@
                 }
             };
 
+            const synthUi = {
+                id(path) {
+                    return `nc.chords.${path.join(".")}`;
+                },
+
+                get(path, defaultValue) {
+                    const id = this.id(path);
+                    const value = localStorage.getItem(id);
+                    if (value) {
+                        return parseFloat(value);
+                    } else {
+                        this.set(path, defaultValue);
+                        return defaultValue;
+                    }
+                },
+
+                set(path, value) {
+                    const id = this.id(path);
+                    localStorage.setItem(id, value.toString());
+                },
+
+                setOption(synth, path, value) {
+                    const module = path[0];
+                    const options = synth[module].get();
+
+                    let option = options;
+                    for (let i = 1; i < path.length - 1; i++) {
+                        option = option[path[i]];
+                    }
+                    option[path[path.length - 1]] = value;
+                    synth[module].set(options);
+                },
+
+                create(text, min, value, max, scaleFactor, synth, path) {
+                    const div = $("<div></div>");
+                    const label = $("<div></div>");
+                    const input = $("<input/>").attr("type", "range")
+                        .attr("min", Math.round(min * scaleFactor))
+                        .attr("max", Math.round(max * scaleFactor))
+                        .attr("value", Math.round(this.get(path, value) * scaleFactor));
+                    input.on("input", () => {
+                        const v = input.val() / scaleFactor;
+                        label.text(`${text} ${v}`);
+                        this.setOption(synth, path, v);
+                        this.set(path, v);
+                    }).trigger("input");
+
+                    return div.append(label).append(input);
+                },
+
+                createList(text, values, value, synth, path) {
+                    const div = $("<div></div>");
+                    const label = $("<div></div>");
+                    const input = $("<input/>").attr("type", "range")
+                        .attr("min", 0)
+                        .attr("max", values.length - 1)
+                        .attr("value", this.get(path, values.indexOf(value)))
+                    input.on("input", () => {
+                        const v = values[input.val()];
+                        label.text(`${text} ${v}`);
+                        this.setOption(synth, path, v);
+                        this.set(path, input.val());
+                    }).trigger("input");
+
+                    return div.append(label).append(input);
+                },
+
+                render(synth) {
+                    const root = $("#synth");
+
+                    let group = $("<div></div>").addClass("group");
+                    group.append(this.create("Volume", -32, 0, 16, 1, synth, ["volume", "volume"]));
+                    group.append(this.create("Attack", 0.1, 0.5, 2, 100, synth, ["sound", "envelope", "attack"]));
+                    group.append(this.create("Release", 0.1, 0.5, 2, 100, synth, ["sound", "envelope", "release"]));
+                    group.append(this.create("Octave", 2, 4, 6, 1, [keys], [0, "baseOffset"]));
+                    root.append(group);
+
+                    group = $("<div></div>").addClass("group");
+                    group.append(this.createList("Wave", ["square", "sawtooth", "triangle", "sine"], "sawtooth", synth, ["sound", "oscillator", "type"]));
+                    group.append(this.create("Stereo", 0, 0.5, 1, 100, synth, ["stereo", "width"]));
+                    root.append(group);
+
+                    group = $("<div></div>").addClass("group");
+                    group.append(this.createList("Filter", ["lowpass", "highpass", "bandpass"], "bandpass", synth, ["filter", "type"]));
+                    group.append(this.create("Filter Q", 0, 0, 20, 100, synth, ["filter", "Q"]));
+                    group.append(this.create("Filter freq", 10, 1000, 10000, 1, synth, ["filter", "frequency"]));
+                    root.append(group);
+
+                    group = $("<div></div>").addClass("group");
+                    group.append(this.create("Phaser base", 10, 100, 1000, 1, synth, ["phaser", "baseFrequency"]));
+                    group.append(this.create("Phaser freq.", 0.01, 0.1, 10, 100, synth, ["phaser", "frequency"]));
+                    group.append(this.create("Phaser wet", 0, 0.5, 1, 100, synth, ["phaser", "wet"]));
+                    group.append(this.create("Phaser octaves", 1, 2, 8, 1, synth, ["phaser", "octaves"]));
+                    root.append(group);
+
+                    group = $("<div></div>").addClass("group");
+                    group.append(this.create("Reverb wet", 0, 0.5, 1, 100, synth, ["reverb", "wet"]));
+                    group.append(this.create("Reverb decay", 0.1, 1, 2, 10, synth, ["reverb", "decay"]));
+                    root.append(group);
+                }
+            };
+
             // -------------
 
             ui.render(groups);
+
             ui.play = (notes) => {
                 synth.play(notes);
                 status.show(notes);
             };
+
             ui.stop = () => synth.stop();
+
             status.init(() => synth.stop());
+
+            synth.get();
+            synthUi.render(synth);
         });
     </script>
 </head>
@@ -499,6 +648,6 @@
     <div class="chords"></div>
     <div class="progressions"></div>
 </div>
-<div id="log"></div>
+<div id="synth"></div>
 </body>
 </html>
