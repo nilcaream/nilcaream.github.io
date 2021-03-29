@@ -20,6 +20,7 @@
                 // .slice(1, 2)
                     .forEach(engine => {
                         const graphics = new Graphics(engine);
+                        graphics.start();
                         $("body").append(graphics.canvas).append($("<br/>"));
                         allGraphics.push(graphics);
                     });

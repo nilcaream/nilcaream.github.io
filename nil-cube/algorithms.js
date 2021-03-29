@@ -247,6 +247,75 @@ var algorithms = {
             source: "http://rubikscube.info/beginner.php"
         }
     },
+    "4x4": {
+        ef: {
+            id: "EF",
+            name: "Edge flip",
+            sequence: "R U R' F R' F' R",
+            nc: "t:4 u:DDDDDYYDDYYDDDDD f:DDDDDGGODGGO r:DDDDGOODGOOD b:DDDD l:DDDD",
+            source: "https://jperm.net/4x4"
+        },
+        ollp: {
+            id: "OLL P",
+            name: "OLL parity",
+            sequence: "Rw  U2 x _ Rw  U2 Rw  U2 _ Rw' U2 Lw  U2 Rw' U2 _ Rw  U2 Rw' U2 Rw'",
+            nc: "t:4 u:DYYDYYYYYYYYDDDD f:DYYD r:DDDD b:DDDD l:DDDD",
+            source: "https://jperm.net/4x4"
+        },
+        pllp: {
+            id: "PLL P",
+            name: "PLL parity",
+            sequence: "2R2 U2 2R2 Uw2 2R2 Uw2",
+            nc: "t:4 u:YYYYYYYYYYYYYYYY f:BGGB r:RRRR b:GBBG l:OOOO a:1011u1311,2011u2311",
+            source: "https://jperm.net/4x4"
+        },
+        ollp2: {
+            id: "OLL P",
+            name: "OLL parity",
+            sequence: "r2 B2 (U2 l U2 r')_U2 r U2_(F2 r F2 l') B2 r2",
+            nc: "t:4 u:DYYDYYYYYYYYDDDD f:DYYD r:DDDD b:DDDD l:DDDD",
+            source: "https://www.youcandothecube.com/solve-it/4x4-solution"
+        }
+    },
+    "5x5": {
+        "1r": {
+            id: "Right",
+            sequence: "1R / R",
+            nc: "t:5 u:YYYYBYYYYBYYYYBYYYYBYYYYB f:GGGGY r:DDDDD b:DDDDD l:DDDDD"
+        },
+        "2r": {
+            id: "Right - 2nd slice",
+            sequence: "2R",
+            nc: "t:5 u:YYYBYYYYBYYYYBYYYYBYYYYBY f:GGGYG r:DDDDD b:DDDDD l:DDDDD"
+        },
+        "3r": {
+            id: "Right - 3nd slice",
+            sequence: "3R / M'",
+            nc: "t:5 u:YYBYYYYBYYYYBYYYYBYYYYBYY f:GGYGG r:DDDDD b:DDDDD l:DDDDD"
+        },
+        "4r": {
+            id: "Right - 4th slice",
+            sequence: "4R / 2L'",
+            nc: "t:5 u:YBYYYYBYYYYBYYYYBYYYYBYYY f:GYGGG r:DDDDD b:DDDDD l:DDDDD"
+        },
+        "2rw": {
+            id: "Wide right 2",
+            sequence: "2Rw / Rw / R 2R",
+            nc: "t:5 u:YYYBBYYYBBYYYBBYYYBBYYYBB f:GGGYY r:DDDDD b:DDDDD l:DDDDD"
+        },
+        "3rw": {
+            id: "Wide right 3",
+            sequence: "3Rw / R 2R 3R",
+            nc: "t:5 u:YYBBBYYBBBYYBBBYYBBBYYBBB f:GGYYY r:DDDDD b:DDDDD l:DDDDD"
+        },
+        ollp: {
+            id: "OLL P",
+            name: "OLL parity",
+            sequence: "Rw  U2 x _ Rw  U2 Rw  U2 _ 3Rw'U2 Lw  U2 Rw' U2 _ Rw  U2 Rw' U2 Rw'",
+            nc: "t:5 u:YYYYYYYYYYYYYYYYYYYYDGYGD f:DYGYD r:DDDDD b:DDDDD l:DDDDD",
+            source: "https://jperm.net/5x5"
+        },
+    },
     sq1: {
         fm: {
             id: "FM",
