@@ -159,6 +159,8 @@ li.item.moved {
 }
 
 li.item > div.content {
+    overflow-y: clip;
+    overflow-wrap: anywhere;
     flex: 1 0 0;
 }
 
