@@ -10,7 +10,7 @@ Licensed under MIT license (see "Smooth.js MIT license.txt")
 /*Constants (these are accessible by Smooth.WHATEVER in user space)
 */
 
-(function () {
+//(function () {
     var AbstractInterpolator, CubicInterpolator, Enum, LinearInterpolator, NearestInterpolator, PI,
         SincFilterInterpolator, Smooth, clipClamp, clipMirror, clipPeriodic, defaultConfig, getColumn, getType,
         isValidNumber, k, makeLanczosWindow, makeScaledFunction, makeSincKernel, normalizeScaleTo, shallowCopy, sin,
@@ -414,14 +414,15 @@ Licensed under MIT license (see "Smooth.js MIT license.txt")
         return smoothFunc;
     };
 
-    for (k in Enum) {
-        if (!__hasProp.call(Enum, k)) continue;
-        v = Enum[k];
-        Smooth[k] = v;
-    }
+for (k in Enum) {
+    if (!__hasProp.call(Enum, k)) continue;
+    v = Enum[k];
+    Smooth[k] = v;
+}
 
-    Smooth.deepValidation = true;
+Smooth.deepValidation = true;
 
-    (typeof exports !== "undefined" && exports !== null ? exports : window).Smooth = Smooth;
+// (typeof exports !== "undefined" && exports !== null ? exports : window).Smooth = Smooth;
+export {Smooth};
 
-}).call(this);
+//}).call(this);

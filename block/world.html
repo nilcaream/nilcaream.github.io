@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>World</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+    <script type="module">
+        import {Settings} from "./modules/settings.js";
+        import {Generator} from "./modules/generator.js";
+
+        const gen = new Generator(727372);
+        // console.log(JSON.stringify(gen.getChunk(0), null, 2));
+        // console.log(JSON.stringify(gen.createBaseChunk(2), null, 2));
+        // console.log(JSON.stringify(gen.createBaseChunk(3), null, 2));
+
+        ((r) => document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", r) : r())(() => {
+            const canvas = document.getElementsByTagName("canvas")[0];
+            const ctx = canvas.getContext("2d");
+            ctx.strokeStyle = "#000";
+            ctx.fillStyle = "#000";
+
+            for (let i = 0; i < 1; i++) {
+                const chunk = gen.getChunk(i - 1);
+                console.log(JSON.stringify(chunk, null, 2));
+
+                ctx.save();
+                ctx.translate((i % 4) * (Settings.chunk.width + 256), Math.floor(i / 4) * (Settings.chunk.height + 20));
+
+                ctx.fillStyle = "#1d7c5e";
+                ctx.fillText(`${chunk.id}`, 5, 10);
+
+                ctx.beginPath();
+                ctx.rect(0, 0, Settings.chunk.width, Settings.chunk.height); // frame
+                ctx.strokeStyle = "#f1da21";
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.moveTo(0, Settings.chunk.middle);
+                ctx.lineTo(Settings.chunk.width, Settings.chunk.middle); // mid
+                ctx.strokeStyle = "#e02001";
+                ctx.stroke();
+
+                ctx.fillStyle = "#000";
+                for (let x = 0; x < Settings.chunk.width; x++) {
+                    for (let y = 0; y < Settings.chunk.height; y++) {
+                        if (y <= chunk.surface[x]) {
+                            ctx.fillRect(x, Settings.chunk.height - y, 1, 1); // surface
+                        }
+                    }
+                }
+
+                chunk.biomes.forEach(b => {
+                    ctx.beginPath();
+                    ctx.moveTo(b.start, 0);
+                    ctx.lineTo(b.start, Settings.chunk.height); // biome start
+                    ctx.strokeStyle = "#2193f1";
+                    ctx.stroke();
+
+                    ctx.beginPath();
+                    ctx.moveTo(b.end, 0);
+                    ctx.lineTo(b.end, Settings.chunk.height); // biome end
+                    ctx.strokeStyle = "#f31138";
+                    ctx.stroke();
+
+                    ctx.fillStyle = "#000";
+                    ctx.fillText(b.definition.name, b.start + 5, 10)
+                    b.surfacePoints.forEach(s => {
+                        ctx.fillStyle = "#2c312b";
+                        ctx.fillRect(s.x - 4, Settings.chunk.height - s.y - 4, 8, 8);
+                        ctx.fillStyle = "#82e779";
+                        ctx.fillRect(s.x - 2, Settings.chunk.height - s.y - 2, 4, 4);
+                        ctx.fillStyle = "#1d7c5e";
+                        ctx.fillText(`${s.x},${s.y}`, s.x - 10, Settings.chunk.height - s.y - 5);
+                    })
+                });
+
+                ctx.restore();
+
+            }
+
+        });
+
+    </script>
+</head>
+<body>
+<canvas width="3000" height="600"></canvas>
+</body>
+</html>
