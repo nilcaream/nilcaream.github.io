@@ -26,6 +26,9 @@ class Generator {
     createChunk(id) {
         const chunk = this.createBaseChunk(id);
         chunk.surface = this.createSurface(chunk);
+        this.updateBlocks(chunk);
+        // this.blendBiomes(chunk);
+        this.updateOres(chunk);
         return chunk;
     }
 
@@ -42,13 +45,13 @@ class Generator {
         const biomes = [];
 
         for (let i = 0; i < Settings.chunk.width / 16; i++) {
-            const definition = this.getBiomeDefinition(id, i);
+            const definition = this.createBiomeDefinitions(id, i);
             const start = i === 0 ? 0 : biomes[i - 1].end + 1;
             const end = start + rng(definition.widthMin, definition.widthMax, true);
             const surfacePoints = this.createSurfacePoints(id, definition, start, end);
 
             const biome = {
-                definition: definition,
+                name: definition.name,
                 start: start,
                 end: end,
                 surfacePoints: surfacePoints
@@ -67,7 +70,7 @@ class Generator {
         const last = biomes[biomes.length - 1];
         last.end = Settings.chunk.width - 1;
         last.surfacePoints = last.surfacePoints.filter(s => s.x < last.end);
-        biomes.forEach((b, i) => console.log(`Chunk ${id} biome ${i}: ${b.definition.name} ${b.start}-${b.end}`));
+        biomes.forEach((b, i) => console.log(`Chunk ${id} biome ${i}: ${b.name} ${b.start}-${b.end}`));
         return biomes;
     }
 
@@ -152,7 +155,7 @@ class Generator {
         return surface;
     }
 
-    getBiomeDefinition(id, number) {
+    createBiomeDefinitions(id, number) {
         const rng = this.getRng(id + 2000 + number);
 
         for (let i = 0; i < 128; i++) {
@@ -166,6 +169,89 @@ class Generator {
         return Settings.biomes[0];
     }
 
+    updateBlocks(chunk) {
+        const blocks = new Array(Settings.chunk.height).fill(0).map(_ => new Array(Settings.chunk.width).fill(0));
+
+        chunk.biomes.forEach((biome, number) => {
+            const rng = this.getRng(chunk.id + 8000 + number);
+            const definition = Settings.biomes.filter(b => b.name === biome.name)[0].blocks || [];
+
+            for (let x = biome.start; x <= biome.end; x++) {
+                let y = chunk.surface[x];
+
+                definition.forEach(d => {
+                    if (rng() <= d.chance) {
+                        const depth = rng(d.depthMin, d.depthMax, true);
+                        for (let i = 0; i < depth && y >= 0; i++) {
+                            blocks[y--][x] = d.blockId;
+                        }
+                    }
+                });
+            }
+        });
+
+        chunk.blocks = blocks;
+        // for (let y = Settings.chunk.height - 1; y >= 0; y--) {
+        //     console.log(blocks[y].join(""));
+        // }
+    }
+
+    updateOres(chunk) {
+        const rng = this.getRng(chunk.id + 7100 + chunk.id);
+        chunk.biomes.forEach((biome, biomeNumber) => {
+
+            const widthFactor = 2 * (biome.end - biome.start) / Settings.chunk.width;
+
+            (Settings.biomes.filter(b => b.name === biome.name)[0].veins || []).forEach(definition => {
+                const block = Object.values(Settings.blocks).filter(bl => bl.id === definition.blockId)[0];
+                for (let i = 0; i < definition.count; i++) {
+                    for (let j = 0; j < 256; j++) {
+                        const x = rng(biome.start, biome.end);
+                        const y = rng(block.yMin, block.yMax);
+                        if (chunk.blocks[y][x] !== 0 && chunk.blocks[y][x] < Settings.blocks.coalOre.id) { // not empty block and not ore
+                            if (rng() <= (definition.chance * block.chance * widthFactor)) {
+                                const block = Object.values(Settings.blocks).filter(bl => bl.id === definition.blockId)[0];
+                                const length = rng(block.lengthMin, block.lengthMax, true);
+                                console.log(`Chunk ${chunk.id} biome ${biomeNumber} ${biome.name} ore ${definition.blockId}: ${x} ${y} length ${length}`);
+                                let vX = x;
+                                let vY = y;
+                                for (let k = 0; k < length && vX < Settings.chunk.width && vY < Settings.chunk.height; k++) {
+                                    if (chunk.blocks[vY][vX] !== 0 && chunk.blocks[vY][vX] < definition.blockId) { // not empty and not ore of higher grade
+                                        chunk.blocks[vY][vX] = definition.blockId;
+                                        console.log(`Chunk ${chunk.id} biome ${biomeNumber} ${biome.name} vein ${definition.blockId}: ${vX} ${vY}`);
+                                    }
+                                    if (rng() > 0.5) {
+                                        vX++;
+                                    } else {
+                                        vY++;
+                                    }
+                                }
+                            }
+                            break;
+                        }
+                    }
+                }
+            });
+        });
+    }
+
+    blendBiomes(chunk) { // this doesnt work well as grass goes into stone
+        const rng = this.getRng(chunk.id + 2600);
+        chunk.biomes.map(b => b.start).filter(s => s > 16 && s < Settings.chunk.width).forEach(s => {
+            for (let y = 0; y < Settings.chunk.height; y++) {
+                for (let i = 1; i < 16; i++) {
+                    const left = chunk.blocks[y][s - i];
+                    const right = chunk.blocks[y][s + i];
+                    if (left && right) {
+                        if (rng() < (0.7 - 0.5 * i / 16)) {
+                            chunk.blocks[y][s - i] = right;
+                            chunk.blocks[y][s + i] = left;
+                        }
+                    }
+                }
+            }
+        });
+    }
 }
 
 export {Generator}

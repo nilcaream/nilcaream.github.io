@@ -14,6 +14,7 @@
         import {Generator} from "./modules/generator.js";
 
         const gen = new Generator(727372);
+        const zoom = 3;
 
         ((r) => document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", r) : r())(() => {
             const canvas = document.getElementsByTagName("canvas")[0];
@@ -21,21 +22,21 @@
             ctx.strokeStyle = "#000";
             ctx.fillStyle = "#000";
 
-            for (let i = 0; i < 32; i++) {
+            for (let i = 0; i < 8; i++) {
                 const chunk = gen.getChunk(i - 1);
                 // console.log(JSON.stringify(chunk, null, 2));
 
                 ctx.save();
-                ctx.translate((i % 4) * (Settings.chunk.width + 10), Math.floor(i / 4) * (Settings.chunk.height + 10));
+                ctx.translate(zoom * (i % 4) * (Settings.chunk.width + 2), zoom * Math.floor(i / 4) * (Settings.chunk.height + 2));
 
                 ctx.beginPath();
-                ctx.rect(0, 0, Settings.chunk.width, Settings.chunk.height); // frame
+                ctx.rect(0, 0, zoom * Settings.chunk.width, zoom * Settings.chunk.height); // frame
                 ctx.strokeStyle = "#f1da21";
                 ctx.stroke();
 
                 ctx.beginPath();
-                ctx.moveTo(0, Settings.chunk.middle);
-                ctx.lineTo(Settings.chunk.width, Settings.chunk.middle); // mid
+                ctx.moveTo(0, zoom * Settings.chunk.middle);
+                ctx.lineTo(zoom * Settings.chunk.width, zoom * Settings.chunk.middle); // mid
                 ctx.strokeStyle = "#e02001";
                 ctx.stroke();
 
@@ -43,38 +44,49 @@
                 for (let x = 0; x < Settings.chunk.width; x++) {
                     for (let y = 0; y < Settings.chunk.height; y++) {
                         if (y <= chunk.surface[x]) {
-                            ctx.fillRect(x, Settings.chunk.height - y, 1, 1); // surface
+                            ctx.fillRect(zoom * x, zoom * (Settings.chunk.height - y), zoom, zoom); // surface
+                        }
+                    }
+                }
+
+                for (let x = 0; x < Settings.chunk.width; x++) {
+                    for (let y = 0; y < Settings.chunk.height; y++) {
+                        const block = chunk.blocks[y][x];
+                        const color = Object.values(Settings.blocks).filter(b => b.id === block)[0].color;
+                        if (color) {
+                            ctx.fillStyle = color;
+                            ctx.fillRect(zoom * x, zoom * (Settings.chunk.height - y), zoom, zoom); // blocks
                         }
                     }
                 }
 
                 chunk.biomes.forEach(b => {
                     ctx.beginPath();
-                    ctx.moveTo(b.start, 0);
-                    ctx.lineTo(b.start, Settings.chunk.height); // biome start
+                    ctx.moveTo(zoom * b.start, 0);
+                    ctx.lineTo(zoom * b.start, zoom * Settings.chunk.height); // biome start
                     ctx.strokeStyle = "#2193f1";
                     ctx.stroke();
 
                     ctx.beginPath();
-                    ctx.moveTo(b.end, 0);
-                    ctx.lineTo(b.end, Settings.chunk.height); // biome end
+                    ctx.moveTo(zoom * b.end, 0);
+                    ctx.lineTo(zoom * b.end, zoom * Settings.chunk.height); // biome end
                     ctx.strokeStyle = "#f31138";
                     ctx.stroke();
 
                     ctx.fillStyle = "#000";
-                    ctx.fillText(b.definition.name, b.start + 5, 10)
+                    ctx.fillText(b.name, zoom * (b.start + 5), zoom * 10)
                     b.surfacePoints.forEach(s => {
                         ctx.fillStyle = "#2c312b";
-                        ctx.fillRect(s.x - 4, Settings.chunk.height - s.y - 4, 8, 8);
+                        ctx.fillRect(zoom * (s.x - 2), zoom * (Settings.chunk.height - s.y - 2), zoom * 4, zoom * 4);
                         ctx.fillStyle = "#82e779";
-                        ctx.fillRect(s.x - 2, Settings.chunk.height - s.y - 2, 4, 4);
+                        ctx.fillRect(zoom * (s.x - 1), zoom * (Settings.chunk.height - s.y - 1), zoom * 2, zoom * 2);
                         ctx.fillStyle = "#1d7c5e";
-                        ctx.fillText(`${s.x},${s.y}`, s.x - 10, Settings.chunk.height - s.y - 5);
+                        ctx.fillText(`${s.x},${s.y}`, zoom * (s.x - 10), zoom * (Settings.chunk.height - s.y - 5));
                     })
                 });
 
                 ctx.fillStyle = "#ffffff";
-                ctx.fillText(`${chunk.id}`, 5, Settings.chunk.height - 5);
+                ctx.fillText(`${chunk.id}`, zoom * 5, zoom * (Settings.chunk.height - 5));
 
                 ctx.restore();
             }
