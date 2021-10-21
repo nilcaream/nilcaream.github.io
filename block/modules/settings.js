@@ -6,10 +6,7 @@ const chunk = {
     bottom: 124, // no blocks are generated at Y in [124,height] // TODO remove
 
     biomes: {
-        startMin: 32,
-        startMax: 128,
-        countMin: 2, // number of biomes starting point per chunk
-        countMax: 4
+        widthMin: 32, // minimum width of the last biome in chunk
     }
 };
 

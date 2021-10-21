@@ -1,7 +1,6 @@
 import {Settings} from "./settings.js";
 import {Random} from "./random.js";
-import {Smooth} from "../Smooth-0.1.7.js";
-import {Spline} from "./spline.js";
+import {Smooth} from "./smooth.js";
 
 class Generator {
 
@@ -30,119 +29,49 @@ class Generator {
         return chunk;
     }
 
-    createSurface(current) {
-        const previous = this.createBaseChunk(current.id - 1);
-        const next = this.createBaseChunk(current.id + 1);
-
-        const pointsX = [-Settings.chunk.width];
-        const pointsY = [Settings.chunk.middle];
-
-        previous.biomes.map(b => b.surfacePoints).forEach(sp => {
-            sp.forEach(s => {
-                pointsX.push(s.x - Settings.chunk.width);
-                pointsY.push(s.y);
-            });
-        });
-
-        const previousLastBiome = previous.biomes[previous.biomes.length - 1];
-        const currentFirstBiome = current.biomes[0];
-
-        previousLastBiome.end = currentFirstBiome.start + Settings.chunk.width - 1; // prevent last chunk biome overlapping with first next chunk biome
-        previousLastBiome.surfacePoints = previousLastBiome.surfacePoints.filter(p => p.x < previousLastBiome.end); // filter surface points outside of biome end
-
-        current.biomes.map(b => b.surfacePoints).forEach(sp => {
-            sp.forEach(s => {
-                pointsX.push(s.x);
-                pointsY.push(s.y);
-            });
-        });
-
-        const currentLastBiome = current.biomes[current.biomes.length - 1];
-        const nextFirstBiome = next.biomes[0];
-
-        currentLastBiome.end = nextFirstBiome.start + Settings.chunk.width - 1; // prevent last chunk biome overlapping with first next chunk biome
-        currentLastBiome.surfacePoints = currentLastBiome.surfacePoints.filter(p => p.x < currentLastBiome.end); // filter surface points outside of biome end
-
-        next.biomes.map(b => b.surfacePoints).forEach(sp => {
-            sp.forEach(s => {
-                pointsX.push(s.x + Settings.chunk.width);
-                pointsY.push(s.y);
-            });
-        });
-
-        pointsX.push(2 * Settings.chunk.width);
-        pointsY.push(Settings.chunk.middle);
-
-
-        for (let i = 0; i < pointsX.length; i++) {
-            console.log(`Point ${i}: ${pointsX[i]} ${pointsY[i]}`)
-        }
-
-        const surfaceMap = {};
-
-        const surfaceX = Smooth(pointsX, {method: "linear"});
-        const surfaceY = Smooth(pointsY, {method: "cubic", lanczosFilterSize: 3});
-        for (let i = 0; i < pointsX.length; i++) {
-            for (let j = 0; j < 1; j += 0.001) {
-                const a = Math.floor(surfaceX(i + j));
-                const b = Math.round(surfaceY(i + j));
-                surfaceMap[a] = surfaceMap[a] || b;
-            }
-        }
-
-        const spline = new Spline(pointsX, pointsY);
-        for (let i = pointsX[0]; i < pointsX[pointsX.length - 1]; i++) {
-            //surfaceMap[i] = Math.round(spline.at(i));
-            // surfaceMap[i] = (surfaceMap[i]+ Math.round(spline.at(i)))/2;
-        }
-
-        console.log(surfaceMap);
-        //
-        for (let i = 0; i < pointsX.length; i++) {
-            console.log(`Point ${pointsX[i]} ${pointsY[i]} - Surface ${surfaceMap[pointsX[i]]}`);
-        }
-        for (let i = -Settings.chunk.width; i <= 2 * Settings.chunk.width; i += 32) {
-            console.log(`Surface ${i} ${surfaceMap[i]}`)
-        }
-
-        const surface = [];
-        for (let i = 0; i < Settings.chunk.width; i++) {
-            surface.push(surfaceMap[i]);
-        }
-        return surface;
-    }
-
     createBaseChunk(id) {
         const chunk = {
             id: id,
-            biomes: this.getBiomes(id)
+            biomes: this.createBiomes(id)
         }
         return chunk;
     }
 
-    getBiomes(id) {
+    createBiomes(id) {
         const rng = this.getRng(id + 1000);
-        const count = rng(Settings.chunk.biomes.countMin, Settings.chunk.biomes.countMax, true);
         const biomes = [];
 
-        for (let i = 0; i < count; i++) {
+        for (let i = 0; i < Settings.chunk.width / 16; i++) {
             const definition = this.getBiomeDefinition(id, i);
-            const start = i === 0 ? rng(Settings.chunk.biomes.startMin, Settings.chunk.biomes.startMax) : biomes[i - 1].end + 1;
+            const start = i === 0 ? 0 : biomes[i - 1].end + 1;
             const end = start + rng(definition.widthMin, definition.widthMax, true);
-            const surfacePoints = this.getSurfacePoints(id, definition, start, end);
+            const surfacePoints = this.createSurfacePoints(id, definition, start, end);
 
-            biomes.push({
+            const biome = {
                 definition: definition,
                 start: start,
                 end: end,
                 surfacePoints: surfacePoints
-            });
-            console.log(`Biome ${id}.${i} ${definition.name} ${start}-${end}`);
+            };
+
+            biomes.push(biome);
+
+            if (end >= Settings.chunk.width) { // break when last biome exceeds chunk width
+                if (end - start < Settings.chunk.biomes.widthMin) { // remove last biome if it is too small
+                    biomes.pop();
+                }
+                break;
+            }
         }
+
+        const last = biomes[biomes.length - 1];
+        last.end = Settings.chunk.width - 1;
+        last.surfacePoints = last.surfacePoints.filter(s => s.x < last.end);
+        biomes.forEach((b, i) => console.log(`Chunk ${id} biome ${i}: ${b.definition.name} ${b.start}-${b.end}`));
         return biomes;
     }
 
-    getSurfacePoints(id, definition, start, end) {
+    createSurfacePoints(id, definition, start, end) {
         const rng = this.getRng(id + 3000);
         const count = rng(definition.surfacePointsMin, definition.surfacePointsMax, true);
         const x = [];
@@ -162,7 +91,65 @@ class Generator {
             });
         }
         points.sort((s1, s2) => s1.x - s2.x);
-        return points; // points outside of chunk width will be taken into consideration when surface is calculated
+        return points;
+    }
+
+    createSurface(current) {
+        const previous = this.createBaseChunk(current.id - 1);
+        const next = this.createBaseChunk(current.id + 1);
+
+        const pointsX = [-Settings.chunk.width];
+        const pointsY = [Settings.chunk.middle];
+
+        previous.biomes.map(b => b.surfacePoints).forEach(sp => {
+            sp.forEach(s => {
+                pointsX.push(s.x - Settings.chunk.width);
+                pointsY.push(s.y);
+            });
+        });
+
+        current.biomes.map(b => b.surfacePoints).forEach(sp => {
+            sp.forEach(s => {
+                pointsX.push(s.x);
+                pointsY.push(s.y);
+            });
+        });
+
+        next.biomes.map(b => b.surfacePoints).forEach(sp => {
+            sp.forEach(s => {
+                pointsX.push(s.x + Settings.chunk.width);
+                pointsY.push(s.y);
+            });
+        });
+
+        pointsX.push(2 * Settings.chunk.width);
+        pointsY.push(Settings.chunk.middle);
+
+        for (let i = 0; i < pointsX.length; i++) {
+            console.log(`Chunk ${current.id} surface point ${i}: ${pointsX[i]} ${pointsY[i]}`)
+        }
+
+        const surfaceMap = {};
+
+        const surfaceX = Smooth(pointsX, {method: "linear"});
+        const surfaceY = Smooth(pointsY, {method: "cubic"});
+        for (let i = 0; i < pointsX.length; i++) {
+            for (let j = 0; j < 1; j += 0.001) {
+                const a = Math.floor(surfaceX(i + j));
+                const b = Math.round(surfaceY(i + j));
+                surfaceMap[a] = surfaceMap[a] || b;
+            }
+        }
+
+        // for (let i = -Settings.chunk.width; i <= 2 * Settings.chunk.width; i += 32) {
+        //     console.log(`Surface ${i} ${surfaceMap[i]}`)
+        // }
+
+        const surface = [];
+        for (let i = 0; i < Settings.chunk.width; i++) {
+            surface.push(surfaceMap[i]);
+        }
+        return surface;
     }
 
     getBiomeDefinition(id, number) {
@@ -175,7 +162,7 @@ class Generator {
             }
         }
 
-        console.log(`Unable to generate biome for ${id} ${number}`);
+        console.log(`Chunk ${id} biome ${number}: unable to generate biome`);
         return Settings.biomes[0];
     }
 
