@@ -26,18 +26,22 @@ class Generator {
     createChunk(id) {
         const chunk = this.createBaseChunk(id);
         chunk.surface = this.createSurface(chunk);
-        this.updateBlocks(chunk);
-        // this.blendBiomes(chunk);
-        this.updateOres(chunk);
+        this.addBlocks(chunk);
+        this.addCaves(chunk);
+        this.addOres(chunk);
+        this.addWater(chunk);
+        this.addBedrock(chunk);
+
+        // this.blendBiomes(chunk); // not working yet
         return chunk;
     }
 
     createBaseChunk(id) {
-        const chunk = {
+        return {
             id: id,
-            biomes: this.createBiomes(id)
-        }
-        return chunk;
+            biomes: this.createBiomes(id),
+            blocks: new Array(Settings.chunk.height).fill(0).map(_ => new Array(Settings.chunk.width).fill(Settings.blocks.none.id))
+        };
     }
 
     createBiomes(id) {
@@ -54,7 +58,8 @@ class Generator {
                 name: definition.name,
                 start: start,
                 end: end,
-                surfacePoints: surfacePoints
+                surfacePoints: surfacePoints,
+                water: definition.water
             };
 
             biomes.push(biome);
@@ -169,34 +174,36 @@ class Generator {
         return Settings.biomes[0];
     }
 
-    updateBlocks(chunk) {
-        const blocks = new Array(Settings.chunk.height).fill(0).map(_ => new Array(Settings.chunk.width).fill(0));
+    addBlocks(chunk) {
+        for (let number = 0; number < chunk.biomes.length; number++) {
+            this.updateBlocksInBiome(chunk, number);
+        }
 
-        chunk.biomes.forEach((biome, number) => {
-            const rng = this.getRng(chunk.id + 8000 + number);
-            const definition = Settings.biomes.filter(b => b.name === biome.name)[0].blocks || [];
-
-            for (let x = biome.start; x <= biome.end; x++) {
-                let y = chunk.surface[x];
-
-                definition.forEach(d => {
-                    if (rng() <= d.chance) {
-                        const depth = rng(d.depthMin, d.depthMax, true);
-                        for (let i = 0; i < depth && y >= 0; i++) {
-                            blocks[y--][x] = d.blockId;
-                        }
-                    }
-                });
-            }
-        });
-
-        chunk.blocks = blocks;
         // for (let y = Settings.chunk.height - 1; y >= 0; y--) {
         //     console.log(blocks[y].join(""));
         // }
     }
 
-    updateOres(chunk) {
+    updateBlocksInBiome(chunk, number) {
+        const rng = this.getRng(chunk.id + 8000 + number);
+        const biome = chunk.biomes[number];
+        const definition = Settings.biomes.filter(b => b.name === biome.name)[0].blocks || [];
+
+        for (let x = biome.start; x <= biome.end; x++) {
+            let y = chunk.surface[x];
+
+            definition.forEach(d => {
+                if (rng() <= d.chance) {
+                    const depth = rng(d.depthMin, d.depthMax, true);
+                    for (let i = 0; i < depth && y >= 0; i++) {
+                        chunk.blocks[y--][x] = d.blockId;
+                    }
+                }
+            });
+        }
+    }
+
+    addOres(chunk) {
         const rng = this.getRng(chunk.id + 7100 + chunk.id);
         chunk.biomes.forEach((biome, biomeNumber) => {
 
@@ -220,8 +227,12 @@ class Generator {
                                         chunk.blocks[vY][vX] = definition.blockId;
                                         console.log(`Chunk ${chunk.id} biome ${biomeNumber} ${biome.name} vein ${definition.blockId}: ${vX} ${vY}`);
                                     }
-                                    if (rng() > 0.5) {
+                                    if (rng() > 0.25) {
                                         vX++;
+                                    } else if (rng() > 0.25) {
+                                        vY--;
+                                    } else if (rng() > 0.25) {
+                                        vX--;
                                     } else {
                                         vY++;
                                     }
@@ -235,8 +246,188 @@ class Generator {
         });
     }
 
-    blendBiomes(chunk) { // this doesnt work well as grass goes into stone
+    addWater(chunk) {
+        const rng = this.getRng(chunk.id + 7100 + chunk.id);
+        const fillDown = (x, waterId) => {
+            for (let y = Settings.chunk.middle; y > 0; y--) {
+                if (chunk.blocks[y][x] === Settings.blocks.none.id) {
+                    chunk.blocks[y][x] = waterId;
+                } else {
+                    break;
+                }
+            }
+        };
+
+        chunk.biomes.filter(b => b.water).forEach(biome => {
+            // biome boundaries
+            for (let x = biome.start; x <= biome.end; x++) {
+                fillDown(x, biome.water);
+            }
+
+            // left
+            for (let x = biome.start - 1; x >= 0; x--) {
+                if (chunk.blocks[Settings.chunk.middle][x] !== 0) {
+                    break;
+                }
+                fillDown(x, biome.water);
+            }
+
+            // right
+            for (let x = biome.end + 1; x < Settings.chunk.width; x++) {
+                if (chunk.blocks[Settings.chunk.middle][x] !== 0) {
+                    break;
+                }
+                fillDown(x, biome.water);
+            }
+        });
+
+        // flood first biome if previous chunk last biome is water
+        if (!chunk.biomes[0].water) {
+            const previous = this.createBaseChunk(chunk.id - 1);
+            const biome = previous.biomes[previous.biomes.length - 1];
+            if (biome.water) {
+                // right
+                for (let x = 0; x < Settings.chunk.width; x++) {
+                    if (chunk.blocks[Settings.chunk.middle][x] !== 0) {
+                        break;
+                    }
+                    fillDown(x, biome.water);
+                }
+            }
+        }
+
+        // flood last biome if next chunk first biome is water
+        if (!chunk.biomes[chunk.biomes.length - 1].water) {
+            const next = this.createBaseChunk(chunk.id + 1);
+            const biome = next.biomes[0];
+            if (biome.water) {
+                // left
+                for (let x = Settings.chunk.width - 1; x >= 0; x--) {
+                    if (chunk.blocks[Settings.chunk.middle][x] !== 0) {
+                        break;
+                    }
+                    fillDown(x, biome.water);
+                }
+            }
+        }
+    }
+
+    addCaves(chunk) {
+        const rng = this.getRng(chunk.id + 500);
+        const get = (x, y) => {
+            if (x < 0 || x >= Settings.chunk.width || y < 0 || y >= Settings.chunk.height) {
+                return undefined;
+            } else {
+                return chunk.blocks[y][x];
+            }
+        }
+        const set = (x, y, v) => {
+            if (!(x < 0 || x >= Settings.chunk.width || y < 0 || y >= Settings.chunk.height)) {
+                chunk.blocks[y][x] = v;
+            }
+        }
+
+        for (let i = 0, n = rng(Settings.caves.numberMin, Settings.caves.numberMax); i < n; i++) {
+            const x = rng(16, Settings.chunk.width - 16);
+            const y = rng(Settings.caves.heightMin, chunk.surface[x] + 8);//Settings.chunk.middle;// rng(16, Settings.chunk.height - 16);
+
+            const cave = this.createCave(chunk.id, i);
+
+            if (x + cave[0].length < Settings.chunk.width) {
+                for (let cY = 0; cY < cave.length; cY++) {
+                    for (let cX = 0; cX < cave[0].length; cX++) {
+                        const blockCurrent = get(x + cX, y - cY);
+                        const blockCave = cave[cY][cX];
+                        if (blockCurrent !== undefined && blockCurrent > Settings.blocks.none.id) {
+                            const blockNew = blockCave === Settings.blocks.any.id ? blockCurrent : Settings.blocks.none.id;
+                            set(x + cX, y - cY, blockNew);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    createCave(id, number) {
+        const rng = this.getRng(id + 9000 + number);
+        const width = rng(Settings.caves.widthMin, Settings.caves.widthMax);
+        const height = rng(Settings.caves.heightMin, Settings.caves.heightMax);
+
+        const adjCount = (data, x, y) => {
+            let count = 0;
+            for (let a = -1; a <= 1; a++) {
+                for (let b = -1; b <= 1; b++) {
+                    count += data[a + y][b + x] === Settings.blocks.any.id;
+                }
+            }
+            return count;
+        }
+
+        const data1 = new Array(height).fill(0).map(_ => new Array(width).fill(Settings.blocks.none.id)); // all empty
+        const data2 = new Array(height).fill(0).map(_ => new Array(width).fill(Settings.blocks.any.id)); // all full
+
+        // init data1 with random + border wall
+        for (let x = 0; x < width; x++) {
+            for (let y = 0; y < height; y++) {
+                if (x < 1 || y < 1 || x > width - 2 || y > height - 2) {
+                    data1[y][x] = Settings.blocks.any.id;
+                } else if (rng() > Settings.caves.wallChance) {
+                    data1[y][x] = Settings.blocks.any.id;
+                }
+            }
+        }
+
+        // perform n iterations
+        for (let i = 0; i < Settings.caves.iterations; i++) {
+            // set walls based on adjacent count
+            for (let x = 1; x < width - 1; x++) {
+                for (let y = 1; y < height - 1; y++) {
+                    if (adjCount(data1, x, y) > 4) {
+                        data2[y][x] = Settings.blocks.any.id;
+                    } else {
+                        data2[y][x] = Settings.blocks.none.id;
+                    }
+                }
+            }
+
+            // copy data1 into data2
+            for (let x = 1; x < width - 1; x++) {
+                for (let y = 1; y < height - 1; y++) {
+                    data1[y][x] = data2[y][x];
+                }
+            }
+        }
+
+        return data1;
+    }
+
+    addBedrock(chunk) {
+        const rng = this.getRng(chunk.id + 120);
+        for (let x = 0; x < Settings.chunk.width; x++) {
+            for (let y = 0; y < rng(1, 2, true); y++) {
+                chunk.blocks[y][x] = Settings.blocks.bedrock.id;
+            }
+        }
+    }
+
+    blendBiomes(chunk) {
         const rng = this.getRng(chunk.id + 2600);
+        chunk.biomes.forEach((current, number) => {
+            let previous;
+            if (number === 0) {
+                const previousChunk = this.createBaseChunk(chunk.id - 1);
+                const number = previousChunk.biomes.length - 1;
+                previous = previousChunk.biomes[number];
+
+            } else {
+                previous = chunk.biomes[number - 1];
+            }
+            for (let i = 0; i < 16; i++) {
+                const x = current.start + i;
+
+            }
+        });
+
         chunk.biomes.map(b => b.start).filter(s => s > 16 && s < Settings.chunk.width).forEach(s => {
             for (let y = 0; y < Settings.chunk.height; y++) {
                 for (let i = 1; i < 16; i++) {

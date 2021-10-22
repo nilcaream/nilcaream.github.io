@@ -14,7 +14,8 @@
         import {Generator} from "./modules/generator.js";
 
         const gen = new Generator(727372);
-        const zoom = 3;
+        const zoom = 4;
+        const offset = 10;
 
         ((r) => document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", r) : r())(() => {
             const canvas = document.getElementsByTagName("canvas")[0];
@@ -27,7 +28,7 @@
                 // console.log(JSON.stringify(chunk, null, 2));
 
                 ctx.save();
-                ctx.translate(zoom * (i % 4) * (Settings.chunk.width + 2), zoom * Math.floor(i / 4) * (Settings.chunk.height + 2));
+                ctx.translate(zoom * (i % 4) * (Settings.chunk.width + offset), zoom * Math.floor(i / 4) * (Settings.chunk.height + offset));
 
                 ctx.beginPath();
                 ctx.rect(0, 0, zoom * Settings.chunk.width, zoom * Settings.chunk.height); // frame
@@ -96,6 +97,6 @@
     </script>
 </head>
 <body>
-<canvas width="3000" height="3000"></canvas>
+<canvas width="8000" height="3000"></canvas>
 </body>
 </html>

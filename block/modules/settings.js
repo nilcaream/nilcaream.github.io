@@ -10,8 +10,12 @@ const chunk = {
     }
 };
 
+const entities = {
+    player: {id: 0}
+};
+
 const blocks = {
-    none: {id: 0},
+    none: {id: 0, color: "#fff"},
     any: {id: 1, color: "#000"},
     grass: {id: 2, color: "#2ab013"},
     dirt: {id: 3, color: "#846a2c"},
@@ -25,10 +29,16 @@ const blocks = {
     gravel: {id: 11, color: "#ecece7"},
     sandBlock: {id: 12, color: "#ffe677"},
 
+    water1: {id: 20, color: "#60b0e3"},
+    water2: {id: 21, color: "#2be883"},
+    water3: {id: 22, color: "#172d7a"},
+
     coalOre: {id: 390, color: "#211f1f", yMin: 5, yMax: 128, lengthMin: 3, lengthMax: 6, chance: 1},
     ironOre: {id: 391, color: "#ced5d4", yMin: 5, yMax: 100, lengthMin: 3, lengthMax: 5, chance: 0.5},
     goldOre: {id: 392, color: "#f1c802", yMin: 5, yMax: 48, lengthMin: 2, lengthMax: 5, chance: 0.25},
     diamondOre: {id: 393, color: "#1ba4f1", yMin: 4, yMax: 20, lengthMin: 2, lengthMax: 5, chance: 0.125},
+
+    bedrock: {id: 1000, color: "#1a1919"},
 };
 
 const blockHelper = (depthMin, depthMax, blockId, chance) => {
@@ -54,8 +64,8 @@ const biomes = [ // order is important as generator is array-index based
         chance: 0.5,
         widthMin: 100,
         widthMax: 400,
-        heightMin: chunk.middle - 8,
-        heightMax: chunk.middle + 8,
+        heightMin: chunk.middle - 2,
+        heightMax: chunk.middle + 16,
         surfacePointsMin: 3,
         surfacePointsMax: 6,
         blocks: [
@@ -160,14 +170,15 @@ const biomes = [ // order is important as generator is array-index based
             veinHelper(30, blocks.ironOre.id, 1),
             veinHelper(40, blocks.goldOre.id, 1),
             veinHelper(40, blocks.diamondOre.id, 1),
-        ]
+        ],
+        water: blocks.water1.id
     },
     {
         name: "river",
         chance: 0.3,
-        widthMin: 50,
-        widthMax: 100,
-        heightMin: Math.round(0.8 * chunk.middle),
+        widthMin: 30,
+        widthMax: 60,
+        heightMin: Math.round(0.7 * chunk.middle),
         heightMax: Math.round(0.9 * chunk.middle),
         surfacePointsMin: 2,
         surfacePointsMax: 4,
@@ -185,14 +196,28 @@ const biomes = [ // order is important as generator is array-index based
             veinHelper(30, blocks.ironOre.id, 1),
             veinHelper(40, blocks.goldOre.id, 1),
             veinHelper(40, blocks.diamondOre.id, 1),
-        ]
+        ],
+        water: blocks.water1.id
     }
 ];
+
+const caves = {
+    widthMin: 8,
+    widthMax: 128,
+    heightMin: 8,
+    heightMax: 16,
+    wallChance: 0.54,
+    iterations: 6,
+    numberMin: 16,
+    numberMax: 32
+};
 
 const Settings = {
     chunk: chunk,
     biomes: biomes,
-    blocks: blocks
-}
+    blocks: blocks,
+    caves: caves,
+    entities: entities,
+};
 
 export {Settings};
