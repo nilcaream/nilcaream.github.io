@@ -14,6 +14,16 @@ const entities = {
     player: {id: 0}
 };
 
+const update = object => {
+    const keys = Object.keys(object);
+    object.all = Object.values(object);
+    keys.forEach(key => {
+        const value = object[key];
+        value.name = key;
+        object[value.id] = value;
+    });
+};
+
 const blocks = {
     none: {id: 0, color: "#fff"},
     any: {id: 1, color: "#000"},
@@ -41,6 +51,8 @@ const blocks = {
     bedrock: {id: 1000, color: "#1a1919"},
 };
 
+update(blocks);
+
 const blockHelper = (depthMin, depthMax, blockId, chance) => {
     return {
         depthMin: depthMin,
@@ -58,9 +70,9 @@ const veinHelper = (count, blockId, chance) => {
     }
 }
 
-const biomes = [ // order is important as generator is array-index based
-    {
-        name: "plains",
+const biomes = {
+    plains: {
+        id: 0,
         chance: 0.5,
         widthMin: 100,
         widthMax: 400,
@@ -86,8 +98,8 @@ const biomes = [ // order is important as generator is array-index based
             veinHelper(30, blocks.diamondOre.id, 1),
         ]
     },
-    {
-        name: "mountains",
+    mountains: {
+        id: 1,
         chance: 0.3,
         widthMin: 100,
         widthMax: 300,
@@ -120,8 +132,8 @@ const biomes = [ // order is important as generator is array-index based
             veinHelper(30, blocks.diamondOre.id, 1),
         ]
     },
-    {
-        name: "desert",
+    desert: {
+        id: 2,
         chance: 0.2,
         widthMin: 200,
         widthMax: 400,
@@ -147,8 +159,8 @@ const biomes = [ // order is important as generator is array-index based
             veinHelper(30, blocks.diamondOre.id, 1),
         ]
     },
-    {
-        name: "ocean",
+    ocean: {
+        id: 3,
         chance: 0.2,
         widthMin: 200,
         widthMax: 400,
@@ -173,8 +185,8 @@ const biomes = [ // order is important as generator is array-index based
         ],
         water: blocks.water1.id
     },
-    {
-        name: "river",
+    river: {
+        id: 4,
         chance: 0.3,
         widthMin: 30,
         widthMax: 60,
@@ -199,7 +211,9 @@ const biomes = [ // order is important as generator is array-index based
         ],
         water: blocks.water1.id
     }
-];
+};
+
+update(biomes);
 
 const caves = {
     widthMin: 8,

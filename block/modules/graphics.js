@@ -41,7 +41,7 @@ class Graphics {
         this.ctx.fillStyle = "black";
         this.ctx.textBaseline = "top";
 
-        this.zoom = 64;
+        this.zoom = 128;
         this.offset = {
             x: Math.round(window.innerWidth / 2),
             y: Math.round(window.innerHeight / 2)
@@ -73,8 +73,6 @@ class Graphics {
         const ctx = this.ctx;
         ctx.save();
         ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-
-        ctx.fillText(`${this.game.player.x},${this.game.player.y}`, 10, 10);
 
         const offset = {
             x: this.offset.x - this.zoom / 2,
@@ -111,7 +109,8 @@ class Graphics {
                 ctx.rect(viewX, viewY, this.zoom, this.zoom);
                 ctx.stroke();
 
-                const block = this.game.getBlock(chunkId, chunkX, chunkY);
+                // const block = this.game.getBlock(chunkId, chunkX, chunkY);
+                const block = this.game.getBlockAbsolute(_chunkX, chunkY);
                 ctx.fillStyle = "#000";
                 ctx.fillText(`${chunkId}:${chunkX},${chunkY}:${block}`, viewX + 2, viewY + 2);
 
@@ -126,10 +125,12 @@ class Graphics {
             }
         }
 
-        ctx.beginPath();
-        ctx.rect(0, 0, this.zoom, this.zoom);
-        ctx.rect(this.zoom / 4, this.zoom / 4, this.zoom / 2, this.zoom / 2);
-        ctx.stroke();
+        ctx.fillStyle = "rgba(60,187,167,0.44)";
+        ctx.fillRect(0, 0, this.zoom * this.game.player.width, this.zoom * this.game.player.height);
+
+        ctx.fillStyle = "#000";
+        ctx.font = '20px mono';
+        ctx.fillText(`${this.game.player.x},${this.game.player.y}`, 10, 10);
         ctx.restore();
     }
 }

@@ -164,14 +164,14 @@ class Generator {
         const rng = this.getRng(id + 2000 + number);
 
         for (let i = 0; i < 128; i++) {
-            const biome = Settings.biomes[rng(0, Settings.biomes.length)];
+            const biome = Settings.biomes.all[rng(0, Settings.biomes.all.length)];
             if (rng() < biome.chance) {
                 return biome;
             }
         }
 
         console.log(`Chunk ${id} biome ${number}: unable to generate biome`);
-        return Settings.biomes[0];
+        return Settings.biomes.all[0];
     }
 
     addBlocks(chunk) {
@@ -187,16 +187,16 @@ class Generator {
     updateBlocksInBiome(chunk, number) {
         const rng = this.getRng(chunk.id + 8000 + number);
         const biome = chunk.biomes[number];
-        const definition = Settings.biomes.filter(b => b.name === biome.name)[0].blocks || [];
+        const blocks = Settings.biomes[biome.name].blocks || [];
 
         for (let x = biome.start; x <= biome.end; x++) {
             let y = chunk.surface[x];
 
-            definition.forEach(d => {
-                if (rng() <= d.chance) {
-                    const depth = rng(d.depthMin, d.depthMax, true);
+            blocks.forEach(block => {
+                if (rng() <= block.chance) {
+                    const depth = rng(block.depthMin, block.depthMax, true);
                     for (let i = 0; i < depth && y >= 0; i++) {
-                        chunk.blocks[y--][x] = d.blockId;
+                        chunk.blocks[y--][x] = block.blockId;
                     }
                 }
             });
@@ -209,7 +209,7 @@ class Generator {
 
             const widthFactor = 2 * (biome.end - biome.start) / Settings.chunk.width;
 
-            (Settings.biomes.filter(b => b.name === biome.name)[0].veins || []).forEach(definition => {
+            (Settings.biomes[biome.name].veins || []).forEach(definition => {
                 const block = Object.values(Settings.blocks).filter(bl => bl.id === definition.blockId)[0];
                 for (let i = 0; i < definition.count; i++) {
                     for (let j = 0; j < 256; j++) {

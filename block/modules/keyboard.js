@@ -1,6 +1,16 @@
 const Keyboard = {
     _ready: false,
 
+    bindings: {
+        moveLeft: "KeyA",
+        moveRight: "KeyD",
+        moveUp: "KeyW",
+        moveDown: "KeyS",
+        jump: "Space",
+        run: "Control",
+        sneak: "Shift",
+    },
+
     init() {
         if (!this._ready) {
             console.log("Initializing keyboard");
