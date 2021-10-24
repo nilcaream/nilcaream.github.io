@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+    </style>
+    <script type="module">
+        import {Game} from "./modules/game2.js";
+        import {Graphics} from "./modules/graphics2.js";
+
+        ((r) => document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", r) : r())(() => {
+            const game = new Game(727372);
+            game.setPlayer("Copter");
+            const graphics = new Graphics("main", game);
+            graphics.start(30);
+        });
+
+    </script>
+</head>
+<body>
+<canvas id="main"></canvas>
+</body>
+</html>
