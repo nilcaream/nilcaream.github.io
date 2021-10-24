@@ -1,5 +1,3 @@
-import {Settings} from "./settings.js";
-import {Game} from "./game2.js";
 import {Keyboard} from "./keyboard.js";
 import {Animation} from "./animation.js";
 
@@ -28,7 +26,7 @@ class Hud {
 
     start(fps) {
         this.animation = new Animation(fps);
-        this.animation.start((timestamp, diff) => {
+        this.animation.start(() => {
             this.update();
             this.draw();
         });

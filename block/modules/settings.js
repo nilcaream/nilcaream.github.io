@@ -2,8 +2,6 @@ const chunk = {
     height: 128,
     middle: 64,
     width: 512,
-    top: 16, // no blocks are generated at Y in [0,16] // TODO remove
-    bottom: 124, // no blocks are generated at Y in [124,height] // TODO remove
 
     biomes: {
         widthMin: 32, // minimum width of the last biome in chunk

@@ -42,11 +42,11 @@ const Keyboard = {
     },
 
     has(code) {
-        return this.map[code] || 0;
+        return this.map[code] || false;
     },
 
     had(code) {
-        const result = this.map[code] || false;
+        const result = this.has(code);
         this.map[code] = false;
         return result;
     }

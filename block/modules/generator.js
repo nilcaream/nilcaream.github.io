@@ -257,7 +257,6 @@ class Generator {
     }
 
     addWater(chunk) {
-        const rng = this.getRng(chunk.id + 7100 + chunk.id);
         const fillDown = (x, waterId) => {
             for (let y = Settings.chunk.middle; y > 0; y--) {
                 if (chunk.blocks[y][x] === Settings.blocks.none.id) {
@@ -420,7 +419,7 @@ class Generator {
         }
     }
 
-    blendBiomes(chunk) {
+    blendBiomes(chunk) { // TODO WIP
         const rng = this.getRng(chunk.id + 2600);
         chunk.biomes.forEach((current, number) => {
             let previous;
