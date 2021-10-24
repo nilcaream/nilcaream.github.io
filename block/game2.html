@@ -9,21 +9,36 @@
             padding: 0;
             overflow: hidden;
         }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
     </style>
     <script type="module">
         import {Game} from "./modules/game2.js";
         import {Graphics} from "./modules/graphics2.js";
+        import {Hud} from "./modules/hud.js";
 
         ((r) => document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", r) : r())(() => {
             const game = new Game(727372);
             game.setPlayer("Copter");
             const graphics = new Graphics("main", game);
-            graphics.start(30);
+            graphics.start(40);
+
+            setTimeout(() => {
+                const hud = new Hud("hud", game);
+                hud.start(10);
+            }, 1000);
         });
 
     </script>
 </head>
 <body>
-<canvas id="main"></canvas>
+<div id="wrapper">
+    <canvas id="main"></canvas>
+    <canvas id="hud"></canvas>
+</div>
 </body>
 </html>

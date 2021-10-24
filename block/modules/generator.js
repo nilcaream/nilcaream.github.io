@@ -31,6 +31,7 @@ class Generator {
         this.addOres(chunk);
         this.addWater(chunk);
         this.addBedrock(chunk);
+        this.storeBiomesNames(chunk);
 
         // this.blendBiomes(chunk); // not working yet
         return chunk;
@@ -42,6 +43,15 @@ class Generator {
             biomes: this.createBiomes(id),
             blocks: new Array(Settings.chunk.height).fill(0).map(_ => new Array(Settings.chunk.width).fill(Settings.blocks.none.id))
         };
+    }
+
+    storeBiomesNames(chunk) {
+        chunk.biomesNames = new Array(Settings.chunk.width);
+        chunk.biomes.forEach(biome => {
+            for (let i = biome.start; i <= biome.end; i++) {
+                chunk.biomesNames[i] = biome.name;
+            }
+        });
     }
 
     createBiomes(id) {

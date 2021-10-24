@@ -2,10 +2,10 @@ const Keyboard = {
     _ready: false,
 
     bindings: {
-        moveLeft: "KeyA",
-        moveRight: "KeyD",
-        moveUp: "KeyW",
-        moveDown: "KeyS",
+        moveLeft: "ArrowLeft",
+        moveRight: "ArrowRight",
+        moveUp: "ArrowUp",
+        moveDown: "ArrowDown",
         jump: "Space",
         run: "Control",
         sneak: "Shift",
@@ -43,6 +43,12 @@ const Keyboard = {
 
     has(code) {
         return this.map[code] || 0;
+    },
+
+    had(code) {
+        const result = this.map[code] || false;
+        this.map[code] = false;
+        return result;
     }
 }
 
