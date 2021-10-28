@@ -1,5 +1,6 @@
 import {Keyboard} from "./keyboard.js";
 import {Animation} from "./animation.js";
+import {Settings} from "./settings.js";
 
 class Hud {
 
@@ -51,13 +52,18 @@ class Hud {
         const player = this.game.player;
         const position = this.game.getBlockAbsolute(player.x, player.y);
 
-        const text = (
+        let text =
             `${player.name} p:(${player.x.toFixed(2)},${player.y.toFixed(2)}) ` +
             `v:(${player.velocityX.toFixed(2)},${player.velocityY.toFixed(2)}) b:${this.game.meta.blockSize} ` +
             `${this.game.mode}:${this.game.generator.seed} ${position.biomeName} ` +
-            `${this.game.meta.fps.toFixed(2)} FPS (${this.game.meta.targetFps.toFixed(0)}) ` +
-            (this.game.meta.debug ? `DEBUG:${this.game.meta.debug}` : "")
-        ).trim();
+            `${this.game.meta.fps.toFixed(2)} FPS (${this.game.meta.targetFps.toFixed(0)}) `;
+
+        if (player.selected.present) {
+            const block = (Settings.blocks[player.selected.block.blockId] || {}).name;
+            text += `${block} ${player.selected.x},${player.selected.y} ${player.adjacent.face} `;
+        }
+
+        text = (text + (this.game.meta.debug ? `DEBUG:${this.game.meta.debug}` : "")).trim();
 
         const width = ctx.measureText(text).width;
         const height = this.fontSize;

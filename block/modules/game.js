@@ -2,6 +2,7 @@ import {Settings} from "./settings.js";
 import {Generator} from "./generator.js";
 import {Random} from "./random.js";
 import {Keyboard} from "./keyboard.js";
+import {Mouse} from "./mouse.js";
 
 class Entity {
     constructor(name, type) {
@@ -61,6 +62,7 @@ class Game {
         this.player.lastJump = 0;
         this.player.x = 333.5;
         this.player.y = 64;
+        this.player.selected = {};
 
         // this.player.x = 298;
         // this.player.y = 65;
@@ -143,7 +145,11 @@ class Game {
         let stepsY = Math.ceil(Math.abs(deltaY / Settings.movement.step));
 
         for (let sX = 0; sX < stepsX; sX++) {
-            this.moveIfPossible(entity, stepX, 0);
+            if (Keyboard.has(Keyboard.bindings.sneak) && this.isSpaceAroundEdge(entity, 2 * stepX, -Settings.movement.step) && entity.velocityY === 0) {
+                console.log(`Prevented fall by sneaking`);
+            } else {
+                this.moveIfPossible(entity, stepX, 0);
+            }
         }
         for (let sY = 0; sY < stepsY; sY++) {
             this.moveIfPossible(entity, 0, stepY);
@@ -165,61 +171,142 @@ class Game {
         } else if (this.mode === Mode.creative) {
             this.moveCreative(timestamp, diff);
         } else if (this.mode === Mode.survival) {
-            if (Keyboard.has(Keyboard.bindings.stop)) {
-                this.selectNext();
-            }
             this.moveSurvival(timestamp, diff);
-            this.setNearestBlocks();
+            this.selectBlockAt(mouseX, mouseY);
+            this.actOnSelectedBlock();
         }
     }
 
-    setNearestBlocks() {
-        this.player.nearest = this.findNearest(this.player.x, this.player.y + this.player.height);
-    }
-
-    selectNearestBlocks() {
-        let angle;
-        if (Keyboard.has(Keyboard.bindings.moveUp) && Keyboard.has(Keyboard.bindings.moveRight)) {
-            angle = 0.25;
-        } else if (Keyboard.has(Keyboard.bindings.moveUp) && Keyboard.has(Keyboard.bindings.moveLeft)) {
-            angle = 0.75;
-        } else if (Keyboard.has(Keyboard.bindings.moveUp)) {
-            angle = 0.5;
-        } else if (Keyboard.has(Keyboard.bindings.moveDown) && Keyboard.has(Keyboard.bindings.moveRight)) {
-            angle = 1.75;
-        } else if (Keyboard.has(Keyboard.bindings.moveDown) && Keyboard.has(Keyboard.bindings.moveLeft)) {
-            angle = 1.25;
-        } else if (Keyboard.has(Keyboard.bindings.moveDown)) {
-            angle = 1.5;
-        } else if (Keyboard.has(Keyboard.bindings.moveRight)) {
-            angle = 2;
-        } else if (Keyboard.has(Keyboard.bindings.moveLeft)) {
-            angle = 1;
-        } else {
-            angle = this.player.angle;
-        }
-
-        this.player.angle = angle;
-        this.player.selected = this.player.nearest[this.player.angle];
-
-        if (this.player.selected) {
-            console.log(`Selected ${this.player.selected.x} ${this.player.selected.y} ${this.player.angle}`);
-        }
-    }
-
-    selectNext() {
-        this.player.nearest = this.player.nearest || {};
-        const angles = Object.keys(this.player.nearest).sort((a, b) => a - b) || [];
-        let current = angles.indexOf(this.player.angle.toString());
-        current = current === -1 ? 0 : current;
-        const offset = Keyboard.had(Keyboard.bindings.moveUp) ? -1 : Keyboard.had(Keyboard.bindings.moveDown) ? 1 : 0;
-        if (current !== -1 && offset) {
-            this.player.angle = angles[(current + offset + angles.length) % angles.length];
-            this.player.selected = this.player.nearest[this.player.angle];
-
-            if (this.player.selected) {
-                console.log(`Selected next ${this.player.selected.x} ${this.player.selected.y} ${this.player.angle}`);
+    actOnSelectedBlock() {
+        if (this.player.selected.present) {
+            if (Mouse.had(Mouse.bindings.attack)) {
+                this.removeBlock(this.player.selected.block);
+            } else if (Mouse.had(Mouse.bindings.place)) {
+                const block = this.player.adjacent.block;
+                if (this.doesIntersect(
+                    this.player.x - this.player.width / 2, this.player.y,
+                    this.player.x + this.player.width / 2, this.player.y + 1,
+                    block.x, block.y,
+                    block.x + 1, block.y + 1)) {
+                    console.log(`Cannot place block`);
+                } else {
+                    block.blockId = Settings.blocks.dirt.id;
+                    this.addBlock(block);
+                }
             }
+        }
+    }
+
+    isWithinBounds(x, y, x0, y0, x1, y1) {
+        return x >= x0 && x <= x1 && y >= y0 && y <= y1;
+    }
+
+    // e1 - rectangular entity 1 with coordinates x0y0,x1y1 (x1>x0, y1>x1)
+    // e2 - rectangular entity 2 with coordinates x0y0,x1y1 (x1>x0, y1>x1)
+    doesIntersect(e1x0, e1y0, e1x1, e1y1, e2x0, e2y0, e2x1, e2y1) {
+        if (this.isWithinBounds(e1x1, e1y0, e2x0, e2y0, e2x1, e2y1)) { // e1 bottom left corner in e2
+            return true;
+        } else if (this.isWithinBounds(e1x1, e1y0, e2x0, e2y0, e2x1, e2y1)) { // e1 bottom right corner in e2
+            return true;
+        } else if (this.isWithinBounds(e1x0, e1y0, e2x0, e2y0, e2x1, e2y1)) { // e1 bottom left corner in e2
+            return true;
+        } else if (this.isWithinBounds(e1x1, e1y1, e2x0, e2y0, e2x1, e2y1)) { // e1 top right corner in e2
+            return true;
+        } else if (this.isWithinBounds(e1x0, e1y1, e2x0, e2y0, e2x1, e2y1)) { // e1 top left corner in e2
+            return true;
+        } else {
+            return false
+        }
+    }
+
+    selectBlockAt(x2, y2) {
+        const x0 = this.player.x;
+        const y0 = this.player.y + 0.8 * this.player.height;
+        const a = Math.atan2(y2 - y0, x2 - x0);
+        const none = Settings.blocks.none.id;
+
+        this.player.selected.present = false;
+
+        for (let r = Settings.nearest.rMinimum; r <= Settings.nearest.rMaximum; r += Settings.nearest.rStep) {
+            const x1 = x0 + r * Math.cos(a);
+            const y1 = y0 + r * Math.sin(a);
+            const block = this.getBlockAbsolute(x1, y1);
+
+            if (block.blockId !== none) {
+                block.midX = block.xAbsolute + 0.5;
+                block.midY = block.yAbsolute + 0.5;
+                const pointerBlockDistance = Math.sqrt((x2 - block.midX) * (x2 - block.midX) + (y2 - block.midY) * (y2 - block.midY));
+                const adjacent = this.detectFirstFace(x0, y0, Math.tan(a), block.x, block.y, block.x + 1, block.y + 1);
+                if (pointerBlockDistance < 4.7 && adjacent) { // TODO remove if distance check is not needed
+                    this.player.selected.present = true;
+                    this.player.selected.x = block.xAbsolute;
+                    this.player.selected.y = block.yAbsolute;
+                    this.player.selected.x0 = x0;
+                    this.player.selected.y0 = y0;
+                    this.player.selected.x1 = x1;
+                    this.player.selected.y1 = y1;
+                    this.player.selected.x2 = x2;
+                    this.player.selected.y2 = y2;
+                    this.player.selected.block = block;
+                    this.player.adjacent = adjacent;
+
+                    // console.log(`Selected ${this.player.selected.x} ${this.player.selected.y} ${this.player.adjacent.face}`);
+                }
+                break;
+            }
+        }
+    }
+
+    // x0,y0 - starting point
+    // a - angle
+    // x1,y1 - lower left block corner
+    // x2,y2 - upper right block corner
+    detectFirstFace(x0, y0, a, x1, y1, x2, y2) {
+        const b = y0 - a * x0;
+        let x;
+        let y;
+        let block;
+
+        // left
+        y = a * x1 + b;
+        block = this.getBlockAbsolute(x1 - 0.5, y1 + 0.5);
+        if (y > y1 && y < y2 && x0 < x1 && block.blockId === Settings.blocks.none.id) {
+            return {
+                face: "left",
+                block: block
+            };
+        }
+
+        // right
+        y = a * x2 + b;
+        block = this.getBlockAbsolute(x2 + 0.5, y1 + 0.5);
+        if (y > y1 && y < y2 && x0 > x2 && block.blockId === Settings.blocks.none.id) {
+            return {
+                face: "right",
+                block: block
+            };
+        }
+
+        // top
+        x = (y2 - b) / a;
+        block = this.getBlockAbsolute(x1 + 0.5, y2 + 0.5);
+        if (x > x1 && x < x2 && y0 > y2 && block.blockId === Settings.blocks.none.id) {
+            return {
+                face: "top",
+                block: block
+            };
+        }
+
+        // bottom
+        x = (y1 - b) / a;
+        block = this.getBlockAbsolute(x1 + 0.5, y1 - 0.5);
+        if (x > x1 && x < x2 && y0 < y1 && block.blockId === Settings.blocks.none.id) {
+            return {
+                face: "bottom",
+                block: block
+            };
+        } else {
+            return false;
         }
     }
 
@@ -339,14 +426,10 @@ class Game {
             this.player.velocityY = Settings.movement.step;
         } else if (this.isSpaceAroundEdge(this.player, 0, -Settings.movement.step)) {
             this.player.velocityY = this.player.velocityY - g * t;
-            console.log(`Gravity v=${this.player.velocityY.toFixed(2)}`);
+            // console.log(`Gravity v=${this.player.velocityY.toFixed(2)}`);
         } else if (this.player.velocityY !== 0) {
             console.log(`Hurt from ${this.player.velocityY.toFixed(2)}`);
             this.player.velocityY = 0;
-        }
-
-        if (this.player.velocityX) {
-            this.player.faceRight = this.player.velocityX > 0;
         }
 
         if (this.player.velocityX || this.player.velocityY) {
@@ -364,6 +447,16 @@ class Game {
         return position;
     }
 
+    removeBlock(block) {
+        const chunk = this.generator.getChunk(block.chunkId);
+        chunk.blocks[block.y][block.x] = Settings.blocks.none.id;
+    }
+
+    addBlock(block) {
+        const chunk = this.generator.getChunk(block.chunkId);
+        chunk.blocks[block.y][block.x] = block.blockId;
+    }
+
     resolve(x, y) {
         return {
             chunkId: Math.floor(x / Settings.chunk.width),
@@ -372,55 +465,6 @@ class Game {
             xAbsolute: Math.floor(x),
             yAbsolute: Math.floor(y),
         }
-    }
-
-    nearestKey(block) {
-        return `${block.chunkId}:${block.x}:${block.y}`;
-    }
-
-    nearestR(x, y, block) {
-        //  -0.5 as block absolute position is lower left corner. here it is centered
-        return (x - block.xAbsolute - 0.5) * (x - block.xAbsolute - 0.5) + (y - block.yAbsolute - 0.5) * (y - block.yAbsolute - 0.5);
-    }
-
-    findNearest(x, y) {
-        const results = {};
-
-        for (let a = 0; a < 2 * Math.PI; a += Settings.nearest.angleStep) {
-            for (let r = Settings.nearest.rMinimum; r <= Settings.nearest.rMaximum; r += Settings.nearest.rStep) {
-                const cx = x + r * Math.cos(a);
-                const cy = y + r * Math.sin(a);
-                const block = this.getBlockAbsolute(cx, cy);
-                if (block.blockId !== Settings.blocks.none.id) {
-                    results[this.nearestKey(block)] = block;
-                    break;
-                }
-            }
-        }
-
-        // clean
-        Object.keys(results).forEach(key => {
-            const value = results[key];
-            const up = results[this.nearestKey(this.resolve(value.xAbsolute, value.yAbsolute + 1))];
-            const down = results[this.nearestKey(this.resolve(value.xAbsolute, value.yAbsolute - 1))];
-            const left = results[this.nearestKey(this.resolve(value.xAbsolute - 1, value.yAbsolute))];
-            const right = results[this.nearestKey(this.resolve(value.xAbsolute + 1, value.yAbsolute))];
-
-            if ((up || down) && (left || right)) {
-                const valueR = this.nearestR(x, y, value);
-                const upDownR = up ? this.nearestR(x, y, up) : this.nearestR(x, y, down);
-                const leftRightR = left ? this.nearestR(x, y, left) : this.nearestR(x, y, right);
-                if (valueR >= upDownR || valueR >= leftRightR) {
-                    delete results[key];
-                }
-            }
-        });
-        const angleToBlock = {};
-        Object.values(results).forEach(block => {
-            const angle = (Math.PI + Math.atan2(Math.floor(y) - Math.floor(block.yAbsolute), Math.floor(x) - Math.floor(block.xAbsolute))) / Math.PI;
-            angleToBlock[angle] = block;
-        });
-        return angleToBlock;
     }
 }
 

@@ -3,14 +3,13 @@ const Keyboard = {
     map: {},
 
     bindings: {
-        moveLeft: "ArrowLeft",
-        moveRight: "ArrowRight",
-        moveUp: "ArrowUp",
-        moveDown: "ArrowDown",
+        moveLeft: "KeyA",
+        moveRight: "KeyD",
+        moveUp: "KeyW",
+        moveDown: "KeyS",
         jump: "Space",
         run: "Control",
-        sneak: "Shift",
-        stop: "KeyS",
+        sneak: "Shift"
     },
 
     init() {

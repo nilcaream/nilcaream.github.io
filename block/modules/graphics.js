@@ -16,10 +16,11 @@ class Graphics {
         this.ctx.imageSmoothingEnabled = false;
 
         this.ctx.font = '9px mono';
-        this.ctx.fillStyle = "black";
+        this.ctx.fillStyle = "#000";
         this.ctx.textBaseline = "top";
+        this.ctx.lineWidth = 1;
 
-        this.debug = 2;
+        this.debug = 1;
 
         this.zoom = 64;
         this.offset = {
@@ -70,10 +71,6 @@ class Graphics {
             this.ctx.rect(this.rX(x), this.rY(y + 1), this.rS(1), this.rS(1));
             this.ctx.stroke();
 
-            this.ctx.fillStyle = "#000";
-            this.ctx.textBaseline = 'bottom';
-            this.ctx.fillText(`${r.x},${r.y} b:${r.blockId}`, this.rX(x) + this.rS(0.01), this.rY(y));
-
             if (r.blockId) {
                 this.ctx.fillStyle = r.block.color;
                 this.ctx.fillRect(this.rX(x) + this.rS(0.1), this.rY(y + 1) + this.rS(0.1), this.rS(0.8), this.rS(0.8));
@@ -83,12 +80,17 @@ class Graphics {
                 this.ctx.fillStyle = mark;
                 this.ctx.fillRect(this.rX(x) + this.rS(0.2), this.rY(y + 1) + this.rS(0.2), this.rS(0.6), this.rS(0.6));
             }
+
+            this.ctx.fillStyle = "#000";
+            this.ctx.textBaseline = 'bottom';
+            this.ctx.fillText(`${r.x},${r.y} b:${r.blockId}`, this.rX(x) + this.rS(0.01), this.rY(y));
         }
     }
 
-    // origin is at center of player model
+    // origin is at center of player model in stand position
     // player.y is feet level; player.x is at center of player (width/2)
 
+    // convert chunk x,y to screen x,y
     rX(x) {
         return Math.floor(this.offset.x + (x - this.game.player.x) * this.zoom);
     }
@@ -101,6 +103,7 @@ class Graphics {
         return v * this.zoom;
     }
 
+    // convert screen x,y to chunk x,y
     sX(x) {
         return this.game.player.x + (x - this.offset.x) / this.zoom;
     }
@@ -133,31 +136,66 @@ class Graphics {
             }
         }
 
-        // !!!this.drawBlock(Math.floor(player.x + x), Math.floor(player.y + player.height / 2 + y), c);
-        // !!!! IMPORTANT player.x is at player.width/2, player.y is a feet level,
-
         // player
         ctx.fillStyle = "rgba(60,187,167,0.44)";
         ctx.fillRect(this.rX(player.x - player.width / 2), this.rY(player.y + player.height), this.rS(player.width), this.rS(player.height));
 
         if (this.debug === 2) {
             ctx.fillStyle = "#000";
-            ctx.font = '20px mono';
+            ctx.font = '10px mono';
             ctx.textBaseline = 'middle';
             ctx.textAlign = 'center';
             ctx.fillText(`${this.game.player.x.toFixed(2)},${this.game.player.y.toFixed(2)}`, this.rX(player.x), this.rY(player.y));
-
-            const nearest = this.game.findNearest(player.x, player.y + player.height);
-            Object.values(nearest).forEach(block => {
-                ctx.fillStyle = "#f8c013";
-                ctx.fillRect(this.rX(block.x + 0.3), this.rY(block.y + 1 - 0.3), this.rS(0.4), this.rS(0.4));
-            });
         }
 
         const selected = player.selected;
-        if (selected) {
-            ctx.fillStyle = "#28c0af";
-            ctx.fillRect(this.rX(selected.x + 0.35), this.rY(selected.y + 1 - 0.35), this.rS(0.3), this.rS(0.3));
+        if (selected.present) {
+            if (this.debug === 2) {
+                ctx.fillStyle = "#28c0af";
+                ctx.fillRect(this.rX(selected.x + 0.35), this.rY(selected.y + 1 - 0.35), this.rS(0.3), this.rS(0.3));
+
+                ctx.strokeStyle = "#33f";
+                ctx.beginPath();
+                ctx.moveTo(this.rX(selected.x0), this.rY(selected.y0));
+                ctx.lineTo(this.rX(selected.x1), this.rY(selected.y1));
+                ctx.stroke();
+            } else {
+                ctx.strokeStyle = "#222";
+                ctx.beginPath();
+                ctx.setLineDash([5, 3]);
+                ctx.rect(this.rX(selected.x), this.rY(selected.y + 1), this.rS(1), this.rS(1));
+                ctx.stroke();
+                let x0, y0, x1, y1;
+                if (player.adjacent.face === "right") {
+                    x0 = selected.x + 1;
+                    x1 = selected.x + 1;
+                    y0 = selected.y;
+                    y1 = selected.y + 1;
+                } else if (player.adjacent.face === "left") {
+                    x0 = selected.x;
+                    x1 = selected.x;
+                    y0 = selected.y;
+                    y1 = selected.y + 1;
+                } else if (player.adjacent.face === "top") {
+                    x0 = selected.x;
+                    x1 = selected.x + 1;
+                    y0 = selected.y + 1;
+                    y1 = selected.y + 1;
+                } else if (player.adjacent.face === "bottom") {
+                    x0 = selected.x;
+                    x1 = selected.x + 1;
+                    y0 = selected.y;
+                    y1 = selected.y;
+                }
+
+                ctx.beginPath();
+                ctx.lineWidth = 2;
+                ctx.setLineDash([]);
+                ctx.moveTo(this.rX(x0), this.rY(y0));
+                ctx.lineTo(this.rX(x1), this.rY(y1));
+                ctx.stroke();
+                ctx.lineWidth = 1;
+            }
         }
 
         ctx.restore();
@@ -185,7 +223,7 @@ class Graphics {
             this.ctx.fillStyle = "#000";
             this.ctx.textBaseline = 'middle';
             this.ctx.textAlign = 'center';
-            this.ctx.fillText(`${this.sX(midX).toFixed(2)},${this.sY(midY).toFixed(2)}`, midX, midY);
+            this.ctx.fillText(`${this.sX(midX).toFixed(2)},${this.sY(midY).toFixed(2)}`, midX, midY - length);
         }
         this.ctx.restore();
     }

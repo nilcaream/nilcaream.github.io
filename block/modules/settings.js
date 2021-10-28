@@ -239,12 +239,9 @@ const movement = {
 
 const nearest = {
     rMinimum: 0.9,
-    rMaximum: 2.5,
-    rSteps: 3,
-    angleSteps: 32
+    rMaximum: 2.8,
+    rStep: 0.9,
 }
-nearest.rStep = (nearest.rMaximum - nearest.rMinimum) / nearest.rSteps;
-nearest.angleStep = 2 * Math.PI / nearest.angleSteps;
 
 const Settings = {
     chunk: chunk,
