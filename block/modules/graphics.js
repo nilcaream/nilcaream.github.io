@@ -1,5 +1,7 @@
 import {Keyboard} from "./keyboard.js";
 import {Animation} from "./animation.js";
+import {Settings} from "./settings.js";
+import {Mouse} from "./mouse.js";
 
 class Graphics {
 
@@ -17,7 +19,7 @@ class Graphics {
         this.ctx.fillStyle = "black";
         this.ctx.textBaseline = "top";
 
-        this.debug = 1;
+        this.debug = 2;
 
         this.zoom = 64;
         this.offset = {
@@ -26,13 +28,14 @@ class Graphics {
         };
 
         Keyboard.init();
+        Mouse.init();
     }
 
     start(fps) {
         this.animation = new Animation(fps);
         this.animation.start((timestamp, diff) => {
-            this.game.update(timestamp, diff);
             this.update(timestamp, diff);
+            this.game.update(timestamp, diff, this.sX(Mouse.x), this.sY(Mouse.y));
             this.draw();
         });
     }
@@ -53,7 +56,7 @@ class Graphics {
         this.game.meta.fps = 1000 / diff;
     }
 
-    drawBlock(x, y) {
+    drawBlock(x, y, mark) {
         const r = this.game.getBlockAbsolute(x, y);
 
         if (this.debug === 1) {
@@ -75,6 +78,11 @@ class Graphics {
                 this.ctx.fillStyle = r.block.color;
                 this.ctx.fillRect(this.rX(x) + this.rS(0.1), this.rY(y + 1) + this.rS(0.1), this.rS(0.8), this.rS(0.8));
             }
+
+            if (mark) {
+                this.ctx.fillStyle = mark;
+                this.ctx.fillRect(this.rX(x) + this.rS(0.2), this.rY(y + 1) + this.rS(0.2), this.rS(0.6), this.rS(0.6));
+            }
         }
     }
 
@@ -86,11 +94,19 @@ class Graphics {
     }
 
     rY(y) {
-        return Math.floor(this.offset.y + (this.game.player.y - y + this.game.player.height / 2) * this.zoom);
+        return Math.floor(this.offset.y + (this.game.player.y - y + this.game.player.heightStand / 2) * this.zoom);
     }
 
     rS(v) {
         return v * this.zoom;
+    }
+
+    sX(x) {
+        return this.game.player.x + (x - this.offset.x) / this.zoom;
+    }
+
+    sY(y) {
+        return this.game.player.y + this.game.player.heightStand / 2 + (this.offset.y - y) / this.zoom;
     }
 
     draw() {
@@ -117,6 +133,7 @@ class Graphics {
             }
         }
 
+        // !!!this.drawBlock(Math.floor(player.x + x), Math.floor(player.y + player.height / 2 + y), c);
         // !!!! IMPORTANT player.x is at player.width/2, player.y is a feet level,
 
         // player
@@ -129,9 +146,48 @@ class Graphics {
             ctx.textBaseline = 'middle';
             ctx.textAlign = 'center';
             ctx.fillText(`${this.game.player.x.toFixed(2)},${this.game.player.y.toFixed(2)}`, this.rX(player.x), this.rY(player.y));
+
+            const nearest = this.game.findNearest(player.x, player.y + player.height);
+            Object.values(nearest).forEach(block => {
+                ctx.fillStyle = "#f8c013";
+                ctx.fillRect(this.rX(block.x + 0.3), this.rY(block.y + 1 - 0.3), this.rS(0.4), this.rS(0.4));
+            });
+        }
+
+        const selected = player.selected;
+        if (selected) {
+            ctx.fillStyle = "#28c0af";
+            ctx.fillRect(this.rX(selected.x + 0.35), this.rY(selected.y + 1 - 0.35), this.rS(0.3), this.rS(0.3));
         }
 
         ctx.restore();
+
+        this.drawMousePointer();
+    }
+
+    drawMousePointer() {
+        this.ctx.save();
+
+        const midX = Mouse.x;
+        const midY = Mouse.y;
+        const length = 16;
+
+        this.ctx.strokeStyle = "#000";
+        this.ctx.beginPath();
+        this.ctx.moveTo(midX - length / 2, midY);
+        this.ctx.lineTo(midX + length / 2, midY);
+        this.ctx.stroke();
+        this.ctx.moveTo(midX, midY - length / 2);
+        this.ctx.lineTo(midX, midY + length / 2);
+        this.ctx.stroke();
+
+        if (this.debug === 2) {
+            this.ctx.fillStyle = "#000";
+            this.ctx.textBaseline = 'middle';
+            this.ctx.textAlign = 'center';
+            this.ctx.fillText(`${this.sX(midX).toFixed(2)},${this.sY(midY).toFixed(2)}`, midX, midY);
+        }
+        this.ctx.restore();
     }
 }
 

@@ -1,38 +1,38 @@
-const Keyboard = {
+const Mouse = {
     _ready: false,
     map: {},
+    x: 0,
+    y: 0,
 
     bindings: {
-        moveLeft: "ArrowLeft",
-        moveRight: "ArrowRight",
-        moveUp: "ArrowUp",
-        moveDown: "ArrowDown",
-        jump: "Space",
-        run: "Control",
-        sneak: "Shift",
-        stop: "KeyS",
+        attack: 0,
+        place: 2
     },
 
     init() {
         if (!this._ready) {
-            console.log("Initializing keyboard");
+            console.log("Initializing mouse");
 
-            document.addEventListener("keydown", (e) => {
-                this.map[e.key] = true;
-                this.map[e.code] = true;
+            document.addEventListener("mousemove", e => {
+                this.x = e.x;
+                this.y = e.y;
+            });
+
+            document.addEventListener("contextmenu", e => e.preventDefault());
+
+            document.addEventListener("mousedown", (e) => {
+                this.map[e.button] = true;
                 e.preventDefault();
                 e.stopPropagation();
                 return false;
             }, false);
 
-            document.addEventListener("keyup", (e) => {
-                this.map[e.key] = false;
-                this.map[e.code] = false;
+            document.addEventListener("mouseup", (e) => {
+                this.map[e.button] = false;
                 e.preventDefault();
                 e.stopPropagation();
                 return false;
             }, false);
-
             this._ready = true;
         }
     },
@@ -48,4 +48,4 @@ const Keyboard = {
     }
 }
 
-export {Keyboard}
+export {Mouse}

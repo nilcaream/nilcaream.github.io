@@ -228,13 +228,23 @@ const movement = {
     step: 0.02, // percentage of block size
     gravity: 18,
     walkSpeed: 4.3, // blocks per second
+    crouchSpeed: 3.3, // blocks per second
     sneakSpeed: 1.3, // blocks per second
     runSpeed: 5.6, // blocks per second
-    runJumpSpeed: 6.0, // blocks per second // 7.2
+    runJumpSpeed: 6.2, // blocks per second // 7.2
     jumpSpeed: 6,
     accelerationGround: 0.05,
     accelerationAir: 0.02,
 }
+
+const nearest = {
+    rMinimum: 0.9,
+    rMaximum: 2.5,
+    rSteps: 3,
+    angleSteps: 32
+}
+nearest.rStep = (nearest.rMaximum - nearest.rMinimum) / nearest.rSteps;
+nearest.angleStep = 2 * Math.PI / nearest.angleSteps;
 
 const Settings = {
     chunk: chunk,
@@ -243,6 +253,7 @@ const Settings = {
     caves: caves,
     entities: entities,
     movement: movement,
+    nearest: nearest,
 };
 
 export {Settings};

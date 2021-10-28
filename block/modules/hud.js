@@ -12,6 +12,7 @@ class Hud {
 
         this.ctx = this.canvas.getContext("2d");
         // this.ctx.imageSmoothingEnabled = false;
+        this.ctx.textBaseline = "top";
 
         this.updateFontSize(13);
 
@@ -48,16 +49,8 @@ class Hud {
     draw() {
         const ctx = this.ctx;
         const player = this.game.player;
-
-        ctx.save();
-        ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-
-        ctx.fillStyle = "#000";
-        this.ctx.textBaseline = "top";
-        ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 2;
-
         const position = this.game.getBlockAbsolute(player.x, player.y);
+
         const text = (
             `${player.name} p:(${player.x.toFixed(2)},${player.y.toFixed(2)}) ` +
             `v:(${player.velocityX.toFixed(2)},${player.velocityY.toFixed(2)}) b:${this.game.meta.blockSize} ` +
@@ -66,7 +59,17 @@ class Hud {
             (this.game.meta.debug ? `DEBUG:${this.game.meta.debug}` : "")
         ).trim();
 
-        ctx.strokeText(text, 0, 0);
+        const width = ctx.measureText(text).width;
+        const height = this.fontSize;
+
+        ctx.save();
+
+        ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+        ctx.fillStyle = "rgba(255,255,255,0.7)";
+        ctx.fillRect(0, 0, width, height);
+
+        ctx.fillStyle = "#000";
         ctx.fillText(text, 0, 0);
 
         ctx.restore();
