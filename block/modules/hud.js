@@ -54,9 +54,12 @@ class Hud {
 
         let text =
             `${player.name} p:(${player.x.toFixed(2)},${player.y.toFixed(2)}) ` +
-            `v:(${player.velocityX.toFixed(2)},${player.velocityY.toFixed(2)}) b:${this.game.meta.blockSize} ` +
+            `v:(${player.velocityX.toFixed(2)},${player.velocityY.toFixed(2)}) ` +
+            `c:${position.chunkId} ` +
+            `b:${this.game.meta.blockSize} ` +
             `${this.game.mode}:${this.game.generator.seed} ${position.biomeName} ` +
-            `${this.game.meta.fps.toFixed(2)} FPS (${this.game.meta.targetFps.toFixed(0)}) `;
+            `HP:${this.game.player.health} ` +
+            `FPS:${this.game.meta.fps.toFixed(0)}/${this.game.meta.targetFps.toFixed(0)} `;
 
         if (player.selected.present) {
             const block = (Settings.blocks[player.selected.block.blockId] || {}).name;

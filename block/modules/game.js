@@ -10,17 +10,15 @@ class Entity {
         this.type = type;
         this.x = 0;
         this.y = 0;
-        this.chunkId = 0;
-        this.chunkX = 0;
-        this.chunkY = 0;
         this.velocityX = 0;
         this.velocityY = 0;
-        this.targetVelocityX = 0;
-        this.targetVelocityY = 0;
         this.widthStand = 0.8;
         this.heightStand = 1.8;
         this.widthCrouch = 1.6;
         this.heightCrouch = 0.8;
+        this.maxHealth = 20;
+        this.health = 20;
+        this.hurtEverySecond = {};
 
         this.setCrouch(false);
     }
@@ -57,15 +55,15 @@ class Game {
     setPlayer(name) {
         this.player = new Entity(name, Settings.entities.player.id);
         this.player.x = this.spawn.x;
-        this.player.y = this.spawn.y + 2;
-        this.player.chunkId = this.spawn.chunkId;
+        this.player.y = this.spawn.y;
         this.player.lastJump = 0;
-        this.player.x = 333.5;
-        this.player.y = 64;
+        // this.player.x = 333.5;
+        // this.player.y = 64;
         this.player.selected = {};
 
         // this.player.x = 298;
         // this.player.y = 65;
+        this.player.y = 2.2;
     }
 
     getRng(id) {
@@ -82,17 +80,16 @@ class Game {
                 for (let j = 0; j < (biome.end - biome.start) / 2; j++) {
                     const x = rng(biome.start, biome.end);
                     let y = Settings.chunk.height - 1;
-                    while (y > 0 && chunk.blocks[y][x] === Settings.blocks.none.id) {
+                    while (y > 0 && chunk.blocks[y][x].blockId === Settings.blocks.none.id) {
                         y--;
                     }
-                    const blockId = chunk.blocks[y][x];
+                    const blockId = chunk.blocks[y][x].blockId;
                     if (blockId !== Settings.blocks.water1.id) { // TODO add other water / lava blocks
                         y++;
-                        console.log(`Spawn point seed ${this.generator.seed} chunk ${i} biome ${number} ${biome.name} block ${blockId}: ${x} ${y}`);
+                        console.log(`Spawn point seed ${this.generator.seed} chunk ${i} biome ${number} ${biome.name} block ${Settings.blocks[blockId].name}: ${x} ${y}`);
                         return {
-                            x: x,
-                            y: y,
-                            chunkId: chunk.id
+                            x: x + chunk.id * Settings.chunk.width,
+                            y: y
                         }
                     }
                 }
@@ -128,7 +125,7 @@ class Game {
 
                 // console.log(`Check ${x.toFixed(2)},${y.toFixed(2)} chunk ${b.x} ${b.y} block ${b.blockId}`);
 
-                if (b.blockId !== Settings.blocks.none.id) {
+                if (b.blockId > Settings.blocks.none.id) {
                     return false;
                 }
             }
@@ -170,7 +167,7 @@ class Game {
             this.moveSpectator(timestamp, diff);
         } else if (this.mode === Mode.creative) {
             this.moveCreative(timestamp, diff);
-        } else if (this.mode === Mode.survival) {
+        } else if (this.mode === Mode.survival && this.player.health > 0) {
             this.moveSurvival(timestamp, diff);
             this.selectBlockAt(mouseX, mouseY);
             this.actOnSelectedBlock();
@@ -181,6 +178,7 @@ class Game {
         if (this.player.selected.present) {
             if (Mouse.had(Mouse.bindings.attack)) {
                 this.removeBlock(this.player.selected.block);
+                this.makeVisible();
             } else if (Mouse.had(Mouse.bindings.place)) {
                 const block = this.player.adjacent.block;
                 if (this.doesIntersect(
@@ -232,11 +230,11 @@ class Game {
             const y1 = y0 + r * Math.sin(a);
             const block = this.getBlockAbsolute(x1, y1);
 
-            if (block.blockId !== none) {
+            if (block.blockId > none) {
                 block.midX = block.xAbsolute + 0.5;
                 block.midY = block.yAbsolute + 0.5;
                 const pointerBlockDistance = Math.sqrt((x2 - block.midX) * (x2 - block.midX) + (y2 - block.midY) * (y2 - block.midY));
-                const adjacent = this.detectFirstFace(x0, y0, Math.tan(a), block.x, block.y, block.x + 1, block.y + 1);
+                const adjacent = this.detectFirstFace(x0, y0, Math.tan(a), block.xAbsolute, block.yAbsolute, block.xAbsolute + 1, block.yAbsolute + 1);
                 if (pointerBlockDistance < 4.7 && adjacent) { // TODO remove if distance check is not needed
                     this.player.selected.present = true;
                     this.player.selected.x = block.xAbsolute;
@@ -316,6 +314,45 @@ class Game {
         } else {
             const values = Object.values(Mode);
             this.mode = values[(values.indexOf(this.mode) + 1) % values.length];
+        }
+    }
+
+    surrounding(eX, eY) {
+        const results = {};
+        let x, y, a, r, block, yValues;
+        for (a = 0; a < 2 * Math.PI; a += 2 * Math.PI / 256) {
+            for (r = 0.5; r < 30; r += 0.9) {
+                x = eX + r * Math.cos(a);
+                y = eY + r * Math.sin(a);
+                block = this.getBlockAbsolute(x, y);
+                yValues = results[block.yAbsolute];
+                if (!yValues) {
+                    yValues = {};
+                    results[block.yAbsolute] = yValues;
+                }
+                yValues[block.xAbsolute] = block;
+                if (block.blockId !== Settings.blocks.none.id) {
+                    break;
+                }
+            }
+        }
+        return results;
+    }
+
+    makeVisible(eX = this.player.x, eY = this.player.y + 0.8 * this.player.height) {
+        let x, y, a, r, block;
+        for (a = 0; a < 2 * Math.PI; a += 2 * Math.PI / 128) {
+            for (r = 0.5; r < 30; r += 0.9) {
+                x = eX + r * Math.cos(a);
+                y = eY + r * Math.sin(a);
+                block = this.getBlockAbsolute(x, y);
+                if (!block.seen) {
+                    this.see(block);
+                }
+                if (block.blockId !== Settings.blocks.none.id) {
+                    break;
+                }
+            }
         }
     }
 
@@ -429,38 +466,86 @@ class Game {
             // console.log(`Gravity v=${this.player.velocityY.toFixed(2)}`);
         } else if (this.player.velocityY !== 0) {
             console.log(`Hurt from ${this.player.velocityY.toFixed(2)}`);
+            this.hurt(this.getFallDamage(Math.abs(this.player.velocityY)));
             this.player.velocityY = 0;
         }
 
-        if (this.player.velocityX || this.player.velocityY) {
-            this.move(this.player, t * this.player.velocityX, t * this.player.velocityY)
+        if (this.player.y < 0) {
+            this.hurtEverySecond(timestamp, "void", 1, 250);
         }
+
+        if (this.player.velocityX || this.player.velocityY) {
+            this.move(this.player, t * this.player.velocityX, t * this.player.velocityY);
+            this.makeVisible();
+        }
+    }
+
+    hurtEverySecond(timestamp, key, amount, milliseconds = 1000) {
+        const id = key + ":" + Math.floor(timestamp / milliseconds);
+        if (this.player.health > 0 && !this.player.hurtEverySecond[id]) {
+            this.hurt(amount);
+            this.player.hurtEverySecond[id] = true;
+        }
+    }
+
+    hurt(damage) {
+        if (damage > 0) {
+            console.log(`Player received ${damage} damage`);
+            this.player.health = Math.max(0, this.player.health - damage);
+        }
+
+        if (this.player.health === 0) {
+            console.log(`Player died`);
+            this.die();
+        }
+    }
+
+    die() {
+
+    }
+
+    getFallDamage(v) {
+        return Math.max(0, Math.floor((v - Settings.movement.fallDamageMin) * Settings.movement.fallDamageFactor));
     }
 
     getBlockAbsolute(x, y) {
         const position = this.resolve(x, y);
         //console.log(`Pos(${x},${y}) = (${position.x},${position.y}) chunk ${position.chunkId} block ${position.blockId}`);
         const chunk = this.generator.getChunk(position.chunkId);
-        position.blockId = chunk.blocks[position.y][position.x];
+        if (position.yAbsolute >= Settings.chunk.height) {
+            position.blockId = Settings.blocks.none.id;
+            position.seen = true;
+        } else if (position.yAbsolute < 0) {
+            position.blockId = Settings.blocks.void.id;
+            position.seen = true;
+        } else {
+            position.blockId = chunk.blocks[position.y][position.x].blockId;
+            position.seen = chunk.blocks[position.y][position.x].seen;
+        }
         position.block = Settings.blocks[position.blockId];
         position.biomeName = chunk.biomesNames[position.x];
         return position;
     }
 
+    see(block) {
+        const chunk = this.generator.getChunk(block.chunkId);
+        chunk.blocks[block.y][block.x].seen = true;
+    }
+
     removeBlock(block) {
         const chunk = this.generator.getChunk(block.chunkId);
-        chunk.blocks[block.y][block.x] = Settings.blocks.none.id;
+        chunk.blocks[block.y][block.x].blockId = Settings.blocks.none.id;
     }
 
     addBlock(block) {
         const chunk = this.generator.getChunk(block.chunkId);
-        chunk.blocks[block.y][block.x] = block.blockId;
+        chunk.blocks[block.y][block.x].blockId = block.blockId;
     }
 
     resolve(x, y) {
         return {
             chunkId: Math.floor(x / Settings.chunk.width),
-            x: Math.floor(x % Settings.chunk.width),
+            x: Math.floor((x % Settings.chunk.width + Settings.chunk.width) % Settings.chunk.width),
             y: Math.floor(Math.max(0, Math.min(y, Settings.chunk.height - 1))),
             xAbsolute: Math.floor(x),
             yAbsolute: Math.floor(y),

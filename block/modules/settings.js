@@ -23,6 +23,7 @@ const update = object => {
 };
 
 const blocks = {
+    void: {id: -1, color: "#000"},
     none: {id: 0, color: "#fff"},
     any: {id: 1, color: "#000"},
     grass: {id: 2, color: "#2ab013"},
@@ -235,6 +236,8 @@ const movement = {
     jumpSpeed: 6,
     accelerationGround: 0.05,
     accelerationAir: 0.02,
+    fallDamageMin: 8,
+    fallDamageFactor: 0.7
 }
 
 const nearest = {

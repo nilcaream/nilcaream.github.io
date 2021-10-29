@@ -41,7 +41,10 @@ class Generator {
         return {
             id: id,
             biomes: this.createBiomes(id),
-            blocks: new Array(Settings.chunk.height).fill(0).map(_ => new Array(Settings.chunk.width).fill(Settings.blocks.none.id))
+            blocks: new Array(Settings.chunk.height).fill(0).map(_ => new Array(Settings.chunk.width).fill({
+                blockId: Settings.blocks.none.id,
+                seen: false
+            }))
         };
     }
 
@@ -202,11 +205,21 @@ class Generator {
         for (let x = biome.start; x <= biome.end; x++) {
             let y = chunk.surface[x];
 
+            for (let i = y; i < Settings.chunk.height; i++) {
+                chunk.blocks[i][x] = {
+                    blockId: Settings.blocks.none.id,
+                    seen: true
+                }
+            }
+
             blocks.forEach(block => {
                 if (rng() <= block.chance) {
                     const depth = rng(block.depthMin, block.depthMax, true);
-                    for (let i = 0; i < depth && y >= 0; i++) {
-                        chunk.blocks[y--][x] = block.blockId;
+                    for (let i = 0; i < depth && y >= 0; i++, y--) {
+                        chunk.blocks[y][x] = {
+                            blockId: block.blockId,
+                            seen: y === chunk.surface[x]
+                        };
                     }
                 }
             });
@@ -225,7 +238,7 @@ class Generator {
                     for (let j = 0; j < 256; j++) {
                         const x = rng(biome.start, biome.end);
                         const y = rng(block.yMin, block.yMax);
-                        if (chunk.blocks[y][x] !== 0 && chunk.blocks[y][x] < Settings.blocks.coalOre.id) { // not empty block and not ore
+                        if (chunk.blocks[y][x].blockId !== 0 && chunk.blocks[y][x].blockId < Settings.blocks.coalOre.id) { // not empty block and not ore
                             if (rng() <= (definition.chance * block.chance * widthFactor)) {
                                 const block = Object.values(Settings.blocks).filter(bl => bl.id === definition.blockId)[0];
                                 const length = rng(block.lengthMin, block.lengthMax, true);
@@ -233,8 +246,8 @@ class Generator {
                                 let vX = x;
                                 let vY = y;
                                 for (let k = 0; k < length && vX < Settings.chunk.width && vY < Settings.chunk.height; k++) {
-                                    if (chunk.blocks[vY][vX] !== 0 && chunk.blocks[vY][vX] < definition.blockId) { // not empty and not ore of higher grade
-                                        chunk.blocks[vY][vX] = definition.blockId;
+                                    if (chunk.blocks[vY][vX].blockId !== 0 && chunk.blocks[vY][vX].blockId < definition.blockId) { // not empty and not ore of higher grade
+                                        chunk.blocks[vY][vX].blockId = definition.blockId;
                                         console.log(`Chunk ${chunk.id} biome ${biomeNumber} ${biome.name} vein ${definition.blockId}: ${vX} ${vY}`);
                                     }
                                     if (rng() > 0.25) {
@@ -259,8 +272,8 @@ class Generator {
     addWater(chunk) {
         const fillDown = (x, waterId) => {
             for (let y = Settings.chunk.middle; y > 0; y--) {
-                if (chunk.blocks[y][x] === Settings.blocks.none.id) {
-                    chunk.blocks[y][x] = waterId;
+                if (chunk.blocks[y][x].blockId === Settings.blocks.none.id) {
+                    chunk.blocks[y][x].blockId = waterId;
                 } else {
                     break;
                 }
@@ -275,7 +288,7 @@ class Generator {
 
             // left
             for (let x = biome.start - 1; x >= 0; x--) {
-                if (chunk.blocks[Settings.chunk.middle][x] !== 0) {
+                if (chunk.blocks[Settings.chunk.middle][x].blockId !== 0) {
                     break;
                 }
                 fillDown(x, biome.water);
@@ -283,7 +296,7 @@ class Generator {
 
             // right
             for (let x = biome.end + 1; x < Settings.chunk.width; x++) {
-                if (chunk.blocks[Settings.chunk.middle][x] !== 0) {
+                if (chunk.blocks[Settings.chunk.middle][x].blockId !== 0) {
                     break;
                 }
                 fillDown(x, biome.water);
@@ -297,7 +310,7 @@ class Generator {
             if (biome.water) {
                 // right
                 for (let x = 0; x < Settings.chunk.width; x++) {
-                    if (chunk.blocks[Settings.chunk.middle][x] !== 0) {
+                    if (chunk.blocks[Settings.chunk.middle][x].blockId !== 0) {
                         break;
                     }
                     fillDown(x, biome.water);
@@ -312,7 +325,7 @@ class Generator {
             if (biome.water) {
                 // left
                 for (let x = Settings.chunk.width - 1; x >= 0; x--) {
-                    if (chunk.blocks[Settings.chunk.middle][x] !== 0) {
+                    if (chunk.blocks[Settings.chunk.middle][x].blockId !== 0) {
                         break;
                     }
                     fillDown(x, biome.water);
@@ -327,12 +340,12 @@ class Generator {
             if (x < 0 || x >= Settings.chunk.width || y < 0 || y >= Settings.chunk.height) {
                 return undefined;
             } else {
-                return chunk.blocks[y][x];
+                return chunk.blocks[y][x].blockId;
             }
         }
         const set = (x, y, v) => {
             if (!(x < 0 || x >= Settings.chunk.width || y < 0 || y >= Settings.chunk.height)) {
-                chunk.blocks[y][x] = v;
+                chunk.blocks[y][x].blockId = v;
             }
         }
 
@@ -414,7 +427,7 @@ class Generator {
         const rng = this.getRng(chunk.id + 120);
         for (let x = 0; x < Settings.chunk.width; x++) {
             for (let y = 0; y < rng(1, 2, true); y++) {
-                chunk.blocks[y][x] = Settings.blocks.bedrock.id;
+                chunk.blocks[y][x].blockId = Settings.blocks.bedrock.id;
             }
         }
     }
@@ -440,12 +453,12 @@ class Generator {
         chunk.biomes.map(b => b.start).filter(s => s > 16 && s < Settings.chunk.width).forEach(s => {
             for (let y = 0; y < Settings.chunk.height; y++) {
                 for (let i = 1; i < 16; i++) {
-                    const left = chunk.blocks[y][s - i];
-                    const right = chunk.blocks[y][s + i];
+                    const left = chunk.blocks[y][s - i].blockId;
+                    const right = chunk.blocks[y][s + i].blockId;
                     if (left && right) {
                         if (rng() < (0.7 - 0.5 * i / 16)) {
-                            chunk.blocks[y][s - i] = right;
-                            chunk.blocks[y][s + i] = left;
+                            chunk.blocks[y][s - i].blockId = right;
+                            chunk.blocks[y][s + i].blockId = left;
                         }
                     }
                 }

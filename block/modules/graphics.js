@@ -37,7 +37,7 @@ class Graphics {
         this.animation.start((timestamp, diff) => {
             this.update(timestamp, diff);
             this.game.update(timestamp, diff, this.sX(Mouse.x), this.sY(Mouse.y));
-            this.draw();
+            this.draw(timestamp, diff);
         });
     }
 
@@ -57,14 +57,18 @@ class Graphics {
         this.game.meta.fps = 1000 / diff;
     }
 
-    drawBlock(x, y, mark) {
+    drawBlock(x, y) {
         const r = this.game.getBlockAbsolute(x, y);
 
         if (this.debug === 1) {
-            if (r.blockId) {
+
+            if (r.seen) {
                 this.ctx.fillStyle = r.block.color;
-                this.ctx.fillRect(this.rX(x), this.rY(y + 1), this.rS(1), this.rS(1));
+            } else {
+                this.ctx.fillStyle = "#000";
             }
+
+            this.ctx.fillRect(this.rX(x), this.rY(y + 1), this.rS(1), this.rS(1));
         } else if (this.debug === 2) {
             this.ctx.beginPath();
             this.ctx.strokeStyle = "rgba(0,0,0,0.69)";
@@ -74,11 +78,6 @@ class Graphics {
             if (r.blockId) {
                 this.ctx.fillStyle = r.block.color;
                 this.ctx.fillRect(this.rX(x) + this.rS(0.1), this.rY(y + 1) + this.rS(0.1), this.rS(0.8), this.rS(0.8));
-            }
-
-            if (mark) {
-                this.ctx.fillStyle = mark;
-                this.ctx.fillRect(this.rX(x) + this.rS(0.2), this.rY(y + 1) + this.rS(0.2), this.rS(0.6), this.rS(0.6));
             }
 
             this.ctx.fillStyle = "#000";
@@ -112,7 +111,7 @@ class Graphics {
         return this.game.player.y + this.game.player.heightStand / 2 + (this.offset.y - y) / this.zoom;
     }
 
-    draw() {
+    draw(timestamp, diff) {
         const ctx = this.ctx;
         const player = this.game.player;
 
@@ -160,11 +159,22 @@ class Graphics {
                 ctx.lineTo(this.rX(selected.x1), this.rY(selected.y1));
                 ctx.stroke();
             } else {
-                ctx.strokeStyle = "#222";
+                const dash = 5;
+                const offset = Math.floor((timestamp / 150) % (2 * dash));
+                ctx.setLineDash([dash, dash]);
+
                 ctx.beginPath();
-                ctx.setLineDash([5, 3]);
+                ctx.lineDashOffset = offset;
+                ctx.strokeStyle = "#111";
                 ctx.rect(this.rX(selected.x), this.rY(selected.y + 1), this.rS(1), this.rS(1));
                 ctx.stroke();
+
+                ctx.beginPath();
+                ctx.lineDashOffset = offset + dash;
+                ctx.strokeStyle = "#eee";
+                ctx.rect(this.rX(selected.x), this.rY(selected.y + 1), this.rS(1), this.rS(1));
+                ctx.stroke();
+
                 let x0, y0, x1, y1;
                 if (player.adjacent.face === "right") {
                     x0 = selected.x + 1;
@@ -188,13 +198,24 @@ class Graphics {
                     y1 = selected.y;
                 }
 
+                ctx.lineWidth = 3;
+
                 ctx.beginPath();
-                ctx.lineWidth = 2;
-                ctx.setLineDash([]);
+                ctx.lineDashOffset = dash;
+                ctx.strokeStyle = "#111";
                 ctx.moveTo(this.rX(x0), this.rY(y0));
                 ctx.lineTo(this.rX(x1), this.rY(y1));
                 ctx.stroke();
+
+                ctx.beginPath();
+                ctx.lineDashOffset = 2 * dash;
+                ctx.strokeStyle = "#eee";
+                ctx.moveTo(this.rX(x0), this.rY(y0));
+                ctx.lineTo(this.rX(x1), this.rY(y1));
+                ctx.stroke();
+
                 ctx.lineWidth = 1;
+                ctx.setLineDash([]);
             }
         }
 
@@ -210,14 +231,23 @@ class Graphics {
         const midY = Mouse.y;
         const length = 16;
 
+        const draw = () => {
+            this.ctx.beginPath();
+            this.ctx.moveTo(midX - length / 2, midY);
+            this.ctx.lineTo(midX + length / 2, midY);
+            this.ctx.stroke();
+            this.ctx.moveTo(midX, midY - length / 2);
+            this.ctx.lineTo(midX, midY + length / 2);
+            this.ctx.stroke();
+        }
+
+        this.ctx.lineWidth = 2;
+        this.ctx.strokeStyle = "#fff";
+        draw();
+
+        this.ctx.lineWidth = 1;
         this.ctx.strokeStyle = "#000";
-        this.ctx.beginPath();
-        this.ctx.moveTo(midX - length / 2, midY);
-        this.ctx.lineTo(midX + length / 2, midY);
-        this.ctx.stroke();
-        this.ctx.moveTo(midX, midY - length / 2);
-        this.ctx.lineTo(midX, midY + length / 2);
-        this.ctx.stroke();
+        draw();
 
         if (this.debug === 2) {
             this.ctx.fillStyle = "#000";
