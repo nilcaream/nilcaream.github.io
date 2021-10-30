@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Texture</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+    </style>
+    <script type="module">
+        import {Texture} from "./modules/texture.js";
+        import {Settings} from "./modules/settings.js";
+
+        ((r) => document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", r) : r())(() => {
+            const canvas = document.getElementById("main");
+            canvas.setAttribute("width", window.innerWidth + "");
+            canvas.setAttribute("height", 2 * window.innerHeight + "");
+
+            const ctx = canvas.getContext("2d");
+            ctx.imageSmoothingEnabled = false;
+
+            Settings.blocks.all.filter(b => b.texture).forEach(block => {
+                for (let i = 0; i < 8; i++) {
+                    const texture = new Texture(16, 16, block.id * 10000 + i);
+                    block.texture.data.forEach(opt => texture.noise(opt));
+                    ctx.drawImage(texture.getCanvas(), 128 * i, 0, 128, 128);
+                }
+                ctx.translate(0, 128 + 4);
+            });
+        });
+
+    </script>
+</head>
+<body>
+<div id="wrapper">
+    <canvas id="main"></canvas>
+</div>
+</body>
+</html>

@@ -2,6 +2,8 @@ import {Keyboard} from "./keyboard.js";
 import {Animation} from "./animation.js";
 import {Settings} from "./settings.js";
 import {Mouse} from "./mouse.js";
+import {Images} from "./images.js";
+import {Texture} from "./texture.js";
 
 class Graphics {
 
@@ -30,14 +32,18 @@ class Graphics {
 
         Keyboard.init();
         Mouse.init();
+
+        Images.load("blocks", "blocks.png");
     }
 
     start(fps) {
-        this.animation = new Animation(fps);
-        this.animation.start((timestamp, diff) => {
-            this.update(timestamp, diff);
-            this.game.update(timestamp, diff, this.sX(Mouse.x), this.sY(Mouse.y));
-            this.draw(timestamp, diff);
+        Images.onLoad(() => {
+            this.animation = new Animation(fps);
+            this.animation.start((timestamp, diff) => {
+                this.update(timestamp, diff);
+                this.game.update(timestamp, diff, this.sX(Mouse.x), this.sY(Mouse.y));
+                this.draw(timestamp, diff);
+            });
         });
     }
 
@@ -57,10 +63,51 @@ class Graphics {
         this.game.meta.fps = 1000 / diff;
     }
 
+    drawTexture(x, y, block) {
+        const id = 5 * (x % 4) + (y % 4);
+
+        if (block.texture.images === undefined) {
+            block.texture.images = {};
+        }
+
+        let image = block.texture.images[id];
+
+        if (image) {
+            this.ctx.drawImage(image, 0, 0, 16, 16, this.rX(x), this.rY(y + 1), this.rS(1), this.rS(1));
+        } else if (!block.texture.loading) {
+            block.texture.loading = true;
+            const texture = new Texture(16, 16, 4620 * block.id + id);
+            block.texture.data.forEach(opt => texture.noise(opt));
+            console.log(`Loading block ${block.id} variation ${id}`);
+            texture.getImage(image => {
+                block.texture.images[id] = image;
+                block.texture.loading = false;
+            });
+            this.ctx.fillStyle = Settings.blocks.any.color;
+            this.ctx.fillRect(this.rX(x), this.rY(y + 1), this.rS(1), this.rS(1));
+        } else {
+            this.ctx.fillStyle = Settings.blocks.any.color;
+            this.ctx.fillRect(this.rX(x), this.rY(y + 1), this.rS(1), this.rS(1));
+        }
+    }
+
     drawBlock(x, y) {
         const r = this.game.getBlockAbsolute(x, y);
 
-        if (this.debug === 1) {
+        if (this.debug === 0) {
+            if (r.seen) {
+                if (r.block.texture) {
+                    this.drawTexture(x, y, r.block);
+                } else {
+                    this.ctx.fillStyle = r.block.color;
+                    this.ctx.fillRect(this.rX(x), this.rY(y + 1), this.rS(1), this.rS(1));
+                    //Images.draw(this.ctx, "blocks", r.blockId, this.rX(x), this.rY(y + 1), this.rS(1));
+                }
+            } else {
+                this.ctx.fillStyle = "#000";
+                this.ctx.fillRect(this.rX(x), this.rY(y + 1), this.rS(1), this.rS(1));
+            }
+        } else if (this.debug === 1) {
 
             if (r.seen) {
                 this.ctx.fillStyle = r.block.color;
@@ -86,10 +133,10 @@ class Graphics {
         }
     }
 
-    // origin is at center of player model in stand position
-    // player.y is feet level; player.x is at center of player (width/2)
+// origin is at center of player model in stand position
+// player.y is feet level; player.x is at center of player (width/2)
 
-    // convert chunk x,y to screen x,y
+// convert chunk x,y to screen x,y
     rX(x) {
         return Math.floor(this.offset.x + (x - this.game.player.x) * this.zoom);
     }
@@ -102,7 +149,7 @@ class Graphics {
         return v * this.zoom;
     }
 
-    // convert screen x,y to chunk x,y
+// convert screen x,y to chunk x,y
     sX(x) {
         return this.game.player.x + (x - this.offset.x) / this.zoom;
     }

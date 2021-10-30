@@ -25,7 +25,7 @@ function random(seed, id) {
         rand();
     }
     return (min, max, inclusive = false) => {
-        if (min || max) {
+        if (min !== undefined && max !== undefined) {
             return min + Math.floor(rand() * (max - min + inclusive));
         } else {
             return rand();

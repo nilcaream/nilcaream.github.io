@@ -63,7 +63,7 @@ class Game {
 
         // this.player.x = 298;
         // this.player.y = 65;
-        this.player.y = 2.2;
+        // this.player.y = 2.2;
     }
 
     getRng(id) {

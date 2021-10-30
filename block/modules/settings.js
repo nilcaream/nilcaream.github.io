@@ -26,11 +26,142 @@ const blocks = {
     void: {id: -1, color: "#000"},
     none: {id: 0, color: "#fff"},
     any: {id: 1, color: "#000"},
-    grass: {id: 2, color: "#2ab013"},
-    dirt: {id: 3, color: "#846a2c"},
-    stone1: {id: 4, color: "#a29e92"},
-    stone2: {id: 5, color: "#d3d1c6"},
-    stone3: {id: 6, color: "#eae4cb"},
+    grass: {
+        id: 2, color: "#2ab013", texture: {
+            data: [
+                {
+                    type: "fillRect",
+                    x0: 0, y0: 0,
+                    x1: 16, y1: 16,
+                    hue: 31, saturation: 93, luminosity: 22, alpha: 100
+                }, {
+                    type: "fillPixel",
+                    x0: 0, y0: 0,
+                    x1: 16, y1: 16,
+                    hue: 31, saturation: 93, luminosity: 20, alpha: 100,
+                    luminosityDelta: 2,
+                    chance: 40
+                }, {
+                    type: "fillPixel",
+                    x0: 0, y0: 0,
+                    x1: 16, y1: 2,
+                    hue: 91, saturation: 93, luminosity: 25, alpha: 100,
+                    luminosityDelta: 3,
+                    chance: 100
+                }, {
+                    type: "fillPixel",
+                    x0: 0, y0: 2,
+                    x1: 16, y1: 3,
+                    hue: 91, saturation: 93, luminosity: 25, alpha: 100,
+                    luminosityDelta: 3, alphaDelta: 50,
+                    chance: 40
+                }
+            ]
+        }
+    },
+    dirt: {
+        id: 3, color: "#846a2c", texture: {
+            data: [
+                {
+                    type: "fillRect",
+                    x0: 0, y0: 0,
+                    x1: 16, y1: 16,
+                    hue: 31, saturation: 93, luminosity: 22, alpha: 100
+                }, {
+                    type: "fillPixel",
+                    x0: 0, y0: 0,
+                    x1: 16, y1: 16,
+                    hue: 31, saturation: 93, luminosity: 20, alpha: 100,
+                    luminosityDelta: 2,
+                    chance: 40
+                }
+            ]
+        }
+    },
+    stone1: {
+        id: 4, color: "#a29e92", texture: {
+            data: [
+                {
+                    type: "fillRect",
+                    x0: 0, y0: 0,
+                    x1: 16, y1: 16,
+                    hue: 0, saturation: 0, luminosity: 50, alpha: 100
+                }, {
+                    type: "fillPixel",
+                    x0: 0, y0: 0,
+                    x1: 16, y1: 16,
+                    hue: 0, saturation: 0, luminosity: 55, alpha: 100,
+                    luminosityDelta: 2,
+                    chance: 40
+                }, {
+                    type: "fillPixel",
+                    x0: 0, y0: 0,
+                    x1: 16, y1: 16,
+                    hue: 0, saturation: 0, luminosity: 65, alpha: 100,
+                    luminosityDelta: 2,
+                    chance: 10
+                }
+            ]
+        }
+    },
+    stone2: {
+        id: 5, color: "#d3d1c6", texture: {
+            data: [
+                {
+                    type: "fillRect",
+                    x0: 0, y0: 0,
+                    x1: 16, y1: 16,
+                    hue: 0, saturation: 0, luminosity: 45, alpha: 100
+                }, {
+                    type: "fillPixel",
+                    x0: 0, y0: 0,
+                    x1: 16, y1: 16,
+                    hue: 0, saturation: 0, luminosity: 35, alpha: 100,
+                    luminosityDelta: 2,
+                    chance: 40
+                }, {
+                    type: "fillPixel",
+                    x0: 0, y0: 0,
+                    x1: 16, y1: 16,
+                    hue: 0, saturation: 0, luminosity: 65, alpha: 60,
+                    luminosityDelta: 2, alphaDelta: 20,
+                    chance: 20,
+                    width: 1, widthDelta: 1,
+                    height: 1, heightDelta: 1
+                }
+            ]
+        }
+    },
+    stone3: {
+        id: 6, color: "#eae4cb", texture: {
+            data: [
+                {
+                    type: "fillRect",
+                    x0: 0, y0: 0,
+                    x1: 16, y1: 16,
+                    hue: 0, saturation: 0, luminosity: 45, alpha: 100
+                }, {
+                    type: "fillPixel",
+                    x0: 0, y0: 0,
+                    x1: 16, y1: 16,
+                    hue: 0, saturation: 0, luminosity: 25, alpha: 40,
+                    luminosityDelta: 2, alphaDelta: 20,
+                    chance: 40,
+                    width: 1, widthDelta: 1,
+                    height: 1, heightDelta: 1
+                }, {
+                    type: "fillPixel",
+                    x0: 0, y0: 0,
+                    x1: 16, y1: 16,
+                    hue: 0, saturation: 0, luminosity: 15, alpha: 60,
+                    luminosityDelta: 2, alphaDelta: 20,
+                    chance: 10,
+                    width: 1, widthDelta: 1,
+                    height: 1, heightDelta: 1
+                }
+            ]
+        }
+    },
     deepStone1: {id: 7, color: "#868277"},
     deepStone2: {id: 8, color: "#6e695f"},
     deepStone3: {id: 9, color: "#504832"},
@@ -42,12 +173,164 @@ const blocks = {
     water2: {id: 21, color: "#2be883"},
     water3: {id: 22, color: "#172d7a"},
 
-    coalOre: {id: 390, color: "#211f1f", yMin: 5, yMax: 128, lengthMin: 3, lengthMax: 6, chance: 1},
-    ironOre: {id: 391, color: "#ced5d4", yMin: 5, yMax: 100, lengthMin: 3, lengthMax: 5, chance: 0.5},
-    goldOre: {id: 392, color: "#f1c802", yMin: 5, yMax: 48, lengthMin: 2, lengthMax: 5, chance: 0.25},
-    diamondOre: {id: 393, color: "#1ba4f1", yMin: 4, yMax: 20, lengthMin: 2, lengthMax: 5, chance: 0.125},
+    coalOre: {
+        id: 240, color: "#211f1f", yMin: 5, yMax: 128, lengthMin: 3, lengthMax: 6, chance: 1, texture: {
+            data: [
+                {
+                    type: "fillRect",
+                    x0: 0, y0: 0,
+                    x1: 16, y1: 16,
+                    hue: 0, saturation: 0, luminosity: 45, alpha: 100
+                }, {
+                    type: "fillPixel",
+                    x0: 0, y0: 0,
+                    x1: 16, y1: 16,
+                    hue: 0, saturation: 0, luminosity: 25, alpha: 40,
+                    luminosityDelta: 2, alphaDelta: 20,
+                    chance: 40,
+                    width: 1, widthDelta: 1,
+                    height: 1, heightDelta: 1
+                }, {
+                    type: "fillPixel",
+                    x0: 0, y0: 0,
+                    x1: 16, y1: 16,
+                    hue: 0, saturation: 0, luminosity: 15, alpha: 60,
+                    luminosityDelta: 2, alphaDelta: 20,
+                    chance: 10,
+                    width: 1, widthDelta: 1,
+                    height: 1, heightDelta: 1
+                }, {
+                    type: "fillPixel",
+                    x0: 0, y0: 0,
+                    x1: 16, y1: 16,
+                    hue: 0, saturation: 0, luminosity: 5, alpha: 75,
+                    luminosityDelta: 5, alphaDelta: 10,
+                    chance: 4,
+                    width: 3, widthDelta: 1, widthDeltaInclude: false,
+                    height: 3, heightDelta: 1, heightDeltaInclude: false
+                }
+            ]
+        }
+    },
+    ironOre: {
+        id: 241, color: "#ced5d4", yMin: 5, yMax: 100, lengthMin: 3, lengthMax: 5, chance: 0.5, texture: {
+            data: [
+                {
+                    type: "fillRect",
+                    x0: 0, y0: 0,
+                    x1: 16, y1: 16,
+                    hue: 0, saturation: 0, luminosity: 45, alpha: 100
+                }, {
+                    type: "fillPixel",
+                    x0: 0, y0: 0,
+                    x1: 16, y1: 16,
+                    hue: 0, saturation: 0, luminosity: 25, alpha: 40,
+                    luminosityDelta: 2, alphaDelta: 20,
+                    chance: 40,
+                    width: 1, widthDelta: 1,
+                    height: 1, heightDelta: 1
+                }, {
+                    type: "fillPixel",
+                    x0: 0, y0: 0,
+                    x1: 16, y1: 16,
+                    hue: 0, saturation: 0, luminosity: 15, alpha: 60,
+                    luminosityDelta: 2, alphaDelta: 20,
+                    chance: 10,
+                    width: 1, widthDelta: 1,
+                    height: 1, heightDelta: 1
+                }, {
+                    type: "fillPixel",
+                    x0: 0, y0: 0,
+                    x1: 16, y1: 16,
+                    hue: 34, saturation: 68, luminosity: 67, alpha: 60,
+                    luminosityDelta: 10, alphaDelta: 10,
+                    chance: 4,
+                    width: 3, widthDelta: 1, widthDeltaInclude: false,
+                    height: 3, heightDelta: 1, heightDeltaInclude: false
+                }
+            ]
+        }
+    },
+    goldOre: {
+        id: 242, color: "#f1c802", yMin: 5, yMax: 48, lengthMin: 2, lengthMax: 5, chance: 0.25, texture: {
+            data: [
+                {
+                    type: "fillRect",
+                    x0: 0, y0: 0,
+                    x1: 16, y1: 16,
+                    hue: 0, saturation: 0, luminosity: 45, alpha: 100
+                }, {
+                    type: "fillPixel",
+                    x0: 0, y0: 0,
+                    x1: 16, y1: 16,
+                    hue: 0, saturation: 0, luminosity: 25, alpha: 40,
+                    luminosityDelta: 2, alphaDelta: 20,
+                    chance: 40,
+                    width: 1, widthDelta: 1,
+                    height: 1, heightDelta: 1
+                }, {
+                    type: "fillPixel",
+                    x0: 0, y0: 0,
+                    x1: 16, y1: 16,
+                    hue: 0, saturation: 0, luminosity: 15, alpha: 60,
+                    luminosityDelta: 2, alphaDelta: 20,
+                    chance: 10,
+                    width: 1, widthDelta: 1,
+                    height: 1, heightDelta: 1
+                }, {
+                    type: "fillPixel",
+                    x0: 0, y0: 0,
+                    x1: 16, y1: 16,
+                    hue: 58, saturation: 100, luminosity: 45, alpha: 60,
+                    luminosityDelta: 10, alphaDelta: 10,
+                    chance: 4,
+                    width: 3, widthDelta: 1, widthDeltaInclude: false,
+                    height: 3, heightDelta: 1, heightDeltaInclude: false
+                }
+            ]
+        }
+    },
+    diamondOre: {
+        id: 243, color: "#1ba4f1", yMin: 4, yMax: 20, lengthMin: 2, lengthMax: 5, chance: 0.125, texture: {
+            data: [
+                {
+                    type: "fillRect",
+                    x0: 0, y0: 0,
+                    x1: 16, y1: 16,
+                    hue: 0, saturation: 0, luminosity: 45, alpha: 100
+                }, {
+                    type: "fillPixel",
+                    x0: 0, y0: 0,
+                    x1: 16, y1: 16,
+                    hue: 0, saturation: 0, luminosity: 25, alpha: 40,
+                    luminosityDelta: 2, alphaDelta: 20,
+                    chance: 40,
+                    width: 1, widthDelta: 1,
+                    height: 1, heightDelta: 1
+                }, {
+                    type: "fillPixel",
+                    x0: 0, y0: 0,
+                    x1: 16, y1: 16,
+                    hue: 0, saturation: 0, luminosity: 15, alpha: 60,
+                    luminosityDelta: 2, alphaDelta: 20,
+                    chance: 10,
+                    width: 1, widthDelta: 1,
+                    height: 1, heightDelta: 1
+                }, {
+                    type: "fillPixel",
+                    x0: 0, y0: 0,
+                    x1: 16, y1: 16,
+                    hue: 187, saturation: 100, luminosity: 47, alpha: 50,
+                    luminosityDelta: 10, alphaDelta: 10,
+                    chance: 4,
+                    width: 3, widthDelta: 1, widthDeltaInclude: false,
+                    height: 3, heightDelta: 1, heightDeltaInclude: false
+                }
+            ]
+        }
+    },
 
-    bedrock: {id: 1000, color: "#1a1919"},
+    bedrock: {id: 255, color: "#1a1919"},
 };
 
 update(blocks);
