@@ -29,26 +29,6 @@ class Texture {
         image.src = this.canvas.toDataURL("image/png", 1);
     }
 
-    rect(x0, y0, x1, y1, h, s, l, a, hd, sd, ld, ad) {
-        this.ctx.fillStyle = this.hsla(h, s, l, a, hd, sd, ld, ad);
-        this.ctx.fillRect(x0, y0, x1 - x0, y1 - y0);
-    }
-
-    noise1(x0, y0, x1, y1, wMin, wMax, hMin, hMax, countMin, countMax, h, s, l, a, hd, sd, ld, ad) {
-        const count = this.rng(countMin, countMax, true);
-        let x, y, width, height;
-        for (let i = 0; i < count; i++) {
-            x = this.rng(x0, x1, true);
-            y = this.rng(y0, y1, true);
-            width = this.rng(wMin, wMax, true);
-            width = x + width < x1 ? width : x1 - x;
-            height = this.rng(hMin, hMax, true);
-            height = y + height < y1 ? height : y1 - y;
-            this.ctx.fillStyle = this.hsla(h, s, l, a, hd, sd, ld, ad);
-            this.ctx.fillRect(x, y, width, height);
-        }
-    }
-
     defaults = {
         type: "rect",
         x0: 0, y0: 0,
@@ -58,7 +38,8 @@ class Texture {
         width: 1, height: 1,
         widthDelta: 0, heightDelta: 0,
         widthDeltaInclude: true, heightDeltaInclude: true,
-        chance: 100
+        chance: 100,
+        wrapX: false, wrapY: false
     }
 
     noise(opt) {
@@ -76,10 +57,22 @@ class Texture {
                         this.ctx.fillStyle = this.optHsla(opt);
                         width = this.rng(opt.width - opt.widthDelta, opt.width + opt.widthDelta, opt.widthDeltaInclude);
                         height = this.rng(opt.height - opt.heightDelta, opt.height + opt.heightDelta, opt.heightDeltaInclude);
-                        this.ctx.fillRect(x, y, width, height);
+                        this.fillRect(opt, x, y, width, height);
                     }
                 }
             }
+        }
+    }
+
+    fillRect(opt, x, y, width, height) {
+        if (opt.wrapX || opt.wrapY) {
+            for (let xi = x; xi < x + width; xi++) {
+                for (let yi = y; yi < y + height; yi++) {
+                    this.ctx.fillRect(xi % this.width, yi % this.height, 1, 1);
+                }
+            }
+        } else {
+            this.ctx.fillRect(x, y, width, height);
         }
     }
 
@@ -110,4 +103,6 @@ class Texture {
     }
 }
 
-export {Texture};
+export {
+    Texture
+};

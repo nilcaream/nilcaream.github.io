@@ -22,7 +22,7 @@ class Graphics {
         this.ctx.textBaseline = "top";
         this.ctx.lineWidth = 1;
 
-        this.debug = 1;
+        this.debug = 0;
 
         this.zoom = 64;
         this.offset = {

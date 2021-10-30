@@ -22,12 +22,18 @@
         ((r) => document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", r) : r())(() => {
             const canvas = document.getElementById("main");
             canvas.setAttribute("width", window.innerWidth + "");
-            canvas.setAttribute("height", 2 * window.innerHeight + "");
+            canvas.setAttribute("height", 3 * window.innerHeight + "");
 
             const ctx = canvas.getContext("2d");
             ctx.imageSmoothingEnabled = false;
+            ctx.font = "12px mono";
+            ctx.textBaseline = "top";
+            ctx.fillStyle = "#000";
+            ctx.translate(0, 2);
 
             Settings.blocks.all.filter(b => b.texture).forEach(block => {
+                ctx.fillText(`${block.name} (${block.id})`, 5, 0);
+                ctx.translate(0, 14);
                 for (let i = 0; i < 8; i++) {
                     const texture = new Texture(16, 16, block.id * 10000 + i);
                     block.texture.data.forEach(opt => texture.noise(opt));

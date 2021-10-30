@@ -165,11 +165,82 @@ const blocks = {
     deepStone1: {id: 7, color: "#868277"},
     deepStone2: {id: 8, color: "#6e695f"},
     deepStone3: {id: 9, color: "#504832"},
-    sand: {id: 10, color: "#fffd98"},
-    gravel: {id: 11, color: "#ecece7"},
+    sand: {
+        id: 10, color: "#fffd98", texture: {
+            data: [
+                {
+                    type: "fillRect",
+                    x0: 0, y0: 0,
+                    x1: 16, y1: 16,
+                    hue: 48, saturation: 69, luminosity: 61, alpha: 100
+                }, {
+                    type: "fillPixel",
+                    x0: 0, y0: 0,
+                    x1: 16, y1: 16,
+                    hue: 48, saturation: 69, luminosity: 61, alpha: 80,
+                    luminosityDelta: 5, alphaDelta: 20,
+                    chance: 40,
+                    width: 1, widthDelta: 0,
+                    height: 1, heightDelta: 0
+                }
+            ]
+        }
+    },
+    gravel: {
+        id: 11, color: "#ecece7", texture: {
+            data: [
+                {
+                    type: "fillRect",
+                    x0: 0, y0: 0,
+                    x1: 16, y1: 16,
+                    hue: 0, saturation: 0, luminosity: 50, alpha: 100
+                }, {
+                    type: "fillPixel",
+                    x0: 0, y0: 0,
+                    x1: 16, y1: 16,
+                    hue: 0, saturation: 0, luminosity: 55, alpha: 80,
+                    luminosityDelta: 2,
+                    chance: 40
+                }, {
+                    type: "fillPixel",
+                    x0: 0, y0: 0,
+                    x1: 16, y1: 16,
+                    hue: 0, saturation: 0, luminosity: 45, alpha: 100,
+                    luminosityDelta: 10,
+                    chance: 30
+                }
+            ]
+        }
+    },
     sandBlock: {id: 12, color: "#ffe677"},
 
-    water1: {id: 20, color: "#60b0e3"},
+    water1: {
+        id: 20, color: "#60b0e3", texture: {
+            data: [
+                {
+                    type: "fillRect",
+                    x0: 0, y0: 0,
+                    x1: 16, y1: 16,
+                    hue: 216, saturation: 100, luminosity: 48, alpha: 100
+                }, {
+                    type: "fillPixel",
+                    x0: 0, y0: 0,
+                    x1: 16, y1: 16,
+                    hue: 216, saturation: 100, luminosity: 55, alpha: 50,
+                    luminosityDelta: 2,
+                    chance: 30
+                }, {
+                    type: "fillPixel",
+                    x0: 0, y0: 0,
+                    x1: 16, y1: 16,
+                    hue: 216, saturation: 100, luminosity: 65, alpha: 30,
+                    luminosityDelta: 10,
+                    chance: 10,
+                    width: 4, widthDelta: 3,
+                }
+            ]
+        }
+    },
     water2: {id: 21, color: "#2be883"},
     water3: {id: 22, color: "#172d7a"},
 
@@ -330,7 +401,34 @@ const blocks = {
         }
     },
 
-    bedrock: {id: 255, color: "#1a1919"},
+    bedrock: {
+        id: 255, color: "#1a1919", texture: {
+            data: [
+                {
+                    type: "fillRect",
+                    x0: 0, y0: 0,
+                    x1: 16, y1: 16,
+                    hue: 0, saturation: 0, luminosity: 22, alpha: 100
+                }, {
+                    type: "fillPixel",
+                    x0: 0, y0: 0,
+                    x1: 16, y1: 16,
+                    hue: 0, saturation: 0, luminosity: 20, alpha: 50,
+                    luminosityDelta: 2,
+                    chance: 30
+                }, {
+                    type: "fillPixel",
+                    x0: 0, y0: 0,
+                    x1: 16, y1: 16,
+                    hue: 0, saturation: 0, luminosity: 4, alpha: 80,
+                    luminosityDelta: 2, alphaDelta: 20,
+                    chance: 10,
+                    width: 6, widthDelta: 4,
+                    wrapX: true, wrapY: true,
+                }
+            ]
+        }
+    },
 };
 
 update(blocks);
