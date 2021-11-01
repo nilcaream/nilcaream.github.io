@@ -4,18 +4,13 @@ import {Settings} from "./settings.js";
 import {Mouse} from "./mouse.js";
 import {Images} from "./images.js";
 import {Texture} from "./texture.js";
+import {Canvas} from "./canvas.js";
 
-class Graphics {
+class Graphics extends Canvas {
 
     constructor(canvasId, game) {
+        super(canvasId);
         this.game = game;
-
-        this.canvas = document.getElementById(canvasId);
-        this.canvas.setAttribute("width", window.innerWidth + "");
-        this.canvas.setAttribute("height", window.innerHeight + "");
-
-        this.ctx = this.canvas.getContext("2d");
-        this.ctx.imageSmoothingEnabled = false;
 
         this.ctx.font = '9px mono';
         this.ctx.fillStyle = "#000";
@@ -36,15 +31,13 @@ class Graphics {
         Images.load("blocks", "blocks.png");
     }
 
-    start(fps) {
-        Images.onLoad(() => {
-            this.animation = new Animation(fps);
-            this.animation.start((timestamp, diff) => {
-                this.update(timestamp, diff);
-                this.game.update(timestamp, diff, this.sX(Mouse.x), this.sY(Mouse.y));
-                this.draw(timestamp, diff);
-            });
-        });
+
+    frame(timestamp, diff) {
+        this.frameTimestamp = new Date().getTime();
+        this.update(timestamp, diff);
+        this.game.update(timestamp, diff, this.sX(Mouse.x), this.sY(Mouse.y));
+        this.draw(timestamp, diff);
+        this.game.meta.frame = new Date().getTime() - this.frameTimestamp;
     }
 
     update(timestamp, diff) {
@@ -98,7 +91,7 @@ class Graphics {
             if (r.seen) {
                 if (r.block.texture) {
                     this.drawTexture(x, y, r.block);
-                } else {
+                } else if (r.blockId !== Settings.blocks.none.id) {
                     this.ctx.fillStyle = r.block.color;
                     this.ctx.fillRect(this.rX(x), this.rY(y + 1), this.rS(1), this.rS(1));
                     //Images.draw(this.ctx, "blocks", r.blockId, this.rX(x), this.rY(y + 1), this.rS(1));

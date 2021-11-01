@@ -1,18 +1,13 @@
 import {Keyboard} from "./keyboard.js";
-import {Animation} from "./animation.js";
+import {Canvas} from "./canvas.js";
 import {Settings} from "./settings.js";
 
-class Hud {
+class Hud extends Canvas {
 
     constructor(canvasId, game) {
+        super(canvasId);
         this.game = game;
 
-        this.canvas = document.getElementById(canvasId);
-        this.canvas.setAttribute("width", window.innerWidth + "");
-        this.canvas.setAttribute("height", window.innerHeight + "");
-
-        this.ctx = this.canvas.getContext("2d");
-        // this.ctx.imageSmoothingEnabled = false;
         this.ctx.textBaseline = "top";
 
         this.updateFontSize(13);
@@ -26,12 +21,11 @@ class Hud {
         Keyboard.init();
     }
 
-    start(fps) {
-        this.animation = new Animation(fps);
-        this.animation.start(() => {
-            this.update();
+    frame(timestamp, diff) {
+        this.update();
+        if (this.game.meta.fps) {
             this.draw();
-        });
+        }
     }
 
     update() {
@@ -59,7 +53,9 @@ class Hud {
             `b:${this.game.meta.blockSize} ` +
             `${this.game.mode}:${this.game.generator.seed} ${position.biomeName} ` +
             `HP:${this.game.player.health} ` +
-            `FPS:${this.game.meta.fps.toFixed(0)}/${this.game.meta.targetFps.toFixed(0)} `;
+            `FPS:${this.game.meta.fps.toFixed(0)}/${this.game.meta.targetFps.toFixed(0)} ` +
+            `${this.game.meta.frame}ms ` +
+            `${this.game.getGameClock()} `;
 
         if (player.selected.present) {
             const block = (Settings.blocks[player.selected.block.blockId] || {}).name;

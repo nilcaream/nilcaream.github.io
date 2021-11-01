@@ -31,13 +31,19 @@ const Images = {
     },
 
     draw: function (ctx, id, index, x, y, size) {
-        const iX = index % this.size;
-        const iY = Math.floor(index / this.size);
-        ctx.drawImage(this.store[id].image,
-            iX * this.base, iY * this.base,
-            this.base, this.base,
-            x, y,
-            size, size);
+        if (!this.store[id]) {
+            throw `Image ${id} not found`;
+        } else if (this.store[id].image) {
+            const iX = index % this.size;
+            const iY = Math.floor(index / this.size);
+            ctx.drawImage(this.store[id].image,
+                iX * this.base, iY * this.base,
+                this.base, this.base,
+                x, y,
+                size, size);
+        } else {
+            console.log(`Waiting for image ${id} to load. Skipping draw`);
+        }
     }
 };
 

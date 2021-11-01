@@ -38,22 +38,22 @@ const blocks = {
                     type: "fillPixel",
                     x0: 0, y0: 0,
                     x1: 16, y1: 16,
-                    hue: 31, saturation: 93, luminosity: 20, alpha: 100,
-                    luminosityDelta: 2,
+                    hue: 31, saturation: 93, luminosity: 18, alpha: 100,
+                    luminosityMax: 22,
                     chance: 40
                 }, {
                     type: "fillPixel",
                     x0: 0, y0: 0,
                     x1: 16, y1: 2,
-                    hue: 91, saturation: 93, luminosity: 25, alpha: 100,
-                    luminosityDelta: 3,
+                    hue: 91, saturation: 93, luminosity: 22, alpha: 100,
+                    luminosityMax: 28,
                     chance: 100
                 }, {
                     type: "fillPixel",
                     x0: 0, y0: 2,
                     x1: 16, y1: 3,
-                    hue: 91, saturation: 93, luminosity: 25, alpha: 100,
-                    luminosityDelta: 3, alphaDelta: 50,
+                    hue: 91, saturation: 93, luminosity: 22, alpha: 50,
+                    luminosityMax: 28, alphaMax: 100,
                     chance: 40
                 }
             ]
@@ -71,8 +71,8 @@ const blocks = {
                     type: "fillPixel",
                     x0: 0, y0: 0,
                     x1: 16, y1: 16,
-                    hue: 31, saturation: 93, luminosity: 20, alpha: 100,
-                    luminosityDelta: 2,
+                    hue: 31, saturation: 93, luminosity: 18, alpha: 100,
+                    luminosityMax: 22,
                     chance: 40
                 }
             ]
@@ -90,15 +90,15 @@ const blocks = {
                     type: "fillPixel",
                     x0: 0, y0: 0,
                     x1: 16, y1: 16,
-                    hue: 0, saturation: 0, luminosity: 55, alpha: 100,
-                    luminosityDelta: 2,
+                    hue: 0, saturation: 0, luminosity: 53, alpha: 100,
+                    luminosityMax: 57,
                     chance: 40
                 }, {
                     type: "fillPixel",
                     x0: 0, y0: 0,
                     x1: 16, y1: 16,
-                    hue: 0, saturation: 0, luminosity: 65, alpha: 100,
-                    luminosityDelta: 2,
+                    hue: 0, saturation: 0, luminosity: 63, alpha: 100,
+                    luminosityMax: 67,
                     chance: 10
                 }
             ]
@@ -116,18 +116,18 @@ const blocks = {
                     type: "fillPixel",
                     x0: 0, y0: 0,
                     x1: 16, y1: 16,
-                    hue: 0, saturation: 0, luminosity: 35, alpha: 100,
-                    luminosityDelta: 2,
+                    hue: 0, saturation: 0, luminosity: 33, alpha: 100,
+                    luminosityMax: 37,
                     chance: 40
                 }, {
                     type: "fillPixel",
                     x0: 0, y0: 0,
                     x1: 16, y1: 16,
-                    hue: 0, saturation: 0, luminosity: 65, alpha: 60,
-                    luminosityDelta: 2, alphaDelta: 20,
+                    hue: 0, saturation: 0, luminosity: 63, alpha: 40,
+                    luminosityMax: 67, alphaMax: 80,
                     chance: 20,
-                    width: 1, widthDelta: 1,
-                    height: 1, heightDelta: 1
+                    width: 1, widthMax: 2,
+                    height: 1, heightMax: 2
                 }
             ]
         }
@@ -144,20 +144,20 @@ const blocks = {
                     type: "fillPixel",
                     x0: 0, y0: 0,
                     x1: 16, y1: 16,
-                    hue: 0, saturation: 0, luminosity: 25, alpha: 40,
-                    luminosityDelta: 2, alphaDelta: 20,
+                    hue: 0, saturation: 0, luminosity: 23, alpha: 20,
+                    luminosityMax: 27, alphaMax: 60,
                     chance: 40,
-                    width: 1, widthDelta: 1,
-                    height: 1, heightDelta: 1
+                    width: 1, widthMax: 2,
+                    height: 1, heightMax: 2
                 }, {
                     type: "fillPixel",
                     x0: 0, y0: 0,
                     x1: 16, y1: 16,
-                    hue: 0, saturation: 0, luminosity: 15, alpha: 60,
-                    luminosityDelta: 2, alphaDelta: 20,
+                    hue: 0, saturation: 0, luminosity: 13, alpha: 40,
+                    luminosityMax: 17, alphaMax: 80,
                     chance: 10,
-                    width: 1, widthDelta: 1,
-                    height: 1, heightDelta: 1
+                    width: 1, widthMax: 2,
+                    height: 1, heightMax: 2
                 }
             ]
         }
@@ -177,11 +177,9 @@ const blocks = {
                     type: "fillPixel",
                     x0: 0, y0: 0,
                     x1: 16, y1: 16,
-                    hue: 48, saturation: 69, luminosity: 61, alpha: 80,
-                    luminosityDelta: 5, alphaDelta: 20,
-                    chance: 40,
-                    width: 1, widthDelta: 0,
-                    height: 1, heightDelta: 0
+                    hue: 48, saturation: 69, luminosity: 56, alpha: 60,
+                    luminosityMax: 66, alphaMax: 100,
+                    chance: 40
                 }
             ]
         }
@@ -198,15 +196,15 @@ const blocks = {
                     type: "fillPixel",
                     x0: 0, y0: 0,
                     x1: 16, y1: 16,
-                    hue: 0, saturation: 0, luminosity: 55, alpha: 80,
-                    luminosityDelta: 2,
+                    hue: 0, saturation: 0, luminosity: 53, alpha: 80,
+                    luminosityMax: 57,
                     chance: 40
                 }, {
                     type: "fillPixel",
                     x0: 0, y0: 0,
                     x1: 16, y1: 16,
-                    hue: 0, saturation: 0, luminosity: 45, alpha: 100,
-                    luminosityDelta: 10,
+                    hue: 0, saturation: 0, luminosity: 35, alpha: 100,
+                    luminosityMax: 55,
                     chance: 30
                 }
             ]
@@ -226,17 +224,18 @@ const blocks = {
                     type: "fillPixel",
                     x0: 0, y0: 0,
                     x1: 16, y1: 16,
-                    hue: 216, saturation: 100, luminosity: 55, alpha: 50,
-                    luminosityDelta: 2,
+                    hue: 216, saturation: 100, luminosity: 53, alpha: 50,
+                    luminosityMax: 57,
                     chance: 30
                 }, {
                     type: "fillPixel",
                     x0: 0, y0: 0,
                     x1: 16, y1: 16,
-                    hue: 216, saturation: 100, luminosity: 65, alpha: 30,
-                    luminosityDelta: 10,
+                    hue: 216, saturation: 100, luminosity: 55, alpha: 30,
+                    luminosityMax: 75,
                     chance: 10,
-                    width: 4, widthDelta: 3,
+                    width: 4, widthMax: 7,
+                    wrapX: true,
                 }
             ]
         }
@@ -256,29 +255,30 @@ const blocks = {
                     type: "fillPixel",
                     x0: 0, y0: 0,
                     x1: 16, y1: 16,
-                    hue: 0, saturation: 0, luminosity: 25, alpha: 40,
-                    luminosityDelta: 2, alphaDelta: 20,
+                    hue: 0, saturation: 0, luminosity: 23, alpha: 20,
+                    luminosityMax: 27, alphaMax: 60,
                     chance: 40,
-                    width: 1, widthDelta: 1,
-                    height: 1, heightDelta: 1
+                    width: 1, widthMax: 2,
+                    height: 1, heightMax: 2
                 }, {
                     type: "fillPixel",
                     x0: 0, y0: 0,
                     x1: 16, y1: 16,
-                    hue: 0, saturation: 0, luminosity: 15, alpha: 60,
-                    luminosityDelta: 2, alphaDelta: 20,
+                    hue: 0, saturation: 0, luminosity: 13, alpha: 40,
+                    luminosityMax: 17, alphaMax: 80,
                     chance: 10,
-                    width: 1, widthDelta: 1,
-                    height: 1, heightDelta: 1
+                    width: 1, widthMax: 2,
+                    height: 1, heightMax: 2
                 }, {
                     type: "fillPixel",
-                    x0: 0, y0: 0,
-                    x1: 16, y1: 16,
-                    hue: 0, saturation: 0, luminosity: 5, alpha: 75,
-                    luminosityDelta: 5, alphaDelta: 10,
-                    chance: 4,
-                    width: 3, widthDelta: 1, widthDeltaInclude: false,
-                    height: 3, heightDelta: 1, heightDeltaInclude: false
+                    x0: 1, y0: 1,
+                    x1: 11, y1: 11,
+                    hue: 0, saturation: 0, luminosity: 0, alpha: 60,
+                    luminosityMax: 10, alphaMax: 80,
+                    count: 4, countMax: 6,
+                    width: 3, widthMax: 4,
+                    height: 3, heightMax: 4,
+                    shadow: true
                 }
             ]
         }
@@ -295,29 +295,30 @@ const blocks = {
                     type: "fillPixel",
                     x0: 0, y0: 0,
                     x1: 16, y1: 16,
-                    hue: 0, saturation: 0, luminosity: 25, alpha: 40,
-                    luminosityDelta: 2, alphaDelta: 20,
+                    hue: 0, saturation: 0, luminosity: 23, alpha: 20,
+                    luminosityMax: 27, alphaMax: 60,
                     chance: 40,
-                    width: 1, widthDelta: 1,
-                    height: 1, heightDelta: 1
+                    width: 1, widthMax: 2,
+                    height: 1, heightMax: 2
                 }, {
                     type: "fillPixel",
                     x0: 0, y0: 0,
                     x1: 16, y1: 16,
-                    hue: 0, saturation: 0, luminosity: 15, alpha: 60,
-                    luminosityDelta: 2, alphaDelta: 20,
+                    hue: 0, saturation: 0, luminosity: 13, alpha: 40,
+                    luminosityMax: 17, alphaMax: 80,
                     chance: 10,
-                    width: 1, widthDelta: 1,
-                    height: 1, heightDelta: 1
+                    width: 1, widthMax: 2,
+                    height: 1, heightMax: 2
                 }, {
                     type: "fillPixel",
-                    x0: 0, y0: 0,
-                    x1: 16, y1: 16,
-                    hue: 34, saturation: 68, luminosity: 67, alpha: 60,
-                    luminosityDelta: 10, alphaDelta: 10,
-                    chance: 4,
-                    width: 3, widthDelta: 1, widthDeltaInclude: false,
-                    height: 3, heightDelta: 1, heightDeltaInclude: false
+                    x0: 1, y0: 1,
+                    x1: 11, y1: 11,
+                    hue: 34, saturation: 68, luminosity: 57, alpha: 50,
+                    luminosityMax: 77, alphaMax: 70,
+                    count: 4, countMax: 6,
+                    width: 3, widthMax: 4,
+                    height: 3, heightMax: 4,
+                    shadow: true
                 }
             ]
         }
@@ -334,29 +335,30 @@ const blocks = {
                     type: "fillPixel",
                     x0: 0, y0: 0,
                     x1: 16, y1: 16,
-                    hue: 0, saturation: 0, luminosity: 25, alpha: 40,
-                    luminosityDelta: 2, alphaDelta: 20,
+                    hue: 0, saturation: 0, luminosity: 23, alpha: 20,
+                    luminosityMax: 27, alphaMax: 60,
                     chance: 40,
-                    width: 1, widthDelta: 1,
-                    height: 1, heightDelta: 1
+                    width: 1, widthMax: 2,
+                    height: 1, heightMax: 2
                 }, {
                     type: "fillPixel",
                     x0: 0, y0: 0,
                     x1: 16, y1: 16,
-                    hue: 0, saturation: 0, luminosity: 15, alpha: 60,
-                    luminosityDelta: 2, alphaDelta: 20,
+                    hue: 0, saturation: 0, luminosity: 13, alpha: 40,
+                    luminosityMax: 17, alphaMax: 80,
                     chance: 10,
-                    width: 1, widthDelta: 1,
-                    height: 1, heightDelta: 1
+                    width: 1, widthMax: 2,
+                    height: 1, heightMax: 2
                 }, {
                     type: "fillPixel",
-                    x0: 0, y0: 0,
-                    x1: 16, y1: 16,
-                    hue: 58, saturation: 100, luminosity: 45, alpha: 60,
-                    luminosityDelta: 10, alphaDelta: 10,
-                    chance: 4,
-                    width: 3, widthDelta: 1, widthDeltaInclude: false,
-                    height: 3, heightDelta: 1, heightDeltaInclude: false
+                    x0: 1, y0: 1,
+                    x1: 11, y1: 11,
+                    hue: 58, saturation: 100, luminosity: 35, alpha: 50,
+                    luminosityMax: 45, alphaMax: 65,
+                    count: 4, countMax: 6,
+                    width: 3, widthMax: 4,
+                    height: 3, heightMax: 4,
+                    shadow: true
                 }
             ]
         }
@@ -373,29 +375,30 @@ const blocks = {
                     type: "fillPixel",
                     x0: 0, y0: 0,
                     x1: 16, y1: 16,
-                    hue: 0, saturation: 0, luminosity: 25, alpha: 40,
-                    luminosityDelta: 2, alphaDelta: 20,
+                    hue: 0, saturation: 0, luminosity: 23, alpha: 20,
+                    luminosityMax: 27, alphaMax: 60,
                     chance: 40,
-                    width: 1, widthDelta: 1,
-                    height: 1, heightDelta: 1
+                    width: 1, widthMax: 2,
+                    height: 1, heightMax: 2
                 }, {
                     type: "fillPixel",
                     x0: 0, y0: 0,
                     x1: 16, y1: 16,
-                    hue: 0, saturation: 0, luminosity: 15, alpha: 60,
-                    luminosityDelta: 2, alphaDelta: 20,
+                    hue: 0, saturation: 0, luminosity: 13, alpha: 40,
+                    luminosityMax: 17, alphaMax: 80,
                     chance: 10,
-                    width: 1, widthDelta: 1,
-                    height: 1, heightDelta: 1
+                    width: 1, widthMax: 2,
+                    height: 1, heightMax: 2
                 }, {
                     type: "fillPixel",
-                    x0: 0, y0: 0,
-                    x1: 16, y1: 16,
-                    hue: 187, saturation: 100, luminosity: 47, alpha: 50,
-                    luminosityDelta: 10, alphaDelta: 10,
-                    chance: 4,
-                    width: 3, widthDelta: 1, widthDeltaInclude: false,
-                    height: 3, heightDelta: 1, heightDeltaInclude: false
+                    x0: 1, y0: 1,
+                    x1: 11, y1: 11,
+                    hue: 187, saturation: 100, luminosity: 37, alpha: 40,
+                    luminosityMax: 57, alphaMax: 60,
+                    count: 4, countMax: 6,
+                    width: 3, widthMax: 4,
+                    height: 3, heightMax: 4,
+                    shadow: true
                 }
             ]
         }
@@ -413,17 +416,17 @@ const blocks = {
                     type: "fillPixel",
                     x0: 0, y0: 0,
                     x1: 16, y1: 16,
-                    hue: 0, saturation: 0, luminosity: 20, alpha: 50,
-                    luminosityDelta: 2,
+                    hue: 0, saturation: 0, luminosity: 18, alpha: 50,
+                    luminosityMax: 22,
                     chance: 30
                 }, {
                     type: "fillPixel",
                     x0: 0, y0: 0,
                     x1: 16, y1: 16,
-                    hue: 0, saturation: 0, luminosity: 4, alpha: 80,
-                    luminosityDelta: 2, alphaDelta: 20,
+                    hue: 0, saturation: 0, luminosity: 2, alpha: 60,
+                    luminosityMax: 6, alphaMax: 100,
                     chance: 10,
-                    width: 6, widthDelta: 4,
+                    width: 6, widthMax: 10,
                     wrapX: true, wrapY: true,
                 }
             ]

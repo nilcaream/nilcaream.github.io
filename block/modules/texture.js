@@ -5,7 +5,7 @@ class Texture {
         this.width = width;
         this.height = height;
         this.rng = Random(seed, 11);
-        console.log(`Seed ${seed}`);
+        console.log(`Texture seed ${seed}`);
 
         this.canvas = document.createElement("canvas");
         this.canvas.setAttribute("width", width + "");
@@ -34,31 +34,52 @@ class Texture {
         x0: 0, y0: 0,
         x1: 16, y1: 16,
         hue: 33, saturation: 100, luminosity: 100, alpha: 100,
-        hueDelta: 0, saturationDelta: 0, luminosityDelta: 0, alphaDelta: 0,
+        hueMax: 0, saturationMax: 0, luminosityMax: 0, alphaMax: 0,
         width: 1, height: 1,
-        widthDelta: 0, heightDelta: 0,
-        widthDeltaInclude: true, heightDeltaInclude: true,
-        chance: 100,
+        widthMax: 0, heightMax: 0,
+        count: 1, countMax: 0,
+        chance: 0,
         wrapX: false, wrapY: false
     }
 
     noise(opt) {
         // apply defaults if not set in opt
-        Object.keys(this.defaults).filter(key => opt[key] === undefined).forEach(key => opt[key] = this.defaults[key]);
+        Object.keys(this.defaults)
+            .filter(key => opt[key] === undefined)
+            .forEach(key => opt[key] = this.defaults[key]);
+
+        // override default max values
+        Object.keys(opt)
+            .filter(key => key.endsWith("Max"))
+            .filter(key => !opt[key])
+            .forEach(key => opt[key] = opt[key.replace("Max", "")]);
 
         if (opt.type === "fillRect") {
             this.ctx.fillStyle = this.optHsla(opt);
             this.ctx.fillRect(opt.x0, opt.y0, opt.x1 - opt.x0, opt.y1 - opt.y0);
         } else if (opt.type === "fillPixel") {
             let width, height;
-            for (let x = opt.x0; x < opt.x1; x++) {
-                for (let y = opt.y0; y < opt.y1; y++) {
-                    if (this.rng(0, 100) < opt.chance) {
-                        this.ctx.fillStyle = this.optHsla(opt);
-                        width = this.rng(opt.width - opt.widthDelta, opt.width + opt.widthDelta, opt.widthDeltaInclude);
-                        height = this.rng(opt.height - opt.heightDelta, opt.height + opt.heightDelta, opt.heightDeltaInclude);
-                        this.fillRect(opt, x, y, width, height);
+            if (opt.chance > 0) {
+                for (let x = opt.x0; x < opt.x1; x++) {
+                    for (let y = opt.y0; y < opt.y1; y++) {
+                        if (this.rng(0, 100) < opt.chance) {
+                            this.ctx.fillStyle = this.optHsla(opt);
+                            width = this.rng(opt.width, opt.widthMax, true);
+                            height = this.rng(opt.height, opt.heightMax, true);
+                            this.fillRect(opt, x, y, width, height);
+                        }
                     }
+                }
+            } else {
+                let x, y;
+                const count = this.rng(opt.count, opt.countMax, true);
+                for (let i = 0; i < count; i++) {
+                    x = this.rng(opt.x0, opt.x1, true);
+                    y = this.rng(opt.y0, opt.y1, true);
+                    width = this.rng(opt.width, opt.widthMax, true);
+                    height = this.rng(opt.height, opt.heightMax, true);
+                    this.ctx.fillStyle = this.optHsla(opt);
+                    this.fillRect(opt, x, y, width, height);
                 }
             }
         }
@@ -72,19 +93,30 @@ class Texture {
                 }
             }
         } else {
-            this.ctx.fillRect(x, y, width, height);
+            if (opt.shadow) {
+                this.ctx.save();
+                this.ctx.shadowColor = "#000";
+                this.ctx.shadowColor = this.hsla(opt.hue, opt.saturation, 0.7 * opt.luminosity, 60, opt.hueMax, opt.saturationMax, 0.7 * opt.luminosityMax, 60);
+                this.ctx.shadowBlur = 1;
+                this.ctx.shadowOffsetX = -1;
+                this.ctx.shadowOffsetY = 1;
+                this.ctx.fillRect(x, y, width, height);
+                this.ctx.restore();
+            } else {
+                this.ctx.fillRect(x, y, width, height);
+            }
         }
     }
 
     optHsla(opt) {
-        return this.hsla(opt.hue, opt.saturation, opt.luminosity, opt.alpha, opt.hueDelta, opt.saturationDelta, opt.luminosityDelta, opt.alphaDelta);
+        return this.hsla(opt.hue, opt.saturation, opt.luminosity, opt.alpha, opt.hueMax, opt.saturationMax, opt.luminosityMax, opt.alphaMax);
     }
 
-    hsla(h, s, l, a, hd = 0, sd = 0, ld = 0, ad = 0) {
-        const vh = this.rng(h - hd, h + hd, true);
-        const vs = Math.min(100, Math.max(0, this.rng(s - sd, s + sd, true)));
-        const vl = Math.min(100, Math.max(0, this.rng(l - ld, l + ld, true)));
-        const va = Math.min(1, Math.max(0, this.rng(a - ad, a + ad, true) / 100));
+    hsla(h, s, l, a, hMax = h, sMax = s, lMax = l, aMax = a) {
+        const vh = this.rng(h, hMax, true);
+        const vs = Math.min(100, Math.max(0, this.rng(s, sMax, true)));
+        const vl = Math.min(100, Math.max(0, this.rng(l, lMax, true)));
+        const va = Math.min(1, Math.max(0, this.rng(a, aMax, true) / 100));
         return `hsla(${vh},${vs}%,${vl}%,${va})`;
     }
 

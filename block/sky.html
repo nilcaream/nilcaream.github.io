@@ -2,13 +2,12 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Game</title>
+    <title>Sky</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             overflow: hidden;
-            cursor: none;
         }
 
         canvas {
@@ -18,9 +17,8 @@
         }
     </style>
     <script type="module">
+        import {Settings} from "./modules/settings.js";
         import {Game} from "./modules/game.js";
-        import {Graphics} from "./modules/graphics.js";
-        import {Hud} from "./modules/hud.js";
         import {Sky} from "./modules/sky.js";
 
         ((r) => document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", r) : r())(() => {
@@ -28,14 +26,14 @@
             game.setPlayer("Copter");
             game.start(6);
 
-            const graphics = new Graphics("main", game);
-            graphics.startAnimation(40);
-
-            const hud = new Hud("hud", game);
-            hud.startAnimation(10);
-
             const sky = new Sky("sky", game);
+
+            game.meta.blockSize = sky.canvas.height / Settings.chunk.height;
+            game.player.y = Settings.chunk.height / 2;
+
             sky.startAnimation(30);
+
+            setInterval(() => game.time += 4000, 20);
         });
 
     </script>
@@ -43,8 +41,6 @@
 <body>
 <div id="wrapper">
     <canvas id="sky"></canvas>
-    <canvas id="main"></canvas>
-    <canvas id="hud"></canvas>
 </div>
 </body>
 </html>

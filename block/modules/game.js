@@ -49,6 +49,7 @@ class Game {
         this.generator = new Generator(seed);
         this.spawn = this.selectSpawnPoint();
         this.meta = {};
+        this.time = 0;
         Keyboard.init();
     }
 
@@ -64,6 +65,33 @@ class Game {
         // this.player.x = 298;
         // this.player.y = 65;
         // this.player.y = 2.2;
+    }
+
+    start(hour) {
+        this.setHour(hour);
+    }
+
+    // real time in seconds
+    getRealTime() {
+        return Math.floor(this.time / 1000);
+    }
+
+    // game time in minutes
+    getGameTime() {
+        return Math.floor(this.time / 1200);
+    }
+
+    setHour(hour = 0) {
+        // TODO add up to full hour instead of time override
+        this.time = 1000 * 60 * 60 * 12 * (hour / 24);
+    }
+
+    getGameClock() {
+        let minutes = this.getGameTime() % 60;
+        let hours = ((this.getGameTime() - minutes) / 60) % 24;
+        minutes = minutes < 10 ? "0" + minutes : minutes;
+        hours = hours < 10 ? "0" + hours : hours;
+        return `${hours}:${minutes}`;
     }
 
     getRng(id) {
@@ -163,6 +191,7 @@ class Game {
     update(timestamp, diff, mouseX, mouseY) {
         this.mouseX = mouseX;
         this.mouseY = mouseY;
+        this.time += diff;
         if (this.mode === Mode.spectator) {
             this.moveSpectator(timestamp, diff);
         } else if (this.mode === Mode.creative) {
