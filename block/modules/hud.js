@@ -46,15 +46,28 @@ class Hud extends Canvas {
         const player = this.game.player;
         const position = this.game.getBlockAbsolute(player.x, player.y);
 
+        let light;
+        if (this.game.meta.light.x !== undefined) {
+            light = `L:${this.game.meta.light.x.toFixed(2)},${this.game.meta.light.y.toFixed(2)},${this.game.meta.light.v.toFixed(2)} `;
+        }
+
+        let frameTime;
+        if (this.game.meta.frameTimeAvg) {
+            frameTime = `${this.game.meta.frameTimeMin}/${this.game.meta.frameTimeAvg}/${this.game.meta.frameTimeMax}ms `;
+        }
+
         let text =
             `${player.name} p:(${player.x.toFixed(2)},${player.y.toFixed(2)}) ` +
             `v:(${player.velocityX.toFixed(2)},${player.velocityY.toFixed(2)}) ` +
             `c:${position.chunkId} ` +
             `b:${this.game.meta.blockSize} ` +
+            (light ? light : "") +
             `${this.game.mode}:${this.game.generator.seed} ${position.biomeName} ` +
             `HP:${this.game.player.health} ` +
+            // `FPS:${this.game.meta.fps.toFixed(0)}/${this.game.meta.targetFps.toFixed(0)}/${this.game.meta.fpsMax.toFixed(0)} ` +
             `FPS:${this.game.meta.fps.toFixed(0)}/${this.game.meta.targetFps.toFixed(0)} ` +
-            `${this.game.meta.frame}ms ` +
+            (frameTime ? frameTime : "") +
+            // `${(this.game.meta.frame / 1000).toFixed(1)}ms ` +
             `${this.game.getGameClock()} `;
 
         if (player.selected.present) {

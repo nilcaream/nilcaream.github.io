@@ -39,6 +39,7 @@ class Texture {
         widthMax: 0, heightMax: 0,
         count: 1, countMax: 0,
         chance: 0,
+        spread: 0,
         wrapX: false, wrapY: false
     }
 
@@ -70,6 +71,24 @@ class Texture {
                         }
                     }
                 }
+            } else if (opt.count > 0 && opt.spread > 0) {
+                let x, y;
+                let results = [];
+                const count = this.rng(opt.count, opt.countMax, true);
+                for (let i = 0; i < 128 && results.length < count; i++) {
+                    x = this.rng(opt.x0, opt.x1, true);
+                    y = this.rng(opt.y0, opt.y1, true);
+                    const tooClose = results.map(r => Math.sqrt((r.x - x) * (r.x - x) + (r.y - y) * (r.y - y))).filter(d => d < opt.spread).length;
+                    if (tooClose === 0) {
+                        results.push({x: x, y: y});
+                    }
+                }
+                results.forEach(r => {
+                    width = this.rng(opt.width, opt.widthMax, true);
+                    height = this.rng(opt.height, opt.heightMax, true);
+                    this.ctx.fillStyle = this.optHsla(opt);
+                    this.fillRect(opt, r.x, r.y, width, height);
+                });
             } else {
                 let x, y;
                 const count = this.rng(opt.count, opt.countMax, true);

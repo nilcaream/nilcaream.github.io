@@ -212,12 +212,20 @@ class Generator {
                 }
             }
 
-            blocks.forEach(block => {
+            let blockId;
+            blocks.forEach((block, index) => {
                 if (rng() <= block.chance) {
                     const depth = rng(block.depthMin, block.depthMax, true);
                     for (let i = 0; i < depth && y >= 0; i++, y--) {
+                        if (rng() < 0.2 && index > 0) {
+                            blockId = blocks[Math.min(index + 1, blocks.length - 1)].blockId;
+                        } else if (rng() < 0.1 && index > 1) {
+                            blockId = blocks[index - 1].blockId;
+                        } else {
+                            blockId = block.blockId
+                        }
                         chunk.blocks[y][x] = {
-                            blockId: block.blockId,
+                            blockId: blockId,
                             seen: y === chunk.surface[x]
                         };
                     }

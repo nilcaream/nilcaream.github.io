@@ -48,8 +48,11 @@ class Game {
     constructor(seed) {
         this.generator = new Generator(seed);
         this.spawn = this.selectSpawnPoint();
-        this.meta = {};
+        this.meta = {
+            light: {}
+        };
         this.time = 0;
+        this.lights = {};
         Keyboard.init();
     }
 
@@ -78,7 +81,7 @@ class Game {
 
     // game time in minutes
     getGameTime() {
-        return Math.floor(this.time / 1200);
+        return this.time / 1200;
     }
 
     setHour(hour = 0) {
@@ -87,8 +90,9 @@ class Game {
     }
 
     getGameClock() {
-        let minutes = this.getGameTime() % 60;
-        let hours = ((this.getGameTime() - minutes) / 60) % 24;
+        const gameTime = Math.floor(this.getGameTime());
+        let minutes = gameTime % 60;
+        let hours = ((gameTime - minutes) / 60) % 24;
         minutes = minutes < 10 ? "0" + minutes : minutes;
         hours = hours < 10 ? "0" + hours : hours;
         return `${hours}:${minutes}`;
@@ -200,7 +204,45 @@ class Game {
             this.moveSurvival(timestamp, diff);
             this.selectBlockAt(mouseX, mouseY);
             this.actOnSelectedBlock();
+            // this.updateLights();
         }
+    }
+
+    updateLights() { // TODO implement in the future
+        if (this.meta.light.x !== undefined && this.meta.screenWidth !== undefined) {
+            this.lights = {};
+
+            const x0 = (this.meta.light.x - 0.5) * this.meta.screenWidth + this.player.x;
+            const y0 = this.meta.light.y * (this.meta.screenHeight / 2) + this.player.y;
+
+            //console.log(`Sun ${x0.toFixed(2)} ${y0.toFixed(2)}`);
+            for (let a = 0; a < Math.PI; a += Math.PI / 256) {
+                for (let r = 0.9; r < 80; r += 0.9) {
+                    const x1 = x0 + r * Math.cos(a);
+                    const y1 = y0 - r * Math.sin(a);
+
+                    const block = this.getBlockAbsolute(x1, y1);
+                    const top = this.getBlockAbsolute(block.xAbsolute, block.yAbsolute + 1);
+                    const adjacent = this.getBlockAbsolute(block.xAbsolute + (a < Math.PI / 2 ? -1 : 1), block.yAbsolute);
+                    const blocked = top.blockId > Settings.blocks.any.id && adjacent.blockId > Settings.blocks.any.id;
+                    const light = blocked ? 0 : this.meta.light.v;
+
+                    if (this.lights[block.yAbsolute] === undefined) {
+                        this.lights[block.yAbsolute] = {};
+                    }
+
+                    this.lights[block.yAbsolute][block.xAbsolute] = light;
+
+                    if (block.blockId > Settings.blocks.any.id) {
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    getLight(x, y) {
+        return (this.lights[y] || {})[x] || 0;
     }
 
     actOnSelectedBlock() {
@@ -550,6 +592,7 @@ class Game {
         } else {
             position.blockId = chunk.blocks[position.y][position.x].blockId;
             position.seen = chunk.blocks[position.y][position.x].seen;
+            position.light = chunk.blocks[position.y][position.x].light;
         }
         position.block = Settings.blocks[position.blockId];
         position.biomeName = chunk.biomesNames[position.x];

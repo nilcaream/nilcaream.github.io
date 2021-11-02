@@ -162,9 +162,93 @@ const blocks = {
             ]
         }
     },
-    deepStone1: {id: 7, color: "#868277"},
-    deepStone2: {id: 8, color: "#6e695f"},
-    deepStone3: {id: 9, color: "#504832"},
+    deepStone1: {
+        id: 7, color: "#868277", texture: {
+            data: [
+                {
+                    type: "fillRect",
+                    x0: 0, y0: 0,
+                    x1: 16, y1: 16,
+                    hue: 0, saturation: 0, luminosity: 20, alpha: 100
+                }, {
+                    type: "fillPixel",
+                    x0: 0, y0: 0,
+                    x1: 16, y1: 16,
+                    hue: 0, saturation: 0, luminosity: 13, alpha: 100,
+                    luminosityMax: 27,
+                    chance: 40
+                }, {
+                    type: "fillPixel",
+                    x0: 0, y0: 0,
+                    x1: 16, y1: 16,
+                    hue: 0, saturation: 0, luminosity: 33, alpha: 100,
+                    luminosityMax: 37,
+                    chance: 10,
+                    width: 1, widthMax: 2
+                }
+            ]
+        }
+    },
+    deepStone2: {
+        id: 8, color: "#6e695f", texture: {
+            data: [
+                {
+                    type: "fillRect",
+                    x0: 0, y0: 0,
+                    x1: 16, y1: 16,
+                    hue: 0, saturation: 0, luminosity: 25, alpha: 100
+                }, {
+                    type: "fillPixel",
+                    x0: 0, y0: 0,
+                    x1: 16, y1: 16,
+                    hue: 0, saturation: 0, luminosity: 13, alpha: 100,
+                    luminosityMax: 17,
+                    chance: 40,
+                    width: 1, widthMax: 2
+                }, {
+                    type: "fillPixel",
+                    x0: 0, y0: 0,
+                    x1: 16, y1: 16,
+                    hue: 0, saturation: 0, luminosity: 23, alpha: 40,
+                    luminosityMax: 27, alphaMax: 80,
+                    chance: 20,
+                    width: 1, widthMax: 2,
+                    height: 1, heightMax: 2
+                }
+            ]
+        }
+    },
+    deepStone3: {
+        id: 9, color: "#504832", texture: {
+            data: [
+                {
+                    type: "fillRect",
+                    x0: 0, y0: 0,
+                    x1: 16, y1: 16,
+                    hue: 0, saturation: 0, luminosity: 15, alpha: 100,
+                    width: 1, widthMax: 2
+                }, {
+                    type: "fillPixel",
+                    x0: 0, y0: 0,
+                    x1: 16, y1: 16,
+                    hue: 0, saturation: 0, luminosity: 3, alpha: 20,
+                    luminosityMax: 7, alphaMax: 60,
+                    chance: 40,
+                    width: 1, widthMax: 2,
+                    height: 1, heightMax: 2
+                }, {
+                    type: "fillPixel",
+                    x0: 0, y0: 0,
+                    x1: 16, y1: 16,
+                    hue: 0, saturation: 0, luminosity: 3, alpha: 40,
+                    luminosityMax: 7, alphaMax: 80,
+                    chance: 10,
+                    width: 1, widthMax: 2,
+                    height: 1, heightMax: 2
+                }
+            ]
+        }
+    },
     sand: {
         id: 10, color: "#fffd98", texture: {
             data: [
@@ -278,7 +362,8 @@ const blocks = {
                     count: 4, countMax: 6,
                     width: 3, widthMax: 4,
                     height: 3, heightMax: 4,
-                    shadow: true
+                    shadow: true,
+                    spread: 4
                 }
             ]
         }
@@ -318,7 +403,8 @@ const blocks = {
                     count: 4, countMax: 6,
                     width: 3, widthMax: 4,
                     height: 3, heightMax: 4,
-                    shadow: true
+                    shadow: true,
+                    spread: 4
                 }
             ]
         }
@@ -358,7 +444,8 @@ const blocks = {
                     count: 4, countMax: 6,
                     width: 3, widthMax: 4,
                     height: 3, heightMax: 4,
-                    shadow: true
+                    shadow: true,
+                    spread: 4
                 }
             ]
         }
@@ -398,7 +485,8 @@ const blocks = {
                     count: 4, countMax: 6,
                     width: 3, widthMax: 4,
                     height: 3, heightMax: 4,
-                    shadow: true
+                    shadow: true,
+                    spread: 4
                 }
             ]
         }
@@ -424,7 +512,7 @@ const blocks = {
                     x0: 0, y0: 0,
                     x1: 16, y1: 16,
                     hue: 0, saturation: 0, luminosity: 2, alpha: 60,
-                    luminosityMax: 6, alphaMax: 100,
+                    luminosityMax: 20, alphaMax: 80,
                     chance: 10,
                     width: 6, widthMax: 10,
                     wrapX: true, wrapY: true,

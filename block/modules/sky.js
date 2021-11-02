@@ -9,16 +9,17 @@ class Sky extends Canvas {
         this.ctx.imageSmoothingEnabled = true;
 
         const dark = {r: 20, g: 20, b: 20};
+        const day = [{r: 58, g: 168, b: 243}, {r: 91, g: 184, b: 246}, {r: 189, g: 244, b: 250}];
+        const night = [dark, dark, dark];
+
         this.palette = {
-            0: [dark, dark, dark],
-            5: [dark, dark, dark],
+            0: night,
+            5: night,
+            6: day,
 
-            6: [{r: 58, g: 168, b: 243}, {r: 91, g: 184, b: 246}, {r: 189, g: 244, b: 250}],
-            16: [{r: 58, g: 168, b: 243}, {r: 91, g: 184, b: 246}, {r: 189, g: 244, b: 250}],
-
-            17: [dark, {r: 255, g: 149, b: 0}, {r: 217, g: 175, b: 38}],
-            18: [dark, dark, dark],
-            24: [dark, dark, dark],
+            18: day,
+            19: night,
+            24: night,
         };
     }
 
@@ -33,8 +34,10 @@ class Sky extends Canvas {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
         this.sky();
-        this.celestial(1, 0.2, 0.2, 2, 6, Math.PI / 2, 3 * Math.PI / 2, 255, 251, 38);
-        this.celestial(1, 0.2, 0.2, 1.8, 2, 3 * Math.PI / 2, Math.PI / 2, 255, 255, 255);
+        // this.celestial(1, 0.2, 0.2, 2, 6, Math.PI / 2, 3 * Math.PI / 2, 255, 251, 38);
+        // this.celestial(1, 0.2, 0.2, 1.8, 2, 3 * Math.PI / 2, Math.PI / 2, 255, 255, 255);
+        const sun = this.staticCelestial(0.04, 0.2, Math.PI / 2, 3 * Math.PI / 2, 255, 251, 38);
+        this.staticCelestial(0.037, 0.05, 3 * Math.PI / 2, Math.PI / 2, 255, 255, 255);
 
         // this.ctx.fillStyle = "#fff";
         // this.ctx.font = "30px mono";
@@ -42,6 +45,8 @@ class Sky extends Canvas {
         // this.ctx.textAlign = "left";
         // this.ctx.fillText(this.game.getGameClock(), 0, this.canvas.height);
         this.ctx.restore();
+
+        this.game.meta.light = sun;
     }
 
     sky() {
@@ -63,11 +68,12 @@ class Sky extends Canvas {
             return mix;
         };
 
+        const night = `rgb(${this.palette[0][0].r},${this.palette[0][0].g},${this.palette[0][0].b})`;
         gradient.addColorStop(level(Settings.chunk.height), get(this.hour(), 0));
         gradient.addColorStop(level(Settings.chunk.middle + 16), get(this.hour(), 1));
         gradient.addColorStop(level(Settings.chunk.middle), get(this.hour(), 2));
-        gradient.addColorStop(level(40), "#222");
-        gradient.addColorStop(level(1), "#000");
+        gradient.addColorStop(level(40), night);
+        gradient.addColorStop(level(0), "#000");
 
         // gradient.addColorStop(level(Settings.chunk.height), "#3aa8f3");
         // gradient.addColorStop(level(Settings.chunk.height - 16), "#5bb8f6");
@@ -79,6 +85,10 @@ class Sky extends Canvas {
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
         this.ctx.restore();
+    }
+
+    update() {
+        this.gamePlayerY = this.gamePlayerY === undefined ? this.game.player.y : this.gamePlayerY;
     }
 
     blockLevel() {
@@ -136,6 +146,44 @@ class Sky extends Canvas {
 
         this.ctx.restore();
     }
+
+    staticCelestial(r1, r2, spinOffset, alphaOffset, r, g, b) {
+        const depthFactor = Math.min(0, (this.game.player.y - Settings.chunk.middle) / Settings.chunk.middle); // top 0, mid 0, bottom -1
+
+        const x0 = Math.floor(this.canvas.width / 2);
+        const y0 = Math.floor(this.canvas.height / 2 + this.canvas.height * depthFactor);
+        const radiusX = 1.1 * Math.floor(this.canvas.width / 2);
+        const radiusY = Math.floor(this.canvas.height / 2);
+        const hour = this.hour();
+        const angle = 2 * Math.PI * hour / 24;
+        const alpha = Math.min(1, Math.max(0, 4 * Math.pow(Math.sin(alphaOffset + angle), 1)));
+
+        this.ctx.save();
+
+        const x = x0 + radiusX * Math.cos(spinOffset + angle);
+        const y = y0 + radiusY * Math.sin(spinOffset + angle);
+        const gradient = this.ctx.createRadialGradient(x, y, r1 * this.canvas.height, x, y, r2 * this.canvas.height);
+
+        gradient.addColorStop(0, `rgba(${r},${g},${b},${alpha})`);
+        gradient.addColorStop(1, `rgba(${r},${g},${b},0)`);
+
+        this.ctx.fillStyle = gradient;
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+        // this.ctx.fillStyle = "#f2f";
+        // this.ctx.fillRect(x0, y0, 5, 5);
+        // this.ctx.fillStyle = "#000";
+        // this.ctx.fillRect(x, y, 5, 5);
+
+        this.ctx.restore();
+
+        return {
+            x: Math.max(0, Math.min(1, x / this.canvas.width)),
+            y: Math.max(0, Math.min(1, 1 - y / this.canvas.height)),
+            v: alpha
+        }
+    }
+
 }
 
 export {Sky};

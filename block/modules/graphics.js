@@ -6,11 +6,38 @@ import {Images} from "./images.js";
 import {Texture} from "./texture.js";
 import {Canvas} from "./canvas.js";
 
+class CyclicArray {
+    constructor(size) {
+        this.size = size;
+        this.data = new Array(size).fill(0);
+        this.index = 0;
+    }
+
+    add(value) {
+        this.data[this.index] = value;
+        this.index = (this.index + 1) % this.size;
+    }
+
+    average() {
+        return this.data.reduce((a, b) => a + b) / this.size;
+    }
+
+    minimum() {
+        return Math.min(...this.data);
+    }
+
+    maximum() {
+        return Math.max(...this.data);
+    }
+}
+
 class Graphics extends Canvas {
 
     constructor(canvasId, game) {
         super(canvasId);
+
         this.game = game;
+        this.frameTime = new CyclicArray(64);
 
         this.ctx.font = '9px mono';
         this.ctx.fillStyle = "#000";
@@ -33,11 +60,16 @@ class Graphics extends Canvas {
 
 
     frame(timestamp, diff) {
-        this.frameTimestamp = new Date().getTime();
+        this.frameTimestamp = performance.now();
         this.update(timestamp, diff);
         this.game.update(timestamp, diff, this.sX(Mouse.x), this.sY(Mouse.y));
         this.draw(timestamp, diff);
-        this.game.meta.frame = new Date().getTime() - this.frameTimestamp;
+        this.game.meta.frame = Math.round(1000 * (performance.now() - this.frameTimestamp));
+        this.game.meta.fpsMax = Math.round(1000000 / this.game.meta.frame);
+        this.frameTime.add(performance.now() - this.frameTimestamp);
+        this.game.meta.frameTimeMin = Math.round(this.frameTime.minimum());
+        this.game.meta.frameTimeMax = Math.round(this.frameTime.maximum());
+        this.game.meta.frameTimeAvg = Math.round(this.frameTime.average());
     }
 
     update(timestamp, diff) {
@@ -123,6 +155,11 @@ class Graphics extends Canvas {
             this.ctx.fillStyle = "#000";
             this.ctx.textBaseline = 'bottom';
             this.ctx.fillText(`${r.x},${r.y} b:${r.blockId}`, this.rX(x) + this.rS(0.01), this.rY(y));
+
+            const light = this.game.getLight(r.xAbsolute, r.yAbsolute);
+            if (light) {
+                this.ctx.fillText(`v:${light}`, this.rX(x) + this.rS(0.01), this.rY(y) - 8);
+            }
         }
     }
 
@@ -168,6 +205,9 @@ class Graphics extends Canvas {
 
         const blocksCountX = Math.ceil(0.5 * this.canvas.width / this.zoom);
         const blocksCountY = Math.ceil(0.5 * this.canvas.height / this.zoom) + 1;
+
+        this.game.meta.screenWidth = blocksCountX * 2;
+        this.game.meta.screenHeight = blocksCountY * 2;
 
         for (let yi = -blocksCountY; yi <= blocksCountY; yi++) {
             for (let xi = -blocksCountX; xi <= blocksCountX; xi++) {
