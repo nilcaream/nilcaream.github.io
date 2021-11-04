@@ -19,6 +19,7 @@ class Entity {
         this.maxHealth = 20;
         this.health = 20;
         this.hurtEverySecond = {};
+        this.animation = {};
 
         this.setCrouch(false);
     }
@@ -255,8 +256,8 @@ class Game {
                 if (this.doesIntersect(
                     this.player.x - this.player.width / 2, this.player.y,
                     this.player.x + this.player.width / 2, this.player.y + 1,
-                    block.x, block.y,
-                    block.x + 1, block.y + 1)) {
+                    block.xAbsolute, block.yAbsolute,
+                    block.xAbsolute + 1, block.yAbsolute + 1)) {
                     console.log(`Cannot place block`);
                 } else {
                     block.blockId = Settings.blocks.dirt.id;

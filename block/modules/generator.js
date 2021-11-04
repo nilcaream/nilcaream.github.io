@@ -238,7 +238,7 @@ class Generator {
         const rng = this.getRng(chunk.id + 7100 + chunk.id);
         chunk.biomes.forEach((biome, biomeNumber) => {
 
-            const widthFactor = 2 * (biome.end - biome.start) / Settings.chunk.width;
+            const widthFactor = 3 * (biome.end - biome.start) / Settings.chunk.width;
 
             (Settings.biomes[biome.name].veins || []).forEach(definition => {
                 const block = Object.values(Settings.blocks).filter(bl => bl.id === definition.blockId)[0];
@@ -258,14 +258,10 @@ class Generator {
                                         chunk.blocks[vY][vX].blockId = definition.blockId;
                                         console.log(`Chunk ${chunk.id} biome ${biomeNumber} ${biome.name} vein ${definition.blockId}: ${vX} ${vY}`);
                                     }
-                                    if (rng() > 0.25) {
-                                        vX++;
-                                    } else if (rng() > 0.25) {
-                                        vY--;
-                                    } else if (rng() > 0.25) {
-                                        vX--;
+                                    if (rng() > 0.5) {
+                                        vX += rng() > 0.5 ? 1 : -1;
                                     } else {
-                                        vY++;
+                                        vY += rng() > 0.5 ? 1 : -1;
                                     }
                                 }
                             }

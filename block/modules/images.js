@@ -5,7 +5,7 @@ const Images = {
     size: 16, // number of elements in a row
 
     load: function (id, src) {
-        console.log(`Loading ${src}`);
+        console.log(`Loading image ${src}`);
         this.store[id] = {
             loaded: false
         };

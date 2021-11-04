@@ -5,7 +5,6 @@ class Texture {
         this.width = width;
         this.height = height;
         this.rng = Random(seed, 11);
-        console.log(`Texture seed ${seed}`);
 
         this.canvas = document.createElement("canvas");
         this.canvas.setAttribute("width", width + "");
@@ -154,6 +153,42 @@ class Texture {
     }
 }
 
+const Textures = {
+
+    result: {
+        NOT_FOUND: "not found",
+        LOADING: "loading",
+        DRAWN: "drawn"
+    },
+
+    store: {},
+
+    load: function (id, seed, width, height, opt) {
+        console.log(`Loading texture ${id} seed ${seed}`);
+        const element = {
+            texture: new Texture(width, height, seed)
+        }
+        this.store[id] = element;
+        opt.forEach(o => element.texture.noise(o));
+        element.texture.getImage(image => {
+            element.image = image;
+            // console.log(`Loaded texture ${id} seed ${seed}`);
+        });
+    },
+
+    draw: function (ctx, id, x, y, w, h) {
+        const element = this.store[id];
+        if (element === undefined) {
+            return this.result.NOT_FOUND;
+        } else if (element.image === undefined) {
+            return this.result.LOADING;
+        } else {
+            ctx.drawImage(element.image, 0, 0, element.texture.width, element.texture.height, x, y, w, h);
+            return this.result.DRAWN;
+        }
+    }
+}
+
 export {
-    Texture
+    Texture, Textures
 };

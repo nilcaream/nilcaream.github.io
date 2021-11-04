@@ -3,7 +3,7 @@ import {Animation} from "./animation.js";
 import {Settings} from "./settings.js";
 import {Mouse} from "./mouse.js";
 import {Images} from "./images.js";
-import {Texture} from "./texture.js";
+import {Textures} from "./texture.js";
 import {Canvas} from "./canvas.js";
 
 class CyclicArray {
@@ -46,7 +46,7 @@ class Graphics extends Canvas {
 
         this.debug = 0;
 
-        this.zoom = 64;
+        this.zoom = 128;
         this.offset = {
             x: Math.round(window.innerWidth / 2),
             y: Math.round(window.innerHeight / 2)
@@ -89,28 +89,15 @@ class Graphics extends Canvas {
     }
 
     drawTexture(x, y, block) {
-        const id = 5 * (x % 4) + (y % 4);
+        const index = 5 * (x % 4) + (y % 4);
+        const textureId = `block.${block.name}.${index}`;
 
-        if (block.texture.images === undefined) {
-            block.texture.images = {};
+        const drawResult = Textures.draw(this.ctx, textureId, this.rX(x), this.rY(y + 1), this.rS(1), this.rS(1));
+
+        if (drawResult === Textures.result.NOT_FOUND) {
+            Textures.load(textureId, 4620 * block.id + index, 16, 16, block.texture.data);
         }
-
-        let image = block.texture.images[id];
-
-        if (image) {
-            this.ctx.drawImage(image, 0, 0, 16, 16, this.rX(x), this.rY(y + 1), this.rS(1), this.rS(1));
-        } else if (!block.texture.loading) {
-            block.texture.loading = true;
-            const texture = new Texture(16, 16, 4620 * block.id + id);
-            block.texture.data.forEach(opt => texture.noise(opt));
-            console.log(`Loading block ${block.id} variation ${id}`);
-            texture.getImage(image => {
-                block.texture.images[id] = image;
-                block.texture.loading = false;
-            });
-            this.ctx.fillStyle = Settings.blocks.any.color;
-            this.ctx.fillRect(this.rX(x), this.rY(y + 1), this.rS(1), this.rS(1));
-        } else {
+        if (drawResult !== Textures.result.DRAWN) {
             this.ctx.fillStyle = Settings.blocks.any.color;
             this.ctx.fillRect(this.rX(x), this.rY(y + 1), this.rS(1), this.rS(1));
         }
@@ -216,8 +203,11 @@ class Graphics extends Canvas {
         }
 
         // player
-        ctx.fillStyle = "rgba(60,187,167,0.44)";
-        ctx.fillRect(this.rX(player.x - player.width / 2), this.rY(player.y + player.height), this.rS(player.width), this.rS(player.height));
+        if (this.debug > 0) {
+            ctx.fillStyle = "rgba(60,187,167,0.44)";
+            ctx.fillRect(this.rX(player.x - player.width / 2), this.rY(player.y + player.height), this.rS(player.width), this.rS(player.height));
+        }
+        this.drawPlayer(diff, timestamp);
 
         if (this.debug === 2) {
             ctx.fillStyle = "#000";
@@ -336,6 +326,74 @@ class Graphics extends Canvas {
             this.ctx.fillText(`${this.sX(midX).toFixed(2)},${this.sY(midY).toFixed(2)}`, midX, midY - length);
         }
         this.ctx.restore();
+    }
+
+    drawPlayer(diff, timestamp) {
+        const ctx = this.ctx;
+        const player = this.game.player;
+        const headSize = 0.22 * player.height;
+        const chestWidth = 0.27 * player.height;
+        const chestHeight = 0.45 * player.height;
+        const armWidth = 0.15 * player.height;
+        const armHeight = 0.8 * chestHeight;
+        const legWidth = 0.15 * player.height;
+        const legHeight = player.height - headSize - chestHeight;
+
+        ctx.save();
+
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = "#000";
+
+        // head
+        ctx.beginPath();
+        ctx.rect(this.rX(player.x - headSize / 2), this.rY(player.y + player.height), this.rS(headSize), this.rS(headSize));
+        ctx.stroke();
+
+        // chest
+        ctx.beginPath();
+        ctx.rect(this.rX(player.x - chestWidth / 2), this.rY(player.y + player.height - headSize), this.rS(chestWidth), this.rS(chestHeight));
+        ctx.stroke();
+
+        // leg
+        player.animation.legTime = player.animation.legTime || 0;
+        if (player.velocityX === 0) {
+            player.animation.legTime = timestamp;
+        }
+
+        ctx.save();
+        const angle = 0.2 * Math.PI * Math.sin((timestamp - player.animation.legTime) / 200);
+        ctx.translate(this.rX(player.x), this.rY(player.y + legHeight));
+        ctx.rotate(angle);
+        ctx.beginPath();
+        ctx.rect(this.rS(-legWidth / 2), 0, this.rS(legWidth), this.rS(legHeight));
+        ctx.stroke();
+        ctx.rotate(-2 * angle);
+        ctx.beginPath();
+        ctx.rect(this.rS(-legWidth / 2), 0, this.rS(legWidth), this.rS(legHeight));
+        ctx.stroke();
+        ctx.restore();
+
+        // arm
+        player.animation.armTime = player.animation.armTime || 0;
+        player.animation.armAngle = player.animation.armAngle || 0;
+        if (player.velocityX === 0) {
+            player.animation.armTime = timestamp;
+            player.animation.armAngle = 0;
+        } else if (player.velocityX > 0) {
+            player.animation.armAngle = -0.1 * Math.PI + 0.2 * Math.PI * Math.sin(-1.2 * Math.PI + (timestamp - player.animation.armTime) / 200);
+        } else if (player.velocityX < 0) {
+            player.animation.armAngle = 0.1 * Math.PI + 0.2 * Math.PI * Math.sin(-0.2 * Math.PI + (timestamp - player.animation.armTime) / 200);
+        }
+
+        ctx.save();
+        ctx.translate(this.rX(player.x), this.rY(player.y + player.height - headSize - 0.2));
+        ctx.rotate(player.animation.armAngle);
+        ctx.beginPath();
+        ctx.rect(this.rS(-armWidth / 2), this.rS(-0.1), this.rS(armWidth), this.rS(armHeight));
+        ctx.stroke();
+        ctx.restore();
+
+        ctx.restore();
     }
 }
 

@@ -287,9 +287,9 @@ const blocks = {
                     type: "fillPixel",
                     x0: 0, y0: 0,
                     x1: 16, y1: 16,
-                    hue: 0, saturation: 0, luminosity: 35, alpha: 100,
-                    luminosityMax: 55,
-                    chance: 30
+                    hue: 0, saturation: 0, luminosity: 25, alpha: 100,
+                    luminosityMax: 35,
+                    chance: 17
                 }
             ]
         }
@@ -546,7 +546,7 @@ const biomes = {
         id: 0,
         chance: 0.5,
         widthMin: 100,
-        widthMax: 400,
+        widthMax: 350,
         heightMin: chunk.middle - 2,
         heightMax: chunk.middle + 16,
         surfacePointsMin: 3,
@@ -576,8 +576,8 @@ const biomes = {
         widthMax: 300,
         heightMin: Math.round(0.7 * chunk.height),
         heightMax: Math.round(0.9 * chunk.height),
-        surfacePointsMin: 2,
-        surfacePointsMax: 3,
+        surfacePointsMin: 3,
+        surfacePointsMax: 4,
         blocks: [
             blockHelper(1, 1, blocks.grass.id, 0.6),
             blockHelper(2, 3, blocks.dirt.id, 0.6),
