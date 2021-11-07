@@ -38,7 +38,7 @@ class Hud extends Canvas {
         } else {
             this.fontSize = size;
         }
-        this.ctx.font = this.fontSize + "px mono";
+        this.ctx.font = this.fontSize + "px monospace";
     }
 
     draw() {

@@ -39,14 +39,14 @@ class Graphics extends Canvas {
         this.game = game;
         this.frameTime = new CyclicArray(64);
 
-        this.ctx.font = '9px mono';
+        this.ctx.font = '9px monospace';
         this.ctx.fillStyle = "#000";
         this.ctx.textBaseline = "top";
         this.ctx.lineWidth = 1;
 
         this.debug = 0;
+        this.zoom = 80;
 
-        this.zoom = 128;
         this.offset = {
             x: Math.round(window.innerWidth / 2),
             y: Math.round(window.innerHeight / 2)
@@ -76,8 +76,8 @@ class Graphics extends Canvas {
         Keyboard.had("F4") ? this.game.changeMode() : 0;
         Keyboard.had("F8") ? this.debug = (this.debug + 1) % 3 : 0;
 
-        Keyboard.had("F9") ? this.zoom = this.zoom / 2 : 0;
-        Keyboard.had("F10") ? this.zoom = this.zoom * 2 : 0;
+        Keyboard.had("F9") ? this.zoom = this.zoom - 16 : 0;
+        Keyboard.had("F10") ? this.zoom = this.zoom + 16 : 0;
 
         Keyboard.had("F11") ? this.animation.fps = Math.max(5, this.animation.fps - 5) : 0;
         Keyboard.had("F12") ? this.animation.fps = this.animation.fps + 5 : 0;
@@ -211,7 +211,7 @@ class Graphics extends Canvas {
 
         if (this.debug === 2) {
             ctx.fillStyle = "#000";
-            ctx.font = '10px mono';
+            ctx.font = '10px monospace';
             ctx.textBaseline = 'middle';
             ctx.textAlign = 'center';
             ctx.fillText(`${this.game.player.x.toFixed(2)},${this.game.player.y.toFixed(2)}`, this.rX(player.x), this.rY(player.y));
@@ -332,11 +332,11 @@ class Graphics extends Canvas {
         const ctx = this.ctx;
         const player = this.game.player;
         const headSize = 0.22 * player.height;
-        const chestWidth = 0.27 * player.height;
+        const chestWidth = 0.25 * player.height;
         const chestHeight = 0.45 * player.height;
-        const armWidth = 0.15 * player.height;
+        const armWidth = 0.14 * player.height;
         const armHeight = 0.8 * chestHeight;
-        const legWidth = 0.15 * player.height;
+        const legWidth = 0.14 * player.height;
         const legHeight = player.height - headSize - chestHeight;
 
         const textures = {
@@ -450,7 +450,7 @@ class Graphics extends Canvas {
 
         ctx.save();
 
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 1;
         ctx.strokeStyle = "#000";
 
         // arm1

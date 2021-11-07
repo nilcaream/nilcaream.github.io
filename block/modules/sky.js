@@ -40,7 +40,7 @@ class Sky extends Canvas {
         this.staticCelestial(0.037, 0.05, 3 * Math.PI / 2, Math.PI / 2, 255, 255, 255);
 
         // this.ctx.fillStyle = "#fff";
-        // this.ctx.font = "30px mono";
+        // this.ctx.font = "30px monospace";
         // this.ctx.textBaseline = "bottom";
         // this.ctx.textAlign = "left";
         // this.ctx.fillText(this.game.getGameClock(), 0, this.canvas.height);
