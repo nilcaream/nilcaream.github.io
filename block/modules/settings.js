@@ -718,6 +718,133 @@ const nearest = {
     rStep: 0.9,
 }
 
+const textures = {
+    player: {
+        head: [
+            {
+                "type": "canvas",
+                "width": 16,
+                "height": 16
+            },
+            {
+                "type": "fillPixel",
+                "x0": 0,
+                "y0": 0,
+                "x1": 16,
+                "y1": 16,
+                "hue": 38,
+                "saturation": 40,
+                "saturationMax": 45,
+                "luminosity": 50,
+                "alpha": 100,
+                "chance": 100
+            },
+            {
+                "type": "fillPixel",
+                "x0": 0,
+                "y0": 0,
+                "x1": 8,
+                "y1": 8,
+                "hue": 38,
+                "saturation": 50,
+                "luminosity": 30,
+                "luminosityMax": 40,
+                "alpha": 100,
+                "chance": 100
+            },
+            {
+                "type": "fillPixel",
+                "x0": 8,
+                "y0": 0,
+                "x1": 16,
+                "y1": 4,
+                "hue": 38,
+                "saturation": 50,
+                "luminosity": 30,
+                "luminosityMax": 40,
+                "alpha": 100,
+                "chance": 100,
+                "shadow": true,
+                "shadowX": -1,
+                "shadowY": 0
+            },
+            {
+                "type": "fillPixel",
+                "x0": 0,
+                "y0": 8,
+                "x1": 5,
+                "y1": 14,
+                "hue": 38,
+                "saturation": 50,
+                "luminosity": 30,
+                "luminosityMax": 40,
+                "alpha": 100,
+                "chance": 100,
+                "shadow": true,
+                "shadowX": 1,
+                "shadowY": 0
+            },
+            {
+                "type": "fillPixel",
+                "x0": 12,
+                "y0": 7,
+                "x1": 14,
+                "y1": 9,
+                "hue": 233,
+                "saturation": 50,
+                "luminosity": 30,
+                "luminosityMax": 40,
+                "alpha": 100,
+                "chance": 100,
+                "shadow": true,
+                "shadowX": -1,
+                "shadowY": 0
+            },
+            {
+                "type": "fillPixel",
+                "x0": 12,
+                "y0": 13,
+                "x1": 16,
+                "y1": 14,
+                "hue": 5,
+                "saturation": 73,
+                "luminosity": 40,
+                "luminosityMax": 50,
+                "alpha": 100,
+                "chance": 100,
+                "shadow": true,
+                "shadowX": 1,
+                "shadowY": 0
+            },
+            {
+                "type": "fillRect,fillPixel,flipX,flipY",
+                "x0": 0,
+                "y0": 0,
+                "x1": 16,
+                "y1": 16,
+                "hue": 33,
+                "saturation": 100,
+                "luminosity": 100,
+                "alpha": 100,
+                "hueMax": 0,
+                "saturationMax": 0,
+                "luminosityMax": 0,
+                "alphaMax": 0,
+                "width": 1,
+                "height": 1,
+                "widthMax": 0,
+                "heightMax": 0,
+                "count": 1,
+                "countMax": 0,
+                "chance": 0,
+                "spread": 0,
+                "wrapX": false,
+                "wrapY": false
+            }
+        ]
+    }
+};
+
 const Settings = {
     chunk: chunk,
     biomes: biomes,
@@ -726,6 +853,7 @@ const Settings = {
     entities: entities,
     movement: movement,
     nearest: nearest,
+    textures: textures,
 };
 
 export {Settings};

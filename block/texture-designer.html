@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Texture designer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            font-family: monospace;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+        }
+
+        #wrapper {
+            height: 100%;
+            display: flex;
+            flex-direction: row;
+            align-items: stretch;
+            align-content: stretch;
+        }
+
+        #settings {
+            flex-grow: 1;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            align-content: stretch;
+        }
+
+        #text {
+            flex-grow: 1;
+        }
+
+        textarea {
+            padding: 0.2rem;
+        }
+
+        #json {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+
+    <script type="module">
+        import {Texture} from "./modules/texture.js";
+        import {Canvas} from "./modules/canvas.js";
+
+        ((r) => document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", r) : r())(() => {
+            const log = text => {
+                const time = new Date(new Date().getTime() - 1000 * 60 * new Date().getTimezoneOffset()).toISOString().replaceAll(/[TZ]/g, " ").trim().split(" ")[1];
+                document.getElementById("status").textContent = `${time} ${text}`;
+            };
+
+            const clone = object => JSON.parse(JSON.stringify(object));
+
+            const canvas = new Canvas("main", window.innerWidth / 2, window.innerHeight - 10);
+
+            let width = 16;
+            let height = 16;
+            let seed = 1;
+            let scale = 16;
+            let opts = [{
+                type: "canvas",
+                width: 16,
+                height: 16,
+            }, {
+                type: "fillRect",
+                x0: 0, y0: 0,
+                x1: 16, y1: 16,
+                hue: 31, saturation: 93, luminosity: 22, alpha: 100
+            }];
+
+            document.getElementById("json").value = JSON.stringify(opts, null, 2);
+            document.getElementById("json").addEventListener("keydown", e => {
+                if (e.code === "Tab") {
+                    try {
+                        const optsText = document.getElementById("json").value;
+                        document.getElementById("json").value = JSON.stringify(JSON.parse(optsText), null, 2);
+                        log("Formatted");
+                    } catch {
+                        // ignore
+                    }
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+            });
+
+            canvas.frame = function () {
+                try {
+                    const optsText = document.getElementById("json").value;
+                    opts = JSON.parse(optsText); // validate input json
+                    if ((opts[opts.length - 1].type || "").indexOf(",") === -1) {
+                        const defaults = clone(Texture.defaults);
+                        defaults.type = Object.values(Texture.types).join(",");
+                        opts.push(defaults);
+                        document.getElementById("json").value = JSON.stringify(opts, null, 2);
+                    }
+                    log("Updated");
+                } catch (e) {
+                    log(e);
+                }
+
+                const texture = new Texture(width, height, seed);
+                texture.apply(opts);
+                texture.getImage(image => {
+                    this.ctx.save();
+                    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                    this.ctx.translate(this.canvas.width / 2 - scale * texture.width / 2, this.canvas.height / 2 - scale * texture.height / 2);
+                    this.ctx.drawImage(image, 0, 0, scale * texture.width, scale * texture.height);
+                    this.ctx.restore();
+                });
+            }
+
+            canvas.startAnimation(2);
+        });
+
+    </script>
+</head>
+<body>
+<div id="wrapper">
+    <div id="mainHolder">
+        <canvas id="main"></canvas>
+    </div>
+    <div id="settings">
+        <!--        <div id="menu">menu</div>-->
+        <div id="text">
+            <textarea id="json" autocomplete="off" spellcheck="false"></textarea>
+        </div>
+        <div id="status">status</div>
+    </div>
+</div>
+</body>
+</html>

@@ -1,7 +1,7 @@
 import {Random} from "./random.js";
 
 class Texture {
-    constructor(width, height, seed = new Date().getTime()) {
+    constructor(width = 16, height = 16, seed = new Date().getTime()) {
         this.width = width;
         this.height = height;
         this.rng = Random(seed, 11);
@@ -12,6 +12,10 @@ class Texture {
 
         this.ctx = this.canvas.getContext("2d");
         this.ctx.imageSmoothingEnabled = false;
+    }
+
+    clear() {
+        this.ctx.clearRect(0, 0, this.width, this.height);
     }
 
     getCanvas() {
@@ -28,8 +32,15 @@ class Texture {
         image.src = this.canvas.toDataURL("image/png", 1);
     }
 
-    defaults = {
-        type: "rect",
+    static types = {
+        FILL_RECT: "fillRect",
+        FILL_PIXEL: "fillPixel",
+        FLIP_X: "flipX",
+        FLIP_Y: "flipY",
+    }
+
+    static defaults = {
+        type: "fillRect",
         x0: 0, y0: 0,
         x1: 16, y1: 16,
         hue: 33, saturation: 100, luminosity: 100, alpha: 100,
@@ -39,14 +50,21 @@ class Texture {
         count: 1, countMax: 0,
         chance: 0,
         spread: 0,
-        wrapX: false, wrapY: false
+        wrapX: false, wrapY: false,
+        shadow: false,
+        shadowX: -1,
+        shadowY: 1
+    }
+
+    apply(opts) {
+        opts.forEach(opt => this.noise(opt));
     }
 
     noise(opt) {
         // apply defaults if not set in opt
-        Object.keys(this.defaults)
+        Object.keys(Texture.defaults)
             .filter(key => opt[key] === undefined)
-            .forEach(key => opt[key] = this.defaults[key]);
+            .forEach(key => opt[key] = Texture.defaults[key]);
 
         // override default max values
         Object.keys(opt)
@@ -54,7 +72,20 @@ class Texture {
             .filter(key => !opt[key])
             .forEach(key => opt[key] = opt[key.replace("Max", "")]);
 
-        if (opt.type === "fillRect") {
+        if (opt.type === "canvas") {
+            this.canvas.setAttribute("width", opt.width || this.canvas.width + "");
+            this.canvas.setAttribute("height", opt.height || this.canvas.height + "");
+            this.width = this.canvas.width;
+            this.height = this.canvas.height;
+        } else if (opt.type === "flipX") {
+            this.ctx.translate(this.width / 2, this.height / 2);
+            this.ctx.scale(-1, 1);
+            this.ctx.translate(-this.width / 2, -this.height / 2);
+        } else if (opt.type === "flipY") {
+            this.ctx.translate(this.width / 2, this.height / 2);
+            this.ctx.scale(1, -1);
+            this.ctx.translate(-this.width / 2, -this.height / 2);
+        } else if (opt.type === "fillRect") {
             this.ctx.fillStyle = this.optHsla(opt);
             this.ctx.fillRect(opt.x0, opt.y0, opt.x1 - opt.x0, opt.y1 - opt.y0);
         } else if (opt.type === "fillPixel") {
@@ -116,8 +147,8 @@ class Texture {
                 this.ctx.shadowColor = "#000";
                 this.ctx.shadowColor = this.hsla(opt.hue, opt.saturation, 0.7 * opt.luminosity, 60, opt.hueMax, opt.saturationMax, 0.7 * opt.luminosityMax, 60);
                 this.ctx.shadowBlur = 1;
-                this.ctx.shadowOffsetX = -1;
-                this.ctx.shadowOffsetY = 1;
+                this.ctx.shadowOffsetX = opt.shadowX === undefined ? Texture.defaults.shadowX : opt.shadowX;
+                this.ctx.shadowOffsetY = opt.shadowY === undefined ? Texture.defaults.shadowY : opt.shadowY;
                 this.ctx.fillRect(x, y, width, height);
                 this.ctx.restore();
             } else {
@@ -164,16 +195,26 @@ const Textures = {
     store: {},
 
     load: function (id, seed, width, height, opt) {
-        console.log(`Loading texture ${id} seed ${seed}`);
-        const element = {
-            texture: new Texture(width, height, seed)
+        if (this.store[id] === undefined) {
+            console.log(`Loading texture ${id} seed ${seed}`);
+            const optCopy = JSON.parse(JSON.stringify(opt));
+            for (let i = 0; i < optCopy.length; i++) {
+                if (optCopy[i].type === "canvas") {
+                    const optCanvas = optCopy.splice(i, 1)[0];
+                    width = optCanvas.width;
+                    height = optCanvas.height;
+                }
+            }
+            const element = {
+                texture: new Texture(width, height, seed)
+            }
+            this.store[id] = element;
+            optCopy.forEach(o => element.texture.noise(o));
+            element.texture.getImage(image => {
+                element.image = image;
+                // console.log(`Loaded texture ${id} seed ${seed}`);
+            });
         }
-        this.store[id] = element;
-        opt.forEach(o => element.texture.noise(o));
-        element.texture.getImage(image => {
-            element.image = image;
-            // console.log(`Loaded texture ${id} seed ${seed}`);
-        });
     },
 
     draw: function (ctx, id, x, y, w, h) {

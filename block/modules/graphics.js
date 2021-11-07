@@ -339,59 +339,162 @@ class Graphics extends Canvas {
         const legWidth = 0.15 * player.height;
         const legHeight = player.height - headSize - chestHeight;
 
+        const textures = {
+            head: Settings.textures.player.head,
+            chest: [{
+                type: "fillRect",
+                x0: 0, y0: 0,
+                x1: 16, y1: 16,
+                hue: 0, saturation: 0, luminosity: 50, alpha: 100
+            }, {
+                type: "fillPixel",
+                x0: 0, y0: 0,
+                x1: 16, y1: 16,
+                hue: 0, saturation: 0, luminosity: 53, alpha: 100,
+                luminosityMax: 57,
+                chance: 40
+            }],
+            leg1: [{
+                type: "fillRect",
+                x0: 0, y0: 0,
+                x1: 16, y1: 16,
+                hue: 0, saturation: 0, luminosity: 45, alpha: 100
+            }, {
+                type: "fillPixel",
+                x0: 0, y0: 0,
+                x1: 16, y1: 16,
+                hue: 0, saturation: 0, luminosity: 23, alpha: 20,
+                luminosityMax: 27, alphaMax: 60,
+                chance: 40,
+                width: 1, widthMax: 2,
+                height: 1, heightMax: 2
+            }],
+            leg2: [{
+                type: "fillRect",
+                x0: 0, y0: 0,
+                x1: 16, y1: 16,
+                hue: 0, saturation: 0, luminosity: 20, alpha: 100
+            }, {
+                type: "fillPixel",
+                x0: 0, y0: 0,
+                x1: 16, y1: 16,
+                hue: 0, saturation: 0, luminosity: 13, alpha: 100,
+                luminosityMax: 27,
+                chance: 40
+            }],
+            arm1: [{
+                type: "fillRect",
+                x0: 0, y0: 0,
+                x1: 16, y1: 16,
+                hue: 48, saturation: 69, luminosity: 61, alpha: 100
+            }, {
+                type: "fillPixel",
+                x0: 0, y0: 0,
+                x1: 16, y1: 16,
+                hue: 48, saturation: 69, luminosity: 56, alpha: 60,
+                luminosityMax: 66, alphaMax: 100,
+                chance: 40
+            }],
+            arm2: [{
+                type: "fillRect",
+                x0: 0, y0: 0,
+                x1: 16, y1: 16,
+                hue: 216, saturation: 100, luminosity: 48, alpha: 100
+            }, {
+                type: "fillPixel",
+                x0: 0, y0: 0,
+                x1: 16, y1: 16,
+                hue: 216, saturation: 100, luminosity: 53, alpha: 50,
+                luminosityMax: 57,
+                chance: 30
+            }],
+        };
+
+        const draw = (id, x, y, w, h) => {
+            Textures.draw(ctx, id, x, y, w, h);
+            ctx.beginPath();
+            ctx.rect(x, y, w, h);
+            ctx.stroke();
+        };
+
+        const armAngle = (offset) => {
+            if (player.velocityX === 0) {
+                player.animation.armTime = timestamp;
+                return 0;
+            } else if (player.animation.side === "right") {
+                return -0.1 * Math.PI + 0.2 * Math.PI * Math.sin(offset + -1.2 * Math.PI + (timestamp - player.animation.armTime) / 200);
+            } else if (player.animation.side === "left") {
+                return 0.1 * Math.PI + 0.2 * Math.PI * Math.sin(offset + -0.2 * Math.PI + (timestamp - player.animation.armTime) / 200);
+            }
+        }
+
+        Object.keys(textures).forEach(key => {
+            Textures.load("player." + key + ".r", 1, 16, 16, textures[key]);
+            Textures.load("player." + key + ".l", 1, 16, 16, [{type: "flipX"}, textures[key]].flat());
+        });
+
+        player.animation.legTime = player.animation.legTime || 0;
+        player.animation.legAngle = player.animation.legAngle || 0;
+        player.animation.armTime = player.animation.armTime || 0;
+        player.animation.armAngle = player.animation.armAngle || 0;
+        player.animation.side = Mouse.x > this.rX(player.x) ? "right" : "left";
+
+        const suffix = player.animation.side === "right" ? ".r" : ".l";
+
+        if (player.velocityX === 0) {
+            player.animation.legTime = timestamp;
+        }
+        player.animation.legAngle = 0.2 * Math.PI * Math.sin((timestamp - player.animation.legTime) / 200);
+
+        // player.animation.armAngle = armAngle(0);
+
         ctx.save();
 
         ctx.lineWidth = 2;
         ctx.strokeStyle = "#000";
 
-        // head
-        ctx.beginPath();
-        ctx.rect(this.rX(player.x - headSize / 2), this.rY(player.y + player.height), this.rS(headSize), this.rS(headSize));
-        ctx.stroke();
-
-        // chest
-        ctx.beginPath();
-        ctx.rect(this.rX(player.x - chestWidth / 2), this.rY(player.y + player.height - headSize), this.rS(chestWidth), this.rS(chestHeight));
-        ctx.stroke();
-
-        // leg
-        player.animation.legTime = player.animation.legTime || 0;
-        if (player.velocityX === 0) {
-            player.animation.legTime = timestamp;
-        }
-
-        ctx.save();
-        const angle = 0.2 * Math.PI * Math.sin((timestamp - player.animation.legTime) / 200);
-        ctx.translate(this.rX(player.x), this.rY(player.y + legHeight));
-        ctx.rotate(angle);
-        ctx.beginPath();
-        ctx.rect(this.rS(-legWidth / 2), 0, this.rS(legWidth), this.rS(legHeight));
-        ctx.stroke();
-        ctx.rotate(-2 * angle);
-        ctx.beginPath();
-        ctx.rect(this.rS(-legWidth / 2), 0, this.rS(legWidth), this.rS(legHeight));
-        ctx.stroke();
-        ctx.restore();
-
-        // arm
-        player.animation.armTime = player.animation.armTime || 0;
-        player.animation.armAngle = player.animation.armAngle || 0;
-        if (player.velocityX === 0) {
-            player.animation.armTime = timestamp;
-            player.animation.armAngle = 0;
-        } else if (player.velocityX > 0) {
-            player.animation.armAngle = -0.1 * Math.PI + 0.2 * Math.PI * Math.sin(-1.2 * Math.PI + (timestamp - player.animation.armTime) / 200);
-        } else if (player.velocityX < 0) {
-            player.animation.armAngle = 0.1 * Math.PI + 0.2 * Math.PI * Math.sin(-0.2 * Math.PI + (timestamp - player.animation.armTime) / 200);
-        }
-
+        // arm1
         ctx.save();
         ctx.translate(this.rX(player.x), this.rY(player.y + player.height - headSize - 0.2));
-        ctx.rotate(player.animation.armAngle);
-        ctx.beginPath();
-        ctx.rect(this.rS(-armWidth / 2), this.rS(-0.1), this.rS(armWidth), this.rS(armHeight));
-        ctx.stroke();
+        ctx.rotate(armAngle(0));
+        draw("player.arm1" + suffix, this.rS(-armWidth / 2), this.rS(-0.1), this.rS(armWidth), this.rS(armHeight));
         ctx.restore();
+
+        // leg1
+        ctx.save();
+        ctx.translate(this.rX(player.x), this.rY(player.y + legHeight));
+        ctx.rotate(player.animation.legAngle);
+        draw("player.leg1" + suffix, this.rS(-legWidth / 2), 0, this.rS(legWidth), this.rS(legHeight));
+        ctx.restore();
+
+        // chest
+        draw("player.chest" + suffix, this.rX(player.x - chestWidth / 2), this.rY(player.y + player.height - headSize), this.rS(chestWidth), this.rS(chestHeight));
+
+        // arm2
+        ctx.save();
+        ctx.translate(this.rX(player.x), this.rY(player.y + player.height - headSize - 0.2));
+        ctx.rotate(armAngle(Math.PI));
+        draw("player.arm2" + suffix, this.rS(-armWidth / 2), this.rS(-0.1), this.rS(armWidth), this.rS(armHeight));
+        ctx.restore();
+
+        // leg2
+        ctx.save();
+        ctx.translate(this.rX(player.x), this.rY(player.y + legHeight));
+        ctx.rotate(-player.animation.legAngle);
+        draw("player.leg2" + suffix, this.rS(-legWidth / 2), 0, this.rS(legWidth), this.rS(legHeight));
+        ctx.restore();
+
+        // head
+        let headAngle = Math.atan2(this.rY(player.y + player.height - headSize / 2) - Mouse.y, Math.abs(this.rX(player.x) - Mouse.x));
+        headAngle = Math.max(-0.35, Math.min(0.35, Math.sign(this.rX(player.x) - Mouse.x) * headAngle));
+
+        ctx.save();
+        ctx.translate(this.rX(player.x), this.rY(player.y + player.height - headSize / 2));
+        ctx.rotate(headAngle);
+        draw("player.head" + suffix, this.rS(-headSize / 2), -this.rS(headSize / 2), this.rS(headSize), this.rS(headSize));
+        ctx.restore();
+
+        // draw("player.head", this.rX(player.x - headSize / 2), this.rY(player.y + player.height), this.rS(headSize), this.rS(headSize));
 
         ctx.restore();
     }

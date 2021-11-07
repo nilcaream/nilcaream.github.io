@@ -151,7 +151,7 @@ class Sky extends Canvas {
         const depthFactor = Math.min(0, (this.game.player.y - Settings.chunk.middle) / Settings.chunk.middle); // top 0, mid 0, bottom -1
 
         const x0 = Math.floor(this.canvas.width / 2);
-        const y0 = Math.floor(this.canvas.height / 2 + this.canvas.height * depthFactor);
+        const y0 = Math.floor(this.canvas.height / 2 + 2 * this.canvas.height * depthFactor);
         const radiusX = 1.1 * Math.floor(this.canvas.width / 2);
         const radiusY = Math.floor(this.canvas.height / 2);
         const hour = this.hour();
