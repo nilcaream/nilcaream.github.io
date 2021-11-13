@@ -37,6 +37,8 @@ class Texture {
         FILL_PIXEL: "fillPixel",
         FLIP_X: "flipX",
         FLIP_Y: "flipY",
+        TEXT: "text",
+        CANVAS: "canvas",
     }
 
     static defaults = {
@@ -53,14 +55,20 @@ class Texture {
         wrapX: false, wrapY: false,
         shadow: false,
         shadowX: -1,
-        shadowY: 1
+        shadowY: 1,
+        textAlign: "center",
+        textBaseline: "middle",
+        font: "8px monospace",
+        text: "Text"
     }
 
     apply(opts) {
         opts.forEach(opt => this.noise(opt));
     }
 
-    noise(opt) {
+    noise(_opt) {
+        const opt = JSON.parse(JSON.stringify(_opt));
+
         // apply defaults if not set in opt
         Object.keys(Texture.defaults)
             .filter(key => opt[key] === undefined)
@@ -72,23 +80,40 @@ class Texture {
             .filter(key => !opt[key])
             .forEach(key => opt[key] = opt[key.replace("Max", "")]);
 
-        if (opt.type === "canvas") {
+        if (opt.x1 < 0) {
+            opt.x1 = this.width + opt.x1;
+        } else if (opt.x1 === "width") {
+            opt.x1 = this.width;
+        }
+        if (opt.y1 < 0) {
+            opt.y1 = this.height + opt.y1;
+        } else if (opt.y1 === "height") {
+            opt.y1 = this.height;
+        }
+
+        if (opt.type === Texture.types.CANVAS) {
             this.canvas.setAttribute("width", opt.width || this.canvas.width + "");
             this.canvas.setAttribute("height", opt.height || this.canvas.height + "");
             this.width = this.canvas.width;
             this.height = this.canvas.height;
-        } else if (opt.type === "flipX") {
+        } else if (opt.type === Texture.types.TEXT) {
+            this.ctx.textAlign = opt.textAlign;
+            this.ctx.textBaseline = opt.textBaseline;
+            this.ctx.font = opt.font;
+            this.ctx.fillStyle = this.optHsla(opt);
+            this.ctx.fillText(opt.text, opt.x0, opt.y0);
+        } else if (opt.type === Texture.types.FLIP_X) {
             this.ctx.translate(this.width / 2, this.height / 2);
             this.ctx.scale(-1, 1);
             this.ctx.translate(-this.width / 2, -this.height / 2);
-        } else if (opt.type === "flipY") {
+        } else if (opt.type === Texture.types.FLIP_Y) {
             this.ctx.translate(this.width / 2, this.height / 2);
             this.ctx.scale(1, -1);
             this.ctx.translate(-this.width / 2, -this.height / 2);
-        } else if (opt.type === "fillRect") {
+        } else if (opt.type === Texture.types.FILL_RECT) {
             this.ctx.fillStyle = this.optHsla(opt);
             this.ctx.fillRect(opt.x0, opt.y0, opt.x1 - opt.x0, opt.y1 - opt.y0);
-        } else if (opt.type === "fillPixel") {
+        } else if (opt.type === Texture.types.FILL_PIXEL) {
             let width, height;
             if (opt.chance > 0) {
                 for (let x = opt.x0; x < opt.x1; x++) {

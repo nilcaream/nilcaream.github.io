@@ -10,16 +10,25 @@ class Canvas {
         this.ctx.imageSmoothingEnabled = false;
     }
 
-    startAnimation(fps) {
+    startAnimation(fps, onBeforeFrame = Canvas.noop, onAfterFrame = Canvas.noop) {
         this.animation = new Animation(fps);
         this.animation.start((timestamp, diff) => {
+            onBeforeFrame(timestamp, diff);
             this.frame(timestamp, diff);
+            onAfterFrame(timestamp, diff);
         });
+    }
+
+    stop() {
+        this.animation.stop();
     }
 
     frame(timestamp, diff) {
         throw "Frame method is missing";
     }
+
+    static noop = _ => {
+    };
 }
 
 export {Canvas};

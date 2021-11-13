@@ -48,8 +48,8 @@ class Graphics extends Canvas {
         this.zoom = 80;
 
         this.offset = {
-            x: Math.round(window.innerWidth / 2),
-            y: Math.round(window.innerHeight / 2)
+            x: Math.floor(window.innerWidth / 2),
+            y: Math.floor(window.innerHeight / 2)
         };
 
         Keyboard.init();
@@ -76,7 +76,7 @@ class Graphics extends Canvas {
         Keyboard.had("F4") ? this.game.changeMode() : 0;
         Keyboard.had("F8") ? this.debug = (this.debug + 1) % 3 : 0;
 
-        Keyboard.had("F9") ? this.zoom = this.zoom - 16 : 0;
+        Keyboard.had("F9") ? this.zoom = Math.max(16, this.zoom - 16) : 0;
         Keyboard.had("F10") ? this.zoom = this.zoom + 16 : 0;
 
         Keyboard.had("F11") ? this.animation.fps = Math.max(5, this.animation.fps - 5) : 0;
@@ -163,7 +163,7 @@ class Graphics extends Canvas {
     }
 
     rS(v) {
-        return v * this.zoom;
+        return Math.ceil(v * this.zoom);
     }
 
 // convert screen x,y to chunk x,y
@@ -203,11 +203,13 @@ class Graphics extends Canvas {
         }
 
         // player
-        if (this.debug > 0) {
-            ctx.fillStyle = "rgba(60,187,167,0.44)";
-            ctx.fillRect(this.rX(player.x - player.width / 2), this.rY(player.y + player.height), this.rS(player.width), this.rS(player.height));
+        if (this.game.mode !== "demo") {
+            if (this.debug > 0) {
+                ctx.fillStyle = "rgba(60,187,167,0.44)";
+                ctx.fillRect(this.rX(player.x - player.width / 2), this.rY(player.y + player.height), this.rS(player.width), this.rS(player.height));
+            }
+            this.drawPlayer(diff, timestamp);
         }
-        this.drawPlayer(diff, timestamp);
 
         if (this.debug === 2) {
             ctx.fillStyle = "#000";
@@ -291,7 +293,9 @@ class Graphics extends Canvas {
 
         ctx.restore();
 
-        this.drawMousePointer();
+        if (this.game.mode !== "demo") {
+            this.drawMousePointer();
+        }
     }
 
     drawMousePointer() {

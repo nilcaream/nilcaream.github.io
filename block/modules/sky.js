@@ -7,6 +7,7 @@ class Sky extends Canvas {
         super(canvasId);
         this.game = game;
         this.ctx.imageSmoothingEnabled = true;
+        this.internalTime = 0;
 
         const dark = {r: 20, g: 20, b: 20};
         const day = [{r: 58, g: 168, b: 243}, {r: 91, g: 184, b: 246}, {r: 189, g: 244, b: 250}];
@@ -111,7 +112,8 @@ class Sky extends Canvas {
     }
 
     hour() {
-        return (this.game.getGameTime() / 60) % 24;
+        const time = this.internalTime === 0 ? this.game.getGameTime() : this.internalTime;
+        return (time / 60) % 24;
     }
 
     celestial(_originY, _radiusX, _radiusY, _r1, _r2, spinOffset, alphaOffset, r, g, b) {

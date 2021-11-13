@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Game</title>
+    <title>Menu</title>
     <style>
         * {
             margin: 0;
@@ -22,29 +22,43 @@
         import {Graphics} from "./modules/graphics.js";
         import {Hud} from "./modules/hud.js";
         import {Sky} from "./modules/sky.js";
+        import {Settings} from "./modules/settings.js";
+        import {Menu} from "./modules/menu.js";
 
         ((r) => document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", r) : r())(() => {
             const game = new Game(new Date().getTime());
-            game.setPlayer("Copter");
-            game.start(6);
+            game.setPlayer("Demo");
+            game.changeMode("demo");
+            game.player.y = Settings.chunk.middle;
+            game.start(7);
 
             const graphics = new Graphics("main", game);
-            graphics.startAnimation(40);
+            graphics.debug = 0;
+            graphics.zoom = Math.floor(graphics.canvas.height / Settings.chunk.height);
+            graphics.startAnimation(4);
 
-            const hud = new Hud("hud", game);
-            hud.startAnimation(10);
+            setTimeout(() => {
+                graphics.stop();
+                const sky = new Sky("sky", game);
+                sky.internalTime = game.getGameTime();
+                sky.startAnimation(40, (timestamp, diff) => {
+                    sky.internalTime += diff / 120;
+                });
+            }, 1000);
 
-            const sky = new Sky("sky", game);
-            sky.startAnimation(40);
+
+            //const menu = new Menu("menu");
+
+
         });
 
     </script>
 </head>
 <body>
 <div id="wrapper">
+    <!--    <canvas id="menu"></canvas>-->
     <canvas id="sky"></canvas>
     <canvas id="main"></canvas>
-    <canvas id="hud"></canvas>
 </div>
 </body>
 </html>

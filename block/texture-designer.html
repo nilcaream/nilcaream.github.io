@@ -45,6 +45,17 @@
             width: 100%;
             height: 100%;
         }
+
+        #menu {
+            display: flex;
+            flex-direction: row;
+            align-items: stretch;
+            align-content: stretch;
+        }
+
+        #menu > button {
+            flex-grow: 1;
+        }
     </style>
 
     <script type="module">
@@ -82,7 +93,8 @@
                     try {
                         const optsText = document.getElementById("json").value;
                         document.getElementById("json").value = JSON.stringify(JSON.parse(optsText), null, 2);
-                        log("Formatted");
+                        canvas.frame();
+                        log("Updated");
                     } catch {
                         // ignore
                     }
@@ -91,6 +103,8 @@
                     return false;
                 }
             });
+
+            //document.getElementById("json").addEventListener("input", () => canvas.frame());
 
             canvas.frame = function () {
                 try {
@@ -118,7 +132,16 @@
                 });
             }
 
-            canvas.startAnimation(2);
+            document.getElementById("zoomMinus").addEventListener("click", () => {
+                scale /= 2;
+                canvas.frame();
+            });
+            document.getElementById("zoomPlus").addEventListener("click", () => {
+                scale *= 2;
+                canvas.frame();
+            });
+            document.getElementById("update").addEventListener("click", () => canvas.frame());
+            canvas.frame();
         });
 
     </script>
@@ -129,7 +152,11 @@
         <canvas id="main"></canvas>
     </div>
     <div id="settings">
-        <!--        <div id="menu">menu</div>-->
+        <div id="menu">
+            <button id="update">Update</button>
+            <button id="zoomMinus">Zoom -</button>
+            <button id="zoomPlus">Zoom +</button>
+        </div>
         <div id="text">
             <textarea id="json" autocomplete="off" spellcheck="false"></textarea>
         </div>

@@ -231,6 +231,13 @@ class Generator {
                     }
                 }
             });
+
+            for (; y > 0; y--) {
+                chunk.blocks[y][x] = {
+                    blockId: blocks[rng(1, blocks.length)].blockId,
+                    seen: y === chunk.surface[x]
+                };
+            }
         }
     }
 
@@ -259,9 +266,9 @@ class Generator {
                                         console.log(`Chunk ${chunk.id} biome ${biomeNumber} ${biome.name} vein ${definition.blockId}: ${vX} ${vY}`);
                                     }
                                     if (rng() > 0.5) {
-                                        vX += rng() > 0.5 ? 1 : -1;
+                                        vX = Math.max(0, Math.min(Settings.chunk.width - 1, vX + (rng() > 0.5 ? 1 : -1)));
                                     } else {
-                                        vY += rng() > 0.5 ? 1 : -1;
+                                        vY = Math.max(0, Math.min(Settings.chunk.height - 1, vY + (rng() > 0.5 ? 1 : -1)));
                                     }
                                 }
                             }

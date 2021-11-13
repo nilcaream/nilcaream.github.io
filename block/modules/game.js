@@ -39,7 +39,8 @@ class Entity {
 const Mode = {
     spectator: "spectator",
     creative: "creative",
-    survival: "survival"
+    survival: "survival",
+    demo: "demo",
 }
 
 class Game {
@@ -592,7 +593,7 @@ class Game {
             position.seen = true;
         } else {
             position.blockId = chunk.blocks[position.y][position.x].blockId;
-            position.seen = chunk.blocks[position.y][position.x].seen;
+            position.seen = chunk.blocks[position.y][position.x].seen || this.mode === Mode.demo;
             position.light = chunk.blocks[position.y][position.x].light;
         }
         position.block = Settings.blocks[position.blockId];
