@@ -204,7 +204,7 @@ class Game {
             this.moveCreative(timestamp, diff);
         } else if (this.mode === Mode.survival && this.player.health > 0) {
             this.moveSurvival(timestamp, diff);
-            this.selectBlockAt(mouseX, mouseY);
+            this.selectBlock(mouseX, mouseY);
             this.actOnSelectedBlock();
             // this.updateLights();
         }
@@ -290,42 +290,83 @@ class Game {
         }
     }
 
-    selectBlockAt(x2, y2) {
+
+    distance(x0, y0, x1, y1) {
+        return Math.sqrt((x0 - x1) * (x0 - x1) + (y0 - y1) * (y0 - y1));
+    }
+
+    selectBlock(xM, yM) {
         const x0 = this.player.x;
-        const y0 = this.player.y + 0.8 * this.player.height;
-        const a = Math.atan2(y2 - y0, x2 - x0);
-        const none = Settings.blocks.none.id;
+        const target = this.getBlockAbsolute(xM, yM);
+        const x2 = target.xAbsolute + 0.5;
+        const y2 = target.yAbsolute + 0.5;
 
         this.player.selected.present = false;
 
-        for (let r = Settings.nearest.rMinimum; r <= Settings.nearest.rMaximum; r += Settings.nearest.rStep) {
-            const x1 = x0 + r * Math.cos(a);
-            const y1 = y0 + r * Math.sin(a);
-            const block = this.getBlockAbsolute(x1, y1);
+        if (target.blockId === Settings.blocks.none.id) {
+            return;
+        }
 
-            if (block.blockId > none) {
-                block.midX = block.xAbsolute + 0.5;
-                block.midY = block.yAbsolute + 0.5;
-                const pointerBlockDistance = Math.sqrt((x2 - block.midX) * (x2 - block.midX) + (y2 - block.midY) * (y2 - block.midY));
-                const adjacent = this.detectFirstFace(x0, y0, Math.tan(a), block.xAbsolute, block.yAbsolute, block.xAbsolute + 1, block.yAbsolute + 1);
-                if (pointerBlockDistance < 4.7 && adjacent) { // TODO remove if distance check is not needed
+        for (let y0 = this.player.y + 0.8 * this.player.height; y0 > this.player.y + 0.2 * this.player.height; y0 -= 0.1) {
+            if (this.isDirectlyVisibleInRange(x0, y0, target.xAbsolute, target.yAbsolute, target.xAbsolute + 1, target.yAbsolute + 1)) {
+                let adjacent = this.detectFirstFace(x0, y0, (yM - y0) / (xM - x0), target.xAbsolute, target.yAbsolute, target.xAbsolute + 1, target.yAbsolute + 1);
+                if (adjacent === false) {
+                    for (let y3 = target.yAbsolute; y3 <= target.yAbsolute + 1 && adjacent === false; y3 += 0.25) {
+                        adjacent = this.detectFirstFace(x0, y0, (y3 - y0) / (x2 - x0), target.xAbsolute, target.yAbsolute, target.xAbsolute + 1, target.yAbsolute + 1);
+                    }
+                }
+                if (adjacent) {
                     this.player.selected.present = true;
-                    this.player.selected.x = block.xAbsolute;
-                    this.player.selected.y = block.yAbsolute;
+                    this.player.selected.x = target.xAbsolute;
+                    this.player.selected.y = target.yAbsolute;
                     this.player.selected.x0 = x0;
                     this.player.selected.y0 = y0;
-                    this.player.selected.x1 = x1;
-                    this.player.selected.y1 = y1;
+                    // this.player.selected.x1 = x1;
+                    // this.player.selected.y1 = y1;
                     this.player.selected.x2 = x2;
                     this.player.selected.y2 = y2;
-                    this.player.selected.block = block;
+                    this.player.selected.block = target;
                     this.player.adjacent = adjacent;
 
-                    // console.log(`Selected ${this.player.selected.x} ${this.player.selected.y} ${this.player.adjacent.face}`);
+                    console.log(`Selected ${this.player.selected.x} ${this.player.selected.y} ${this.player.adjacent.face}`);
+                    return;
+                } else {
+                    console.log(`No adjacent`);
                 }
-                break;
             }
         }
+    }
+
+    isDirectlyVisibleInRange(x0, y0, x2Min, y2Min, x2Max, y2Max) {
+        for (let x2 = x2Min; x2 <= x2Max; x2 += (x2Max - x2Min) / 4) {
+            for (let y2 = y2Min; y2 <= y2Max; y2 += (y2Max - y2Min) / 4) {
+                if (this.isDirectlyVisible(x0, y0, x2, y2)) {
+                    // console.log(`Directly visible ${x0.toFixed(2)} ${y0.toFixed(2)} - ${x2.toFixed(2)} ${y2.toFixed(2)}`);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    isDirectlyVisible(x0, y0, x2, y2) {
+        const a = Math.atan2(y2 - y0, x2 - x0);
+        let distance = this.distance(x0, y0, x2, y2);
+        if (distance > 2.8) {
+            return false;
+        } else {
+            while (distance > 0) {
+                distance -= 0.8;
+                const x1 = x0 + distance * Math.cos(a);
+                const y1 = y0 + distance * Math.sin(a);
+                const block = this.getBlockAbsolute(x1, y1);
+                if (block.blockId !== Settings.blocks.none.id) {
+                    return false;
+                }
+                // console.log(`Visible ${x1.toFixed(2)} ${y1.toFixed(2)} ${block.blockId}`);
+            }
+        }
+        return true;
     }
 
     // x0,y0 - starting point

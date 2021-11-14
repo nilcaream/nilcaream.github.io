@@ -262,10 +262,11 @@ class Generator {
                                 console.log(`Chunk ${chunk.id} biome ${biomeNumber} ${biome.name} ore ${definition.blockId}: ${x} ${y} length ${length}`);
                                 let vX = x;
                                 let vY = y;
-                                for (let k = 0; k < length && vX < Settings.chunk.width && vY < Settings.chunk.height; k++) {
+                                for (let k = 0, r = 0; r < 16 * length && k < length && vX < Settings.chunk.width && vY < Settings.chunk.height; r++) {
                                     if (chunk.blocks[vY][vX].blockId !== 0 && chunk.blocks[vY][vX].blockId < definition.blockId) { // not empty and not ore of higher grade
                                         chunk.blocks[vY][vX].blockId = definition.blockId;
                                         console.log(`Chunk ${chunk.id} biome ${biomeNumber} ${biome.name} vein ${definition.blockId}: ${vX} ${vY}`);
+                                        k++;
                                     }
                                     if (rng() > 0.5) {
                                         vX = Math.max(0, Math.min(Settings.chunk.width - 1, vX + (rng() > 0.5 ? 1 : -1)));
