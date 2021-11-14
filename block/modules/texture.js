@@ -1,7 +1,7 @@
 import {Random} from "./random.js";
 
 class Texture {
-    constructor(width = 16, height = 16, seed = new Date().getTime()) {
+    constructor(width = 16, height = 16, seed = 0x20211113) {
         this.width = width;
         this.height = height;
         this.rng = Random(seed, 11);
@@ -45,21 +45,22 @@ class Texture {
         type: "fillRect",
         x0: 0, y0: 0,
         x1: 16, y1: 16,
-        hue: 33, saturation: 100, luminosity: 100, alpha: 100,
-        hueMax: 0, saturationMax: 0, luminosityMax: 0, alphaMax: 0,
-        width: 1, height: 1,
-        widthMax: 0, heightMax: 0,
+        hue: 33, hueMax: 0,
+        saturation: 100, saturationMax: 0,
+        luminosity: 100, luminosityMax: 0,
+        alpha: 100, alphaMax: 0,
+        width: 1, widthMax: 0,
+        height: 1, heightMax: 0,
         count: 1, countMax: 0,
         chance: 0,
         spread: 0,
         wrapX: false, wrapY: false,
         shadow: false,
-        shadowX: -1,
-        shadowY: 1,
-        textAlign: "center",
-        textBaseline: "middle",
+        shadowX: -1, shadowY: 1,
         font: "8px monospace",
-        text: "Text"
+        text: "Text",
+        textAlign: "center",
+        textBaseline: "middle"
     }
 
     apply(opts) {
@@ -130,7 +131,7 @@ class Texture {
                 let x, y;
                 let results = [];
                 const count = this.rng(opt.count, opt.countMax, true);
-                for (let i = 0; i < 128 && results.length < count; i++) {
+                for (let i = 0; i < 4 * opt.countMax && results.length < count; i++) {
                     x = this.rng(opt.x0, opt.x1, true);
                     y = this.rng(opt.y0, opt.y1, true);
                     const tooClose = results.map(r => Math.sqrt((r.x - x) * (r.x - x) + (r.y - y) * (r.y - y))).filter(d => d < opt.spread).length;
@@ -219,7 +220,7 @@ const Textures = {
 
     store: {},
 
-    load: function (id, seed, width, height, opt) {
+    load: function (id, seed, width, height, opt, onLoad) {
         if (this.store[id] === undefined) {
             console.log(`Loading texture ${id} seed ${seed}`);
             const optCopy = JSON.parse(JSON.stringify(opt));
@@ -234,9 +235,12 @@ const Textures = {
                 texture: new Texture(width, height, seed)
             }
             this.store[id] = element;
-            optCopy.forEach(o => element.texture.noise(o));
+            element.texture.apply(optCopy);
             element.texture.getImage(image => {
                 element.image = image;
+                if (onLoad) {
+                    onLoad(image);
+                }
                 // console.log(`Loaded texture ${id} seed ${seed}`);
             });
         }
@@ -251,6 +255,23 @@ const Textures = {
         } else {
             ctx.drawImage(element.image, 0, 0, element.texture.width, element.texture.height, x, y, w, h);
             return this.result.DRAWN;
+        }
+    },
+
+    get(id, onGet) {
+        const element = this.store[id];
+        if (element === undefined) {
+            throw `Texture ${id} not found`;
+        } else if (element.image === undefined) {
+            const interval = setInterval(() => {
+                const image = this.store[id].image;
+                if (image !== undefined) {
+                    clearInterval(interval);
+                    onGet(image);
+                }
+            }, 500);
+        } else {
+            onGet(element.image);
         }
     }
 }

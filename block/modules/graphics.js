@@ -1,5 +1,4 @@
 import {Keyboard} from "./keyboard.js";
-import {Animation} from "./animation.js";
 import {Settings} from "./settings.js";
 import {Mouse} from "./mouse.js";
 import {Images} from "./images.js";
@@ -293,43 +292,6 @@ class Graphics extends Canvas {
 
         ctx.restore();
 
-        if (this.game.mode !== "demo") {
-            this.drawMousePointer();
-        }
-    }
-
-    drawMousePointer() {
-        this.ctx.save();
-
-        const midX = Mouse.x;
-        const midY = Mouse.y;
-        const length = 16;
-
-        const draw = () => {
-            this.ctx.beginPath();
-            this.ctx.moveTo(midX - length / 2, midY);
-            this.ctx.lineTo(midX + length / 2, midY);
-            this.ctx.stroke();
-            this.ctx.moveTo(midX, midY - length / 2);
-            this.ctx.lineTo(midX, midY + length / 2);
-            this.ctx.stroke();
-        }
-
-        this.ctx.lineWidth = 2;
-        this.ctx.strokeStyle = "#fff";
-        draw();
-
-        this.ctx.lineWidth = 1;
-        this.ctx.strokeStyle = "#000";
-        draw();
-
-        if (this.debug === 2) {
-            this.ctx.fillStyle = "#000";
-            this.ctx.textBaseline = 'middle';
-            this.ctx.textAlign = 'center';
-            this.ctx.fillText(`${this.sX(midX).toFixed(2)},${this.sY(midY).toFixed(2)}`, midX, midY - length);
-        }
-        this.ctx.restore();
     }
 
     drawPlayer(diff, timestamp) {

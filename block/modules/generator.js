@@ -30,6 +30,8 @@ class Generator {
         this.addCaves(chunk);
         this.addOres(chunk);
         this.addWater(chunk);
+        this.fillWater(chunk);
+        this.fillWater(chunk); // 2nd iteration
         this.addBedrock(chunk);
         this.storeBiomesNames(chunk);
 
@@ -78,7 +80,7 @@ class Generator {
             biomes.push(biome);
 
             if (end >= Settings.chunk.width) { // break when last biome exceeds chunk width
-                if (end - start < Settings.chunk.biomes.widthMin) { // remove last biome if it is too small
+                if (Settings.chunk.width - start < Settings.chunk.biomes.widthMin) { // remove last biome if it is too small
                     biomes.pop();
                 }
                 break;
@@ -278,6 +280,53 @@ class Generator {
                 }
             });
         });
+    }
+
+    fillWater(chunk) {
+        const water = Settings.blocks.water1.id;
+        const none = Settings.blocks.none.id;
+        const fillDown = (x, y) => {
+            let current = chunk.blocks[y][x].blockId;
+            while (current === none && y > 0) {
+                chunk.blocks[y][x].blockId = water;
+
+                for (let xL = x - 1; xL >= 0; xL--) { // left
+                    if (chunk.blocks[y][xL].blockId === none) {
+                        chunk.blocks[y][xL].blockId = water;
+                    } else {
+                        break;
+                    }
+                }
+
+                for (let xR = x + 1; xR < Settings.chunk.width; xR++) { // right
+                    if (chunk.blocks[y][xR].blockId === none) {
+                        chunk.blocks[y][xR].blockId = water;
+                    } else {
+                        break;
+                    }
+                }
+
+                y--;
+                current = chunk.blocks[y][x].blockId;
+            }
+        }
+
+        for (let x = 0; x < Settings.chunk.width; x++) {
+            for (let y = Settings.chunk.height - 1; y >= 0; y--) {
+                const left = x > 0 ? chunk.blocks[y][x - 1].blockId : Settings.blocks.any.id;
+                const right = x < Settings.chunk.width - 1 ? chunk.blocks[y][x + 1].blockId : Settings.blocks.any.id;
+                const bottom = y > 0 ? chunk.blocks[y - 1][x].blockId : Settings.blocks.any.id;
+                if (chunk.blocks[y][x].blockId === water && left === none) {
+                    fillDown(x - 1, y);
+                }
+                if (chunk.blocks[y][x].blockId === water && right === none) {
+                    fillDown(x + 1, y);
+                }
+                if (chunk.blocks[y][x].blockId === water && bottom === none) {
+                    fillDown(x, y - 1);
+                }
+            }
+        }
     }
 
     addWater(chunk) {

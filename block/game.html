@@ -8,7 +8,6 @@
             margin: 0;
             padding: 0;
             overflow: hidden;
-            cursor: none;
         }
 
         canvas {
@@ -20,11 +19,15 @@
     <script type="module">
         import {Game} from "./modules/game.js";
         import {Graphics} from "./modules/graphics.js";
+        import {Mouse} from "./modules/mouse.js";
         import {Hud} from "./modules/hud.js";
         import {Sky} from "./modules/sky.js";
 
         ((r) => document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", r) : r())(() => {
-            const game = new Game(new Date().getTime());
+            Mouse.init();
+            Mouse.changeCursor("plus");
+
+            const game = new Game(1636818911997);//new Date().getTime());
             game.setPlayer("Copter");
             game.start(6);
 

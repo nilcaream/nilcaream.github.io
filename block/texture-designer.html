@@ -72,6 +72,7 @@
 
             const canvas = new Canvas("main", window.innerWidth / 2, window.innerHeight - 10);
 
+            let gridType = 0;
             let width = 16;
             let height = 16;
             let seed = 1;
@@ -87,12 +88,20 @@
                 hue: 31, saturation: 93, luminosity: 22, alpha: 100
             }];
 
+            const toString = obj => JSON.stringify(obj, null, 2)
+                .replaceAll(/\n +"y/gm, " \"y")
+                .replaceAll(/\n +(".+Max)/gm, " $1")
+                .replaceAll(/\n +(".+Y")/gm, " $1")
+                .replaceAll(/\n +("textBaseline")/gm, " $1")
+                .replaceAll(/\n +("spread")/gm, " $1")
+                .replaceAll(/\n +("shadowX")/gm, " $1");
+
             document.getElementById("json").value = JSON.stringify(opts, null, 2);
             document.getElementById("json").addEventListener("keydown", e => {
                 if (e.code === "Tab") {
                     try {
                         const optsText = document.getElementById("json").value;
-                        document.getElementById("json").value = JSON.stringify(JSON.parse(optsText), null, 2);
+                        document.getElementById("json").value = toString(JSON.parse(optsText));
                         canvas.frame();
                         log("Updated");
                     } catch {
@@ -114,7 +123,7 @@
                         const defaults = clone(Texture.defaults);
                         defaults.type = Object.values(Texture.types).join(",");
                         opts.push(defaults);
-                        document.getElementById("json").value = JSON.stringify(opts, null, 2);
+                        document.getElementById("json").value = toString(opts);
                     }
                     log("Updated");
                 } catch (e) {
@@ -129,6 +138,39 @@
                     this.ctx.translate(this.canvas.width / 2 - scale * texture.width / 2, this.canvas.height / 2 - scale * texture.height / 2);
                     this.ctx.drawImage(image, 0, 0, scale * texture.width, scale * texture.height);
                     this.ctx.restore();
+
+                    if (gridType > 0) {
+                        this.ctx.save();
+                        this.ctx.translate(this.canvas.width / 2 - scale * texture.width / 2, this.canvas.height / 2 - scale * texture.height / 2);
+                        this.ctx.lineWidth = 1;
+                        this.ctx.setLineDash([5, 5]);
+
+                        for (let x = 0; x <= scale * texture.width; x += scale * Math.pow(2, gridType - 1)) {
+                            this.ctx.beginPath();
+                            this.ctx.moveTo(x, 0);
+                            this.ctx.lineTo(x, scale * texture.height);
+                            this.ctx.lineDashOffset = 0;
+                            this.ctx.strokeStyle = "#000";
+                            this.ctx.stroke();
+                            this.ctx.lineDashOffset = 5;
+                            this.ctx.strokeStyle = "#fff";
+                            this.ctx.stroke();
+                        }
+
+                        for (let y = 0; y <= scale * texture.height; y += scale * Math.pow(2, gridType - 1)) {
+                            this.ctx.beginPath();
+                            this.ctx.moveTo(0, y);
+                            this.ctx.lineTo(scale * texture.width, y);
+                            this.ctx.lineDashOffset = 0;
+                            this.ctx.strokeStyle = "#000";
+                            this.ctx.stroke();
+                            this.ctx.lineDashOffset = 5;
+                            this.ctx.strokeStyle = "#fff";
+                            this.ctx.stroke();
+                        }
+
+                        this.ctx.restore();
+                    }
                 });
             }
 
@@ -141,6 +183,26 @@
                 canvas.frame();
             });
             document.getElementById("update").addEventListener("click", () => canvas.frame());
+            document.getElementById("grid").addEventListener("click", () => {
+                gridType = (gridType + 1) % 5;
+                canvas.frame();
+                log(`Grid ${gridType}`);
+            });
+            document.getElementById("copy").addEventListener("click", () => {
+                try {
+                    const element = document.getElementById("json");
+                    const source = element.value;
+                    const opts = JSON.parse(source).filter(o => o.type.indexOf(",") === -1);
+                    element.value = toString(opts);
+                    element.select();
+                    document.execCommand("copy");
+                    element.value = source;
+                    log("Copied to clipboard");
+                } catch (e) {
+                    log(e);
+                }
+            });
+
             canvas.frame();
         });
 
@@ -156,6 +218,8 @@
             <button id="update">Update</button>
             <button id="zoomMinus">Zoom -</button>
             <button id="zoomPlus">Zoom +</button>
+            <button id="copy">Copy</button>
+            <button id="grid">Grid</button>
         </div>
         <div id="text">
             <textarea id="json" autocomplete="off" spellcheck="false"></textarea>

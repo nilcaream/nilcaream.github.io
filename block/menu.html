@@ -8,7 +8,6 @@
             margin: 0;
             padding: 0;
             overflow: hidden;
-            cursor: none;
         }
 
         canvas {
@@ -24,9 +23,13 @@
         import {Sky} from "./modules/sky.js";
         import {Settings} from "./modules/settings.js";
         import {Menu} from "./modules/menu.js";
+        import {Mouse} from "./modules/mouse.js";
 
         ((r) => document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", r) : r())(() => {
-            const game = new Game(new Date().getTime());
+            Mouse.init();
+            Mouse.changeCursor("plus");
+
+            const game = new Game(1636818911997); //new Date().getTime());
             game.setPlayer("Demo");
             game.changeMode("demo");
             game.player.y = Settings.chunk.middle;
