@@ -59,6 +59,12 @@ var algorithms = {
             source: "https://www.speedsolving.com/wiki/index.php/PLL_(2x2x2)",
             vcube: "https://www.speedsolving.com/wiki/extensions/algdb/vcube/visualcube.php?fmt=png&bg=w&sch=yrbwog&size=160&pzl=2&stage=oll&view=plan&case=RU2R%27U%27%20RU2L%27U%20R%27U%27L"
         },
+        cll402: {
+            id: "CLL 40",
+            name: "T permutation",
+            sequence: "R2U' R2U R2 y R2U R2U' R2",
+            nc: "t:2 u:YYYY f:BR r:GB b:RG l:OO a:1010u1112"
+        },
         cll41: {
             id: "CLL 41",
             name: "Y permutation",
@@ -300,12 +306,12 @@ var algorithms = {
         },
         "2rw": {
             id: "Wide right 2",
-            sequence: "2Rw / Rw / R 2R",
+            sequence: "2Rw / Rw / r / R 2R",
             nc: "t:5 u:YYYBBYYYBBYYYBBYYYBBYYYBB f:GGGYY r:DDDDD b:DDDDD l:DDDDD"
         },
         "3rw": {
             id: "Wide right 3",
-            sequence: "3Rw / R 2R 3R",
+            sequence: "3Rw / 3r / R 2R 3R",
             nc: "t:5 u:YYBBBYYBBBYYBBBYYBBBYYBBB f:GGYYY r:DDDDD b:DDDDD l:DDDDD"
         },
         ollp: {
@@ -316,7 +322,7 @@ var algorithms = {
             source: "https://jperm.net/5x5"
         },
     },
-    sq1: {
+    "sq1": {
         fm: {
             id: "FM",
             name: "Flip middle",
