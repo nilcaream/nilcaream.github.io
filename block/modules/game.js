@@ -61,7 +61,7 @@ class Game {
     setPlayer(name) {
         this.player = new Entity(name, Settings.entities.player.id);
         this.player.x = this.spawn.x;
-        this.player.y = this.spawn.y;
+        this.player.y = this.spawn.y + 0.1;
         this.player.lastJump = 0;
         // this.player.x = 333.5;
         // this.player.y = 64;
@@ -131,7 +131,7 @@ class Game {
         }
     }
 
-    isSpaceAroundEdge(entity, deltaX, deltaY, width = entity.width, height = entity.height) {
+    isSpaceAroundEdge(entity, deltaX, deltaY, width = entity.width, height = entity.height, blockTest = blockId => blockId > Settings.blocks.none.id) {
         let x0 = entity.x - width / 2 + deltaX;
         let x1 = entity.x + width / 2 + deltaX;
         let y0 = entity.y + deltaY;
@@ -159,7 +159,7 @@ class Game {
 
                 // console.log(`Check ${x.toFixed(2)},${y.toFixed(2)} chunk ${b.x} ${b.y} block ${b.blockId}`);
 
-                if (b.blockId > Settings.blocks.none.id) {
+                if (b.blockId !== Settings.blocks.none.id && b.blockId !== Settings.blocks.water1.id) {
                     return false;
                 }
             }
@@ -303,16 +303,18 @@ class Game {
 
         this.player.selected.present = false;
 
-        if (target.blockId === Settings.blocks.none.id) {
+        if (target.blockId === Settings.blocks.none.id || target.seen === false) {
             return;
         }
 
-        for (let y0 = this.player.y + 0.8 * this.player.height; y0 > this.player.y + 0.2 * this.player.height; y0 -= 0.1) {
+        for (let y0 = this.player.y + this.player.height; y0 > this.player.y + 0.6 * this.player.height; y0 -= 0.1) {
             if (this.isDirectlyVisibleInRange(x0, y0, target.xAbsolute, target.yAbsolute, target.xAbsolute + 1, target.yAbsolute + 1)) {
                 let adjacent = this.detectFirstFace(x0, y0, (yM - y0) / (xM - x0), target.xAbsolute, target.yAbsolute, target.xAbsolute + 1, target.yAbsolute + 1);
                 if (adjacent === false) {
                     for (let y3 = target.yAbsolute; y3 <= target.yAbsolute + 1 && adjacent === false; y3 += 0.25) {
-                        adjacent = this.detectFirstFace(x0, y0, (y3 - y0) / (x2 - x0), target.xAbsolute, target.yAbsolute, target.xAbsolute + 1, target.yAbsolute + 1);
+                        for (let x3 = target.xAbsolute; x3 <= target.xAbsolute + 1 && adjacent === false; x3 += 0.25) {
+                            adjacent = this.detectFirstFace(x0, y0, (y3 - y0) / (x3 - x0), target.xAbsolute, target.yAbsolute, target.xAbsolute + 1, target.yAbsolute + 1);
+                        }
                     }
                 }
                 if (adjacent) {
@@ -328,10 +330,10 @@ class Game {
                     this.player.selected.block = target;
                     this.player.adjacent = adjacent;
 
-                    console.log(`Selected ${this.player.selected.x} ${this.player.selected.y} ${this.player.adjacent.face}`);
+                    // console.log(`Selected ${this.player.selected.x} ${this.player.selected.y} ${this.player.adjacent.face}`);
                     return;
                 } else {
-                    console.log(`No adjacent`);
+                    // console.log(`No adjacent`);
                 }
             }
         }
@@ -516,7 +518,10 @@ class Game {
         if (g === 0) {
             this.player.velocityY = this.getVelocity(Keyboard.bindings.moveUp, Keyboard.bindings.moveDown);
         } else {
-            if (Keyboard.has(Keyboard.bindings.jump) && this.player.velocityY === 0) {
+
+            if (Keyboard.has(Keyboard.bindings.jump) && this.getBlockAbsolute(this.player.x, this.player.y).blockId === Settings.blocks.water1.id) {
+                this.player.velocityY = Settings.movement.swimSpeed;
+            } else if (Keyboard.has(Keyboard.bindings.jump) && this.player.velocityY === 0) {
                 this.player.velocityY = Settings.movement.jumpSpeed;
             } else if (this.player.velocityY > Settings.movement.step && !this.isSpaceAroundEdge(this.player, 0, +Settings.movement.step)) {
                 console.log("Head bang");
@@ -558,6 +563,7 @@ class Game {
     moveSurvival(timestamp, diff) {
         const t = diff / 1000; // in seconds
         const g = Settings.movement.gravity;
+        const gW = Settings.movement.gravity / 128;
 
         if (this.player.velocityY === 0 && Keyboard.has(Keyboard.bindings.moveDown)) {
             if (this.player.crouch === false && this.isSpaceAroundEdge(this.player, 0, 0, this.player.widthCrouch, this.player.heightCrouch)) {
@@ -575,9 +581,12 @@ class Game {
         } else if (this.player.velocityY > Settings.movement.step && !this.isSpaceAroundEdge(this.player, 0, +Settings.movement.step)) {
             console.log("Head bang");
             this.player.velocityY = Settings.movement.step;
-        } else if (this.isSpaceAroundEdge(this.player, 0, -Settings.movement.step)) {
+        } else if (this.isSpaceAroundEdge(this.player, 0, -Settings.movement.step) && this.getBlockAbsolute(this.player.x, this.player.y - Settings.movement.step).blockId !== Settings.blocks.water1.id) {
             this.player.velocityY = this.player.velocityY - g * t;
-            // console.log(`Gravity v=${this.player.velocityY.toFixed(2)}`);
+            console.log(`Gravity v=${this.player.velocityY.toFixed(2)}`);
+        } else if (this.isSpaceAroundEdge(this.player, 0, -Settings.movement.step) && this.getBlockAbsolute(this.player.x, this.player.y - Settings.movement.step).blockId === Settings.blocks.water1.id) {
+            this.player.velocityY = this.player.velocityY - gW * t;
+            console.log(`Drowning v=${this.player.velocityY.toFixed(2)}`);
         } else if (this.player.velocityY !== 0) {
             console.log(`Hurt from ${this.player.velocityY.toFixed(2)}`);
             this.hurt(this.getFallDamage(Math.abs(this.player.velocityY)));

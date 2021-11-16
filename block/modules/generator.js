@@ -210,7 +210,7 @@ class Generator {
             for (let i = y; i < Settings.chunk.height; i++) {
                 chunk.blocks[i][x] = {
                     blockId: Settings.blocks.none.id,
-                    seen: true
+                    // seen: true
                 }
             }
 
@@ -228,7 +228,7 @@ class Generator {
                         }
                         chunk.blocks[y][x] = {
                             blockId: blockId,
-                            seen: y === chunk.surface[x]
+                            // seen: y === chunk.surface[x]
                         };
                     }
                 }
@@ -237,7 +237,7 @@ class Generator {
             for (; y > 0; y--) {
                 chunk.blocks[y][x] = {
                     blockId: blocks[rng(1, blocks.length)].blockId,
-                    seen: y === chunk.surface[x]
+                    // seen: y === chunk.surface[x]
                 };
             }
         }

@@ -27,7 +27,8 @@
             Mouse.init();
             Mouse.changeCursor("plus");
 
-            const game = new Game(1636818911997);//new Date().getTime());
+            // const game = new Game(1636818911997);
+            const game = new Game(new Date().getTime());
             game.setPlayer("Copter");
             game.start(6);
 

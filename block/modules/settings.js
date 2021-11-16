@@ -706,6 +706,7 @@ const movement = {
     runSpeed: 5.6, // blocks per second
     runJumpSpeed: 6.2, // blocks per second // 7.2
     jumpSpeed: 6,
+    swimSpeed: 3,
     accelerationGround: 0.05,
     accelerationAir: 0.02,
     fallDamageMin: 8,
