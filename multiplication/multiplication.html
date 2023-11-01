@@ -40,79 +40,107 @@
             color: darkgray;
         }
 
-        button.start {
-            margin: 3vh 10vw;
-            padding: 4vh 5vw;
-            font-size: 9vh;
-            width: 80vw;
-            height: 19vh;
+        #index div.left {
+            float: left;
+            width: 50%;
         }
 
-        div.header {
-            margin: 2vh 0;
-            padding: 0;
-            font-size: 2.8vh;
-            word-spacing: -1vh;
+        #index div.right {
+            float: right;
+            width: 50%;
         }
 
-        div.equation {
-            padding: 2vh 5vw;
-            font-size: 6.5vh;
-            word-spacing: -1vh;
-        }
+        @media (orientation: portrait) {
 
-        div.keyboard button {
-            height: 11.5vh;
-            width: 22vw;
-            margin: 5vh 4vw 1vh;
-            font-size: 4.5vh;
-        }
-
-        div.keyboard button.delete {
-            margin-top: 2vh;
-            height: 6vh;
-            width: 86vw;
-        }
-
-        div.keyboard button.zero {
-            margin-right: 35vw;
-        }
-
-        div.results, div.time {
-            padding: 2vh 0 0;
-            font-size: 4vh;
-        }
-
-        div.errors {
-            margin-top: 3vh;
-            font-size: 5vh;
-        }
-
-        button.restart {
-            width: 80vw;
-            height: 10vh;
-            position: fixed;
-            bottom: 4vh;
-            left: 10vw;
-            font-size: 5vh;
-        }
-
-        @media (orientation: landscape) {
-            div.header {
-                word-spacing: 0;
-                font-size: 3.8vh;
+            /* select */
+            h1 {
+                padding: 1vh 1vw;
+                font-size: 3vh;
+                height: 7vh;
             }
 
-            button.start {
+            #index button {
+                margin: 3vh 0;
+                padding: 3vh 0;
+                font-size: 8vh;
                 width: 40vw;
             }
 
+            /* keypad */
+            div.header {
+                word-spacing: 0;
+                font-size: 2.2vh;
+            }
+
+            div.equation {
+                padding: 1.5vh 0;
+                font-size: 5vh;
+                word-spacing: 0;
+                letter-spacing: 0;
+            }
+
             div.keyboard button.delete {
+                margin: 2vh 0;
+                padding: 1vh 2px;
+                font-size: 5vh;
+                width: 86vw;
+            }
+
+            div.keyboard button.number {
+                margin: 1vh;
+                padding: 3vh 7vw;
+                font-size: 8vh;
+            }
+
+            div.keyboard button.submit {
+                margin: 1vh;
+                padding: 3vh 22vw;
+                font-size: 8vh;
+            }
+
+            /* summary */
+            div.results {
                 font-size: 4vh;
             }
 
-            div.keyboard button {
-                margin-bottom: 0.1vh;
+            div.time {
+                font-size: 3vh;
+            }
+
+            div.errors {
+                margin: 3vh 0;
+                font-size: 5vh;
+                word-spacing: 0;
+                letter-spacing: 0;
+            }
+
+            button.restart {
+                margin: 2vh 0;
+                padding: 1vh 2px;
+                font-size: 6vh;
+                width: 86vw;
+            }
+        }
+
+        @media (orientation: landscape) {
+
+            /* select */
+            h1 {
+                padding: 1vh 1vw;
+                font-size: 6vh;
+            }
+
+            #index button {
+                margin: 2vh 5vw;
+                padding: 3vh 5vw;
+                font-size: 9vh;
+                width: 40vw;
+            }
+
+            /* keypad */
+            div.header {
+                word-spacing: 0;
+                font-size: 3.8vh;
             }
 
             div.equation {
@@ -120,6 +148,26 @@
                 font-size: 8vh;
             }
 
+            div.keyboard button.delete {
+                margin: 2vh 0;
+                padding: 1vh 2px;
+                font-size: 6vh;
+                width: 86vw;
+            }
+
+            div.keyboard button.number {
+                margin: 1vh;
+                padding: 1vh 8vw;
+                font-size: 10vh;
+            }
+
+            div.keyboard button.submit {
+                margin: 1vh;
+                padding: 1vh 18.3vw;
+                font-size: 10vh;
+            }
+
+            /* summary */
             div.results.good {
                 margin-left: 7vw;
                 float: left;
@@ -131,7 +179,15 @@
             }
 
             div.errors {
+                margin: 3vh 0;
                 font-size: 6.2vh;
+            }
+
+            button.restart {
+                margin: 2vh 0;
+                padding: 1vh 2px;
+                font-size: 6vh;
+                width: 86vw;
             }
         }
     </style>
@@ -162,6 +218,7 @@
             state.previous = [];
             state.startTime = new Date().getTime();
             state.badHistory = [];
+            state.max = state.max || 100;
             next();
         };
 
@@ -179,7 +236,7 @@
 
         const submit = () => {
             enableKeypad(false);
-            const equation = document.querySelectorAll("#test div.equation")[0];
+            const equation = document.querySelector("#test div.equation");
 
             if (state.result === "00") {
                 selectScreen("index");
@@ -218,16 +275,21 @@
             draw();
         }
 
+        const random = (min, max) => Math.round(min + (max - min) * Math.random());
+
         const next = () => {
             if (state.current === state.count) {
                 draw();
             } else {
+                let result = 0;
                 do {
-                    state.factor1 = 2 + Math.round(8 * Math.random());
-                    state.factor2 = 2 + Math.round(8 * Math.random());
-                } while (state.previous.indexOf(state.factor1 * state.factor2) !== -1)
-                state.previous.push(state.factor1 * state.factor2);
-                while (state.previous.length > 5) {
+                    state.factor1 = random(2, 0.7 * state.max);
+                    state.factor2 = random(2, 0.7 * state.max);
+                    result = state.factor1 * state.factor2;
+                    console.log(`${state.factor1} * ${state.factor2} = ${result}`);
+                } while (result > state.max || state.previous.indexOf(result) !== -1)
+                state.previous.push(result);
+                while (state.previous.length > 3) {
                     state.previous.shift();
                 }
                 state.result = "";
@@ -246,17 +308,17 @@
         }
 
         const draw = () => {
-            const header = document.querySelectorAll("#test div.header")[0];
+            const header = document.querySelector("#test div.header");
             if (state.current === state.count) {
-                document.querySelectorAll("#stats div.results.good")[0].textContent = `Dobre: ${state.good} (${state.ratio}%)`;
-                document.querySelectorAll("#stats div.results.bad")[0].textContent = `Złe: ${state.bad} (${100 - state.ratio}%)`;
-                document.querySelectorAll("#stats div.time")[0].textContent = `Czas: ${((state.endTime - state.startTime) / 1000).toFixed(2)} sekund`;
-                const errorsDiv = document.querySelectorAll("#stats div.errors")[0];
+                document.querySelector("#stats div.results.good").textContent = `Dobre: ${state.good} (${state.ratio}%)`;
+                document.querySelector("#stats div.results.bad").textContent = `Złe: ${state.bad} (${100 - state.ratio}%)`;
+                document.querySelector("#stats div.time").textContent = `Czas: ${((state.endTime - state.startTime) / 1000).toFixed(2)} sekund`;
+                const errorsDiv = document.querySelector("#stats div.errors");
                 errorsDiv.innerHTML = state.badHistory.join("<br/>");
                 selectScreen("stats");
             } else {
                 header.textContent = `Test ${state.current + 1} z ${state.count}. Dobre: ${state.good} (${state.ratio}%)`;
-                const equation = document.querySelectorAll("#test div.equation")[0];
+                const equation = document.querySelector("#test div.equation");
                 equation.textContent = `${state.factor1} ⋅ ${state.factor2} = ${state.result}`;
             }
         };
@@ -269,23 +331,40 @@
             }
         })(() => {
             document.querySelectorAll("button.start").forEach(button => {
-                button.onclick = () => start(parseInt(button.textContent))
+                button.onclick = () => start(parseInt(button.textContent));
+            });
+            document.querySelectorAll("button.max").forEach(button => {
+                button.onclick = () => {
+                    document.querySelectorAll("button.max").forEach(e => e.classList.remove("good"))
+                    state.max = parseInt(button.textContent);
+                    button.classList.add("good");
+                };
             });
             document.querySelectorAll("button.number").forEach(button => {
-                button.onclick = () => update(parseInt(button.textContent))
+                button.onclick = () => update(parseInt(button.textContent));
             });
-            document.querySelectorAll("button.delete")[0].onclick = () => update(-1);
-            document.querySelectorAll("button.submit")[0].onclick = submit;
-            document.querySelectorAll("button.restart")[0].onclick = () => selectScreen("index");
+            document.querySelector("button.delete").onclick = () => update(-1);
+            document.querySelector("button.submit").onclick = submit;
+            document.querySelector("button.restart").onclick = () => selectScreen("index");
         });
     </script>
 </head>
 <body>
 <div id="index" class="panel show">
-    <button class="start">10</button>
-    <button class="start">25</button>
-    <button class="start">50</button>
-    <button class="start">100</button>
+    <div class="left">
+        <h1>Liczba powtórzeń</h1>
+        <button class="start">10</button>
+        <button class="start">25</button>
+        <button class="start">50</button>
+        <button class="start">100</button>
+    </div>
+    <div class="left">
+        <h1>Maksymalny iloczyn</h1>
+        <button class="max">70</button>
+        <button class="max">80</button>
+        <button class="max">90</button>
+        <button class="max good">100</button>
+    </div>
 </div>
 <div id="test" class="panel hide">
     <div class="header"></div>
@@ -311,7 +390,7 @@
         </div>
         <div>
             <button class="number zero">0</button>
-            <button class="submit">Dalej</button>
+            <button class="submit">=</button>
         </div>
     </div>
 </div>
@@ -321,7 +400,7 @@
     <div class="time"></div>
     <div class="errors bad"></div>
     <div class="restart">
-        <button class="restart">Start</button>
+        <button class="restart">Jeszcze raz</button>
     </div>
 </div>
 </body>
